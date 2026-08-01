@@ -1,0 +1,36 @@
+# =====================================================================
+#  Netlify — configurazione di deploy
+#  La Pacifica Res Publica · sito statico in /public
+#  La build genera public/js/config.js dalle variabili d'ambiente.
+# =====================================================================
+
+[build]
+  publish = "public"
+  command = "node scripts/build-config.js"
+
+# Single-page app: ogni rotta serve index.html (i file reali restano serviti).
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+[[headers]]
+  for = "/js/config.js"
+  [headers.values]
+    Cache-Control = "no-store"
+[[headers]]
+  for = "/js/app.js"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"

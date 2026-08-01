@@ -1,0 +1,2378 @@
+/* =====================================================================
+   LA PACIFICA RES PUBLICA — Applicazione (frontend)
+   Catalogo statico + viste. I dati dinamici arrivano da Supabase (DB.*).
+   ===================================================================== */
+
+/* ---------- catalogo: 7 commissioni ---------- */
+const COMMISSIONI = [
+  {id:'pace',   nome:'Pace e Risoluzione dei Conflitti', pr:'La Pace come fondamento'},
+  {id:'etica',  nome:'Conoscenza ed Etica',              pr:'Il sapere con coscienza'},
+  {id:'diritti',nome:'Diritti della Persona',            pr:'La dignità di ogni essere umano'},
+  {id:'dialogo',nome:'Dialogo Interculturale e Diplomazia',pr:'L’unità nella diversità'},
+  {id:'arte',   nome:'Arte e Bellezza',                  pr:'La bellezza che educa'},
+  {id:'bene',   nome:'Bene Comune',                      pr:'Il bene di tutti prima del singolo'},
+  {id:'memoria',nome:'Memoria e Futuro',                 pr:'Custodire per costruire'},
+];
+/* ---------- catalogo: corsi/pacchetti/video/audio ----------
+   Caricati dal database (gestiti dalla Presidenza). I valori qui sotto
+   restano come riserva nel caso il caricamento dal backend fallisca. */
+let CORSI = [
+  {id:'c1', tit:'Introduzione alla Filosofia', form:'Prof. Roberto Barbessi', comm:'etica', pacc:'Pensiero e Storia', desc:'Le domande fondamentali che hanno acceso il pensiero occidentale: cosa significa conoscere, agire bene, vivere in una comunità giusta.'},
+  {id:'c2', tit:'La Scuola di Atene', form:'Prof. Roberto Barbessi', comm:'etica', pacc:'Pensiero e Storia', desc:'Dentro l’affresco di Raffaello: Platone, Aristotele e l’ideale di una comunità di sapienti che dialogano per cercare il vero.'},
+  {id:'c3', tit:'Lo sviluppo nella storia dei processi di pace', form:'Prof. Roberto Barbessi', comm:'pace', pacc:'Pensiero e Storia', desc:'Dai trattati antichi alle istituzioni moderne: come l’umanità ha imparato, faticosamente, a trasformare il conflitto in dialogo.'},
+  {id:'c4', tit:'Pratiche di consapevolezza e pace interiore', form:'Dott.ssa Pighi', comm:'diritti', pacc:'Pratiche e Culture di Pace', desc:'La pace fuori comincia dalla pace dentro: attenzione, respiro e presenza come fondamento di ogni relazione non violenta.'},
+  {id:'c5', tit:'Dialogo interculturale e diplomazia', form:'Dott. Mazzonetto', comm:'dialogo', pacc:'Pratiche e Culture di Pace', desc:'Gli strumenti del negoziato e dell’ascolto: come si costruiscono ponti tra culture, lingue e visioni del mondo diverse.'},
+  {id:'c6', tit:'Arte, bellezza e cultura di pace', form:'Dott.ssa Zago', comm:'arte', pacc:'Pratiche e Culture di Pace', desc:'L’arte come linguaggio universale e atto di pace: dalla musica alla pittura, la bellezza che unisce dove le parole dividono.'},
+  {id:'c7', tit:'Etica ed economia responsabile', form:'Dott. Bampa', comm:'bene', pacc:'Etica, Economia e Impresa', desc:'Un’economia al servizio della persona: bene comune, sostenibilità e responsabilità nelle scelte produttive e finanziarie.'},
+  {id:'c8', tit:'Impresa, lavoro e bene comune', form:'Dott. Cesaro', comm:'bene', pacc:'Etica, Economia e Impresa', desc:'Il lavoro come luogo di dignità e cooperazione: modelli d’impresa che generano valore condiviso e coesione sociale.'},
+];
+let PACCHETTI = [
+  {id:'p1', nome:'Pensiero e Storia', corsi:['c1','c2','c3'], prezzo:169, full:207},
+  {id:'p2', nome:'Pratiche e Culture di Pace', corsi:['c4','c5','c6'], prezzo:169, full:207},
+  {id:'p3', nome:'Etica, Economia e Impresa', corsi:['c7','c8'], prezzo:119, full:138},
+];
+let PREZZO_CORSO = 69, PREZZO_PERCORSO = 440;
+let CAMPUS = [
+  {id:'cmp1', tit:'Campus di Pace — Weekend introduttivo', luogo:'Abbazia di Maguzzano — Casa di Spiritualità e Centro Ecumenico (Lonato del Garda, BS)', desc:'Due giorni immersi nei Sette Principi del Manifesto: laboratori di ascolto, dialogo e costruzione di pace, in un luogo di spiritualità affacciato sul Lago di Garda.', data:'17–18 ottobre 2026', durata:'Weekend · 2 giorni, 1 notte', posti:30, prezzo:120, prezzoSoggiorno:190, comm:'pace'},
+  {id:'cmp2', tit:'Campus Scuola di Atene — Filosofia in dialogo', luogo:'Abbazia di Maguzzano — Casa di Spiritualità e Centro Ecumenico (Lonato del Garda, BS)', desc:'Un fine settimana sulle grandi domande del pensiero, guidato dal Prof. Roberto Barbessi: lezioni dialogate, lettura dei classici e passeggiate filosofiche.', data:'14–15 novembre 2026', durata:'Weekend · 2 giorni, 1 notte', posti:25, prezzo:130, prezzoSoggiorno:200, comm:'etica'},
+  {id:'cmp3', tit:'Campus Diplomazia e Dialogo — Ritiro residenziale', luogo:'Abbazia di Maguzzano — Casa di Spiritualità e Centro Ecumenico (Lonato del Garda, BS)', desc:'Tre giorni residenziali di pratica diplomatica: simulazioni di negoziato, gestione dei conflitti e dialogo interculturale, con tempi di silenzio e convivialità.', data:'5–7 dicembre 2026', durata:'3 giorni, 2 notti', posti:25, prezzo:180, prezzoSoggiorno:290, comm:'dialogo'},
+];
+let TESTI = [
+  {id:'t1', tit:'Articolo 11 della Costituzione', autore:'Costituzione della Repubblica Italiana', comm:'pace', lettura:'2 min di lettura', free:true, testo:'«L’Italia ripudia la guerra come strumento di offesa alla libertà degli altri popoli e come mezzo di risoluzione delle controversie internazionali; consente, in condizioni di parità con gli altri Stati, alle limitazioni di sovranità necessarie ad un ordinamento che assicuri la pace e la giustizia fra le Nazioni; promuove e favorisce le organizzazioni internazionali rivolte a tale scopo.»\n\nUna sola frase che contiene un’intera visione del mondo: la pace non come assenza di guerra, ma come ordinamento giusto fra i popoli.'},
+  {id:'t2', tit:'Che cos’è la pace? Una breve introduzione', autore:'La Pacifica', comm:'pace', lettura:'6 min di lettura', free:true, testo:'Siamo abituati a pensare la pace come silenzio delle armi. Ma il silenzio delle armi, da solo, è solo una tregua. La pace vera è qualcosa di più esigente: è la presenza della giustizia, del dialogo, del riconoscimento reciproco.\n\nCostruire la pace non è un atto, è un’abitudine: si allena come si allena un muscolo, con esercizi quotidiani di ascolto, di pazienza, di immaginazione.'},
+  {id:'t3', tit:'I Sette Principi, spiegati', autore:'La Pacifica', comm:'memoria', lettura:'9 min di lettura', free:false, testo:'I Sette Principi del Manifesto non sono dogmi da recitare, ma chiavi per leggere la realtà. La pace come fondamento. La conoscenza unita alla coscienza. La dignità inviolabile della persona. L’unità nella diversità. La bellezza che educa. Il bene comune. La memoria che costruisce il futuro.'},
+  {id:'t4', tit:'Il dialogo come arte', autore:'La Pacifica', comm:'dialogo', lettura:'7 min di lettura', free:false, testo:'Dialogare non è convincere. Chi entra in un dialogo solo per vincere ha già smesso di ascoltare. Il dialogo è un’arte antica che chiede una virtù rara: la disponibilità a cambiare idea.'},
+  {id:'t5', tit:'Bellezza e nonviolenza', autore:'La Pacifica', comm:'arte', lettura:'5 min di lettura', free:false, testo:'Perché un’accademia per la pace si occupa di bellezza? Perché la bellezza disarma. La nonviolenza e la bellezza condividono la stessa radice: il rifiuto di distruggere.'},
+];
+let EVENTI = [
+  {id:'ev1', tit:'Speculum 2027', sub:'Lo specchio del sapere: i fogli vinciani di Leonardo e la Scuola di Atene',
+   desc:'Una mostra lunga un anno, scandita in dodici mesi, che mette faccia a faccia i fogli manoscritti di Leonardo da Vinci e la Scuola di Atene di Raffaello. «Speculum» è lo specchio: ogni mese un foglio vinciano si riflette in una figura del pensiero antico, mostrando come l’osservazione della natura e la ricerca della verità siano lo stesso gesto.',
+   luogo:'Sede espositiva de La Pacifica — in via di definizione', periodo:'gennaio – dicembre 2027 (12 mesi)',
+   tipo:'Mostra', accesso:'biglietto', prezzo:30,
+   programma:'Gennaio — Il volo e l’aria: i fogli sul volo · l’aspirazione al cielo (Platone)\nFebbraio — L’acqua e i vortici · Eraclito e il divenire\nMarzo — L’anatomia e il corpo · l’uomo misura di tutte le cose (Protagora)\nAprile — Le proporzioni e l’Uomo Vitruviano · Pitagora e il numero\nMaggio — La geometria e la prospettiva · Euclide e la dimostrazione\nGiugno — La luce e l’ombra · la caverna e la conoscenza (Platone)\nLuglio — Le macchine e l’ingegno · Archimede e la tecnica\nAgosto — La botanica e la natura · Aristotele e l’osservazione\nSettembre — Gli astri e il cosmo · Tolomeo e l’ordine del cielo\nOttobre — Il volto e l’espressione · Socrate e l’etica del carattere\nNovembre — Il diluvio e il limite · Diogene e il distacco\nDicembre — Lo specchio: arte e filosofia si riflettono · la sintesi di Atene e Vinci'},
+];
+/* Livelli di accesso. Sono dati: la presidenza li crea e li modifica dal CMS.
+   Questi qui sotto valgono solo se il catalogo non arriva dal server. */
+let FONTI = [];
+let NOTIZIE = [];
+let EVENTIPACE = [];
+let FORMULE = [];   /* formule dei mecenati (dal server) */
+let ENTE = {};      /* dati dell'ente: IBAN e simili, MAI nel repository */
+let TEMI = [];        /* mappatura tema OEIL -> commissione (arriva dal server) */
+let DOSSIER = [];     /* dossier legislativi europei, materia prima delle commissioni */
+let LIVELLI = [
+  {id:'pubblico',  nome:'Pubblico',         ospiti:true,  memberships:[],                          ruoli:[],           invito:'',                                     cta:'',            ordine:10, attivo:true},
+  {id:'iscritti',  nome:'Solo iscritti',    ospiti:false, memberships:['free','civis','academicus'],ruoli:[],          invito:'Registrati per guardarlo',             cta:'registrati',  ordine:20, attivo:true},
+  {id:'civis',     nome:'Civis',            ospiti:false, memberships:['civis','academicus'],      ruoli:[],           invito:'Incluso in Civis',                     cta:'abbonamenti', ordine:30, attivo:true},
+  {id:'academicus',nome:'Civis Academicus', ospiti:false, memberships:['academicus'],              ruoli:[],           invito:'Incluso in Civis Academicus',          cta:'abbonamenti', ordine:40, attivo:true},
+  {id:'delegati',  nome:'Delegati',         ospiti:false, memberships:[],                          ruoli:['delegato'], invito:'Riservato ai delegati del Parlamento', cta:'',            ordine:50, attivo:true},
+  {id:'presidenza',nome:'Solo presidenza',  ospiti:false, memberships:[],                          ruoli:[],           invito:'Materiale interno',                    cta:'',            ordine:60, attivo:true},
+];
+let VOD = [
+  {id:'v1', tit:'Il Manifesto della Pacifica', tipo:'Documentario', durata:'24 min', livello:'pubblico', comm:'memoria', desc:'Il film che racconta i Sette Principi fondativi e la nascita della Res Publica dei giovani.'},
+  {id:'v2', tit:'La prima lezione del Prof. Barbessi', tipo:'Lezione aperta', durata:'25 min', livello:'pubblico', comm:'etica', desc:'Estratto gratuito dal corso di Filosofia: un assaggio del Percorso di Pace.'},
+  {id:'v3', tit:'Dentro l’emiciclo: una seduta dei delegati', tipo:'Documento', durata:'38 min', livello:'civis', comm:'pace', desc:'Riprese di una seduta plenaria del Parlamento dei Giovani: dibattito, emendamenti, voto.'},
+  {id:'v4', tit:'Conferenza: le diplomazie della pace', tipo:'Conferenza', durata:'52 min', livello:'civis', comm:'dialogo', desc:'Un dialogo a più voci sui grandi processi di pace contemporanei.'},
+  {id:'v5', tit:'La bellezza che disarma', tipo:'Documentario', durata:'31 min', livello:'civis', comm:'arte', desc:'Viaggio nei luoghi dove l’arte è diventata strumento di riconciliazione.'},
+  {id:'v6', tit:'Economia del bene comune', tipo:'Masterclass', durata:'44 min', livello:'civis', comm:'bene', desc:'Una masterclass sui modelli economici al servizio della persona.'},
+  {id:'v7', tit:'Memoria e futuro: voci di testimoni', tipo:'Documento', durata:'40 min', livello:'civis', comm:'memoria', desc:'Testimonianze raccolte per custodire la memoria e illuminare il futuro.'},
+  {id:'v8', tit:'Live mensile — Q&A con i formatori', tipo:'Registrazione live', durata:'61 min', livello:'civis', comm:'etica', desc:'La registrazione dell’incontro mensile riservato agli abbonati.'},
+];
+let AUDIO = [
+  {id:'a1', tit:'Il Manifesto, narrato', autore:'La Pacifica', durata:'18 min', free:true, comm:'memoria',
+    testo:'I Sette Principi della Pacifica Res Publica. Primo: la pace come fondamento di ogni convivenza, non assenza di conflitto ma presenza di giustizia. Secondo: la conoscenza unita alla coscienza, perché il sapere senza etica non genera futuro. Terzo: la dignità inviolabile di ogni persona, fondamento di ogni diritto. Quarto: l’unità nella diversità, dove il dialogo tra culture diventa diplomazia. Quinto: la bellezza che educa, l’arte come linguaggio universale di pace. Sesto: il bene comune anteposto all’interesse del singolo. Settimo: la memoria custodita per costruire il futuro.'},
+  {id:'a2', tit:'Apologia di Socrate (estratti)', autore:'Platone — pubblico dominio', durata:'42 min', free:false, comm:'etica',
+    testo:'So di non sapere: in questa consapevolezza Socrate fonda la sua ricerca. Davanti ai giudici di Atene non si difende per salvarsi, ma per restare fedele alla verità. La vita non esaminata, dice, non è degna di essere vissuta. Meglio subire ingiustizia che commetterla.'},
+  {id:'a3', tit:'La pace perpetua (sintesi)', autore:'I. Kant — pubblico dominio', durata:'55 min', free:false, comm:'pace',
+    testo:'Kant immagina una pace che non sia tregua tra due guerre, ma condizione duratura fondata sul diritto. Propone una federazione di liberi Stati e un diritto cosmopolitico dell’ospitalità. La pace non è un dono della natura ma un compito della ragione: va istituita.'},
+  {id:'a4', tit:'Lettera sulla nonviolenza', autore:'Antologia — pubblico dominio', durata:'29 min', free:false, comm:'diritti',
+    testo:'La nonviolenza non è la virtù dei deboli ma la forza dei coraggiosi. Non si tratta di subire, ma di rifiutare di restituire il male con il male, spezzando la catena. Chi la pratica trasforma l’avversario in interlocutore e il conflitto in occasione di verità.'},
+  {id:'a5', tit:'Sulla bellezza e l’educazione', autore:'F. Schiller — pubblico dominio', durata:'37 min', free:false, comm:'arte',
+    testo:'L’uomo è pienamente uomo solo quando gioca, e gioca solo davanti alla bellezza. L’educazione estetica non è un lusso ma la via attraverso cui la libertà entra nella vita: la bellezza riconcilia sensibilità e ragione, e prepara l’animo alla pace.'},
+  {id:'a6', tit:'Dispensa: i processi di pace nel Novecento', autore:'Prof. R. Barbessi', durata:'33 min', free:false, comm:'pace',
+    testo:'Il Novecento è il secolo delle guerre totali ma anche delle grandi istituzioni di pace. Dalla Società delle Nazioni alle Nazioni Unite: ogni catastrofe ha generato un tentativo di darsi regole comuni. La storia dei processi di pace è la storia di un’umanità che impara dai propri errori.'},
+];
+
+/* ---------- accesso ---------- */
+/* Stessa regola del SQL dossier_commissioni(): confronto per PREFISSO,
+   cosi' '3.30' cattura 3.30.06 e l'intero ramo. */
+function dossierCommissioni(temi){
+  const out=[];
+  (TEMI||[]).forEach(t=>{
+    if((temi||[]).some(c=>String(c).indexOf(t.prefisso)===0) && out.indexOf(t.commissione)<0) out.push(t.commissione);
+  });
+  return out;
+}
+function dossierDi(comm){ return (DOSSIER||[]).filter(d=>dossierCommissioni(d.temi).indexOf(comm)>=0); }
+function livelloConsentito(id){
+  const l = LIVELLI.find(x=>x.id===id);
+  if(!l || l.attivo===false) return false;
+  if(l.ospiti) return true;                       /* vale anche senza account */
+  if(!io) return false;
+  if(io.ruolo==='presidenza') return true;        /* amministrazione: vede tutto */
+  return (l.memberships||[]).indexOf(io.membership)>=0 || (l.ruoli||[]).indexOf(io.ruolo)>=0;
+}
+function livello(id){ return LIVELLI.find(x=>x.id===id) || {id:id, nome:id, invito:'', cta:''}; }
+function haAccesso(area){
+  if(!io) return false;
+  if(io.ruolo==='presidenza') return true;
+  if(area==='parlamento') return io.ruolo==='delegato' || io.ruolo==='presidenza';
+  const m = io.membership;
+  if(area==='vod-premium' || area==='audio-premium') return m==='civis' || m==='academicus';
+  if(area.startsWith('corso:')){
+    const cid = area.split(':')[1];
+    if(m==='academicus') return true;
+    const a = io.acquisti||[];
+    return a.includes('corso:'+cid)
+      || a.some(x=>x.startsWith('pacc:') && (PACCHETTI.find(p=>p.id===x.split(':')[1])||{corsi:[]}).corsi.includes(cid))
+      || a.includes('percorso');
+  }
+  return false;
+}
+
+/* ---------- stato + utility ---------- */
+let io=null, vista='dashboard', ctx={}, authTab='login';
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const euro = n => n.toLocaleString('it-IT')+' €';
+const initials = n => n.trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+const commNome = id => (COMMISSIONI.find(c=>c.id===id)||{}).nome || '';
+function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; $('toast-root').appendChild(t); setTimeout(()=>t.remove(),2600); }
+async function refreshMe(){ io = await DB.loadMe(); }
+async function loadCatalog(){
+  try{
+    const cat = await DB.loadCatalog();
+    if(cat.CORSI && cat.CORSI.length) CORSI = cat.CORSI;
+    if(cat.LIVELLI && cat.LIVELLI.length) LIVELLI = cat.LIVELLI;
+    if(cat.TEMI) TEMI = cat.TEMI;
+    if(cat.DOSSIER) DOSSIER = cat.DOSSIER;
+    if(cat.FONTI) FONTI = cat.FONTI;
+    if(cat.NOTIZIE) NOTIZIE = cat.NOTIZIE;
+    if(cat.EVENTIPACE) EVENTIPACE = cat.EVENTIPACE;
+    if(cat.VOD && cat.VOD.length) VOD = cat.VOD;
+    if(cat.AUDIO && cat.AUDIO.length) AUDIO = cat.AUDIO;
+    if(cat.PACCHETTI) PACCHETTI = cat.PACCHETTI;
+    if(cat.CAMPUS && cat.CAMPUS.length) CAMPUS = cat.CAMPUS;
+    if(cat.TESTI && cat.TESTI.length) TESTI = cat.TESTI;
+    if(cat.EVENTI && cat.EVENTI.length) EVENTI = cat.EVENTI;
+    if(cat.PREZZO_CORSO) PREZZO_CORSO = cat.PREZZO_CORSO;
+    if(cat.PREZZO_PERCORSO) PREZZO_PERCORSO = cat.PREZZO_PERCORSO;
+  }catch(e){ /* in caso di errore restano i valori di riserva */ }
+}
+
+/* =====================================================================
+   PORTA D'INGRESSO PUBBLICA (landing)
+===================================================================== */
+/* =====================================================================
+   PORTA D'INGRESSO PUBBLICA — landing per chi non ha effettuato l'accesso.
+   Vetrina ispirata alla Scuola di Atene: architettura originale in SVG,
+   i Sette Principi, i sei pilastri e i servizi realmente gratuiti
+   (lettura dei testi e ascolto con voce IA, senza account).
+   ===================================================================== */
+async function caricaRassegnaLanding(){
+  const box=$('lp-rass'); if(!box) return;
+  try{ if(!NOTIZIE.length && !EVENTIPACE.length) await loadCatalog(); }catch(e){}
+  box.innerHTML = rassegnaHTML();
+  osservaReveal();
+}
+async function caricaMecenati(){
+  try{ FORMULE = await DB.formule(); ENTE = await DB.datiEnte(); }catch(e){ FORMULE=[]; }
+  const box=$('mec-box'); if(!box) return;
+  box.innerHTML = FORMULE.filter(f=>f.attivo!==false).map(f=>`<div class="plan">
+      <h4>${esc(f.nome)}</h4><div class="p">${euro(f.importo)}</div>
+      <p class="muted small" style="margin:6px 0 12px">${esc(f.descrizione||'')}</p>
+      <div class="badge blu">${f.quanti} accessi</div>
+      <button class="btn oro full" style="margin-top:14px" onclick="apriImpegno('${esc(f.id)}')">Sottoscrivi l\u2019impegno</button>
+    </div>`).join('');
+  osservaReveal();
+}
+function apriImpegno(id){
+  const f = FORMULE.find(x=>x.id===id); if(!f) return;
+  const priv = ENTE.ente_privacy_url||'';
+  openModal(`<h3 style="font-size:23px">${esc(f.nome)}</h3><span class="badge oro">${euro(f.importo)} \u00b7 ${f.quanti} accessi</span>`,
+    `<p class="muted small" style="margin-bottom:14px">Sottoscrivendo l\u2019impegno ricevi un riferimento e le coordinate per il bonifico. Gli accessi vengono emessi a pagamento accreditato.</p>
+     <div class="field"><label>Ragione sociale o nome *</label><input id="im-rag"></div>
+     <div class="grid g2"><div class="field"><label>Referente *</label><input id="im-ref"></div>
+       <div class="field"><label>Email *</label><input id="im-mail" type="email"></div></div>
+     <div class="grid g2"><div class="field"><label>Telefono</label><input id="im-tel"></div>
+       <div class="field"><label>C.F. / P.IVA</label><input id="im-cf"></div></div>
+     <div class="field"><label>Indirizzo</label><input id="im-ind"></div>
+     <div class="field"><label>Note</label><input id="im-note"></div>
+     <label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;margin:4px 0 14px">
+       <input type="checkbox" id="im-ok" style="width:auto;margin-top:3px">
+       <span>Acconsento al trattamento dei dati per la gestione dell\u2019impegno${priv?` (<a href="${esc(priv)}" target="_blank" rel="noopener noreferrer">informativa</a>)`:''}. *</span></label>
+     <button class="btn oro full" onclick="inviaImpegno('${esc(f.id)}')">Sottoscrivi</button>`);
+}
+async function inviaImpegno(id){
+  if(!$('im-ok').checked) return toast('Serve il consenso al trattamento dei dati.');
+  try{
+    const r = await DB.sottoscriviImpegno({ formula:id, ragione:$('im-rag').value, referente:$('im-ref').value,
+      email:$('im-mail').value, telefono:$('im-tel').value, indirizzo:$('im-ind').value,
+      cfPiva:$('im-cf').value, note:$('im-note').value, consenso:true });
+    if(!r) return toast('Non riesco a registrare l\u2019impegno.');
+    openModal(`<h3 style="font-size:23px">Impegno registrato</h3>`,
+      `<p style="margin-bottom:14px">Riferimento <b>${esc(r.riferimento)}</b>. Usalo come <b>causale</b> del bonifico: e\u2019 cosi\u2019 che riconosciamo il versamento.</p>
+       ${!r.iban?`<div class="card" style="padding:14px;background:#FCEEEE;border-color:#E3B7B7"><b>Coordinate non ancora pubblicate.</b>
+           <p class="small" style="margin-top:6px">Ti contatteremo all\u2019indirizzo indicato.</p></div>`
+       :`<div class="card" style="padding:14px;background:var(--avorio);border:none">
+           <div class="small"><b>Intestatario</b><br>${esc(r.intestatario||r.denominazione||'')}</div>
+           <div class="small" style="margin-top:8px"><b>IBAN</b><br><code>${esc(r.iban)}</code></div>
+           ${r.banca?`<div class="small" style="margin-top:8px"><b>Banca</b><br>${esc(r.banca)}</div>`:''}
+           <div class="small" style="margin-top:8px"><b>Importo</b><br>${euro(r.importo)}</div>
+           <div class="small" style="margin-top:8px"><b>Causale</b><br><code>${esc(r.riferimento)}</code></div></div>`}
+       <p class="muted small" style="margin-top:12px">Gli accessi vengono emessi a pagamento accreditato.</p>`);
+  }catch(e){ toast(String(e.message||e).replace(/^.*: /,'')); }
+}
+function apriAccesso(tab){ authTab = (tab==='reg' ? 'reg' : 'login'); renderAuth(); }
+function tornaHome(){ paginaLanding='home'; renderLanding(); window.scrollTo(0,0); }
+
+/* Emblemi SVG dei sei pilastri (coerenti col tema, oro su vetro) */
+function pillSvg(t){
+  const S = b => `<svg viewBox="0 0 40 40" fill="none" stroke="#A9842F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${b}</svg>`;
+  const M = {
+    'Parlamento dei Giovani': S('<path d="M4 15 20 6l16 9"/><path d="M8 15v13M16 15v13M24 15v13M32 15v13"/><path d="M5 30h30"/>'),
+    'Accademia': S('<path d="M20 11c-3-2-7-3-12-3v22c5 0 9 1 12 3 3-2 7-3 12-3V8c-5 0-9 1-12 3z"/><path d="M20 11v22"/>'),
+    'Video On Demand': S('<rect x="6" y="9" width="28" height="22" rx="3"/><path d="M17 15l9 6-9 6z" fill="#A9842F" stroke="none"/>'),
+    'Biblioteca Audio': S('<path d="M9 8h5v24H9zM17 8h5v24h-5z"/><path d="M26 13c3 3 3 11 0 14M30 10c5 5 5 15 0 20"/>'),
+    'Campus': S('<path d="M6 32V17l14-9 14 9v15"/><path d="M16 32v-6a4 4 0 018 0v6"/><path d="M4 32h32"/>'),
+    'Eventi': S('<path d="M20 6l3.8 8.1 8.9 1-6.6 6 1.7 8.8L20 33.4l-7.8 4.5 1.7-8.8-6.6-6 8.9-1z"/>')
+  };
+  return M[t] || S('<circle cx="20" cy="20" r="12"/>');
+}
+
+/* Scene illustrate di sfondo per i sei pilastri */
+function pillScene(t){
+  const M={
+    'Parlamento dei Giovani': '<svg viewBox="0 0 400 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A4E86"/><stop offset="1" stop-color="#0E1D38"/></linearGradient></defs><rect width="400" height="340" fill="url(#g1)"/><g stroke="#D9C48A" stroke-width="2" fill="none" opacity=".5" stroke-linejoin="round"><path d="M60 44l140-26 140 26"/><path d="M66 46h268"/><path d="M92 50v66M138 50v66M200 50v66M262 50v66M308 50v66"/><path d="M78 118h244"/></g><g fill="none" stroke="#4A6FA8" stroke-width="7" opacity=".55"><path d="M28 312 A186 132 0 0 1 372 312"/><path d="M64 312 A150 108 0 0 1 336 312"/><path d="M100 312 A116 86 0 0 1 300 312"/><path d="M136 312 A82 64 0 0 1 264 312"/></g><rect x="186" y="256" width="28" height="56" rx="3" fill="#D9C48A" opacity=".8"/></svg>',
+    'Accademia': '<svg viewBox="0 0 400 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#243F70"/><stop offset="1" stop-color="#0E1D38"/></linearGradient></defs><rect width="400" height="340" fill="url(#g2)"/><rect x="34" y="70" width="332" height="238" rx="6" fill="none" stroke="#D9C48A" stroke-width="2" opacity=".35"/><rect x="44" y="98" width="16" height="52" rx="1.5" fill="#A9842F" opacity=".85"/><rect x="63" y="106" width="12" height="44" rx="1.5" fill="#3A5C93" opacity=".85"/><rect x="78" y="110" width="12" height="40" rx="1.5" fill="#3A5C93" opacity=".85"/><rect x="93" y="102" width="12" height="48" rx="1.5" fill="#4A6FA8" opacity=".85"/><rect x="108" y="106" width="12" height="44" rx="1.5" fill="#A9842F" opacity=".85"/><rect x="123" y="106" width="18" height="44" rx="1.5" fill="#4A6FA8" opacity=".85"/><rect x="144" y="102" width="12" height="48" rx="1.5" fill="#A9842F" opacity=".85"/><rect x="159" y="102" width="12" height="48" rx="1.5" fill="#D9C48A" opacity=".85"/><rect x="174" y="102" width="14" height="48" rx="1.5" fill="#D9C48A" opacity=".85"/><rect x="191" y="102" width="10" height="48" rx="1.5" fill="#A9842F" opacity=".85"/><rect x="204" y="98" width="12" height="52" rx="1.5" fill="#D9C48A" opacity=".85"/><rect x="219" y="98" width="10" height="52" rx="1.5" fill="#EDE7DA" opacity=".85"/><rect x="232" y="98" width="18" height="52" rx="1.5" fill="#3A5C93" opacity=".85"/><rect x="253" y="102" width="12" height="48" rx="1.5" fill="#EDE7DA" opacity=".85"/><rect x="268" y="98" width="10" height="52" rx="1.5" fill="#D9C48A" opacity=".85"/><rect x="281" y="102" width="10" height="48" rx="1.5" fill="#4A6FA8" opacity=".85"/><rect x="294" y="106" width="16" height="44" rx="1.5" fill="#3A5C93" opacity=".85"/><rect x="313" y="102" width="12" height="48" rx="1.5" fill="#D9C48A" opacity=".85"/><rect x="328" y="98" width="10" height="52" rx="1.5" fill="#A9842F" opacity=".85"/><rect x="341" y="92" width="10" height="58" rx="1.5" fill="#EDE7DA" opacity=".85"/><rect x="354" y="102" width="18" height="48" rx="1.5" fill="#A9842F" opacity=".85"/><rect x="40" y="150" width="320" height="5" fill="#D9C48A" opacity=".5"/><rect x="44" y="174" width="16" height="40" rx="1.5" fill="#4A6FA8" opacity=".85"/><rect x="63" y="162" width="14" height="52" rx="1.5" fill="#D9C48A" opacity=".85"/><rect x="80" y="174" width="10" height="40" rx="1.5" fill="#3A5C93" opacity=".85"/><rect x="93" y="174" width="18" height="40" rx="1.5" fill="#A9842F" opacity=".85"/><rect x="114" y="166" width="16" height="48" rx="1.5" fill="#D9C48A" opacity=".85"/><rect x="133" y="166" width="12" height="48" rx="1.5" fill="#A9842F" opacity=".85"/><rect x="148" y="174" width="14" height="40" rx="1.5" fill="#4A6FA8" opacity=".85"/><rect x="165" y="156" width="18" height="58" rx="1.5" fill="#D9C48A" opacity=".85"/><rect x="186" y="166" width="12" height="48" rx="1.5" fill="#3A5C93" opacity=".85"/><rect x="201" y="174" width="16" height="40" rx="1.5" fill="#EDE7DA" opacity=".85"/><rect x="220" y="156" width="10" height="58" rx="1.5" fill="#3A5C93" opacity=".85"/><rect x="233" y="170" width="18" height="44" rx="1.5" fill="#D9C48A" opacity=".85"/><rect x="254" y="156" width="16" height="58" rx="1.5" fill="#D9C48A" opacity=".85"/><rect x="273" y="174" width="12" height="40" rx="1.5" fill="#3A5C93" opacity=".85"/><rect x="288" y="174" width="18" height="40" rx="1.5" fill="#A9842F" opacity=".85"/><rect x="309" y="170" width="16" height="44" rx="1.5" fill="#A9842F" opacity=".85"/><rect x="328" y="162" width="16" height="52" rx="1.5" fill="#3A5C93" opacity=".85"/><rect x="347" y="156" width="12" height="58" rx="1.5" fill="#D9C48A" opacity=".85"/><rect x="40" y="214" width="320" height="5" fill="#D9C48A" opacity=".5"/><rect x="44" y="238" width="14" height="40" rx="1.5" fill="#4A6FA8" opacity=".85"/><rect x="61" y="220" width="14" height="58" rx="1.5" fill="#A9842F" opacity=".85"/><rect x="78" y="234" width="18" height="44" rx="1.5" fill="#4A6FA8" opacity=".85"/><rect x="99" y="220" width="18" height="58" rx="1.5" fill="#3A5C93" opacity=".85"/><rect x="120" y="226" width="16" height="52" rx="1.5" fill="#A9842F" opacity=".85"/><rect x="139" y="238" width="10" height="40" rx="1.5" fill="#A9842F" opacity=".85"/><rect x="152" y="220" width="16" height="58" rx="1.5" fill="#4A6FA8" opacity=".85"/><rect x="171" y="234" width="14" height="44" rx="1.5" fill="#4A6FA8" opacity=".85"/><rect x="188" y="226" width="14" height="52" rx="1.5" fill="#4A6FA8" opacity=".85"/><rect x="205" y="220" width="12" height="58" rx="1.5" fill="#3A5C93" opacity=".85"/><rect x="220" y="238" width="14" height="40" rx="1.5" fill="#EDE7DA" opacity=".85"/><rect x="237" y="226" width="12" height="52" rx="1.5" fill="#A9842F" opacity=".85"/><rect x="252" y="238" width="10" height="40" rx="1.5" fill="#3A5C93" opacity=".85"/><rect x="265" y="238" width="10" height="40" rx="1.5" fill="#4A6FA8" opacity=".85"/><rect x="278" y="230" width="10" height="48" rx="1.5" fill="#D9C48A" opacity=".85"/><rect x="291" y="230" width="18" height="48" rx="1.5" fill="#A9842F" opacity=".85"/><rect x="312" y="220" width="18" height="58" rx="1.5" fill="#A9842F" opacity=".85"/><rect x="333" y="220" width="12" height="58" rx="1.5" fill="#A9842F" opacity=".85"/><rect x="348" y="226" width="12" height="52" rx="1.5" fill="#D9C48A" opacity=".85"/><rect x="40" y="278" width="320" height="5" fill="#D9C48A" opacity=".5"/></svg>',
+    'Video On Demand': '<svg viewBox="0 0 400 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1A2F52"/><stop offset="1" stop-color="#0B1729"/></linearGradient><linearGradient id="beam" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#D9C48A" stop-opacity=".05"/><stop offset="1" stop-color="#D9C48A" stop-opacity=".38"/></linearGradient></defs><rect width="400" height="340" fill="url(#g3)"/><circle cx="372" cy="60" r="7" fill="#D9C48A"/><path d="M372 60 L96 150 L96 250 Z" fill="url(#beam)"/><rect x="40" y="120" width="150" height="112" rx="4" fill="#0B1729" stroke="#D9C48A" stroke-width="2"/><path d="M96 156l40 24-40 24z" fill="#D9C48A"/><g fill="#EDE7DA" opacity=".5"><circle cx="250" cy="120" r="2"/><circle cx="300" cy="160" r="1.6"/><circle cx="220" cy="180" r="1.4"/><circle cx="330" cy="120" r="1.8"/></g></svg>',
+    'Biblioteca Audio': '<svg viewBox="0 0 400 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g4" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#243F70"/><stop offset="1" stop-color="#0E1D38"/></linearGradient></defs><rect width="400" height="340" fill="url(#g4)"/><path d="M300 150 m-40 0 a40 40 0 0 1 80 0" fill="none" stroke="#4A6FA8" stroke-width="3" opacity=".5"/><path d="M300 150 m-64 0 a64 64 0 0 1 128 0" fill="none" stroke="#4A6FA8" stroke-width="3" opacity=".5"/><path d="M300 150 m-88 0 a88 88 0 0 1 176 0" fill="none" stroke="#4A6FA8" stroke-width="3" opacity=".5"/><rect x="150" y="141" width="4" height="18" rx="2" fill="#D9C48A" opacity=".8"/><rect x="160" y="135" width="4" height="30" rx="2" fill="#D9C48A" opacity=".8"/><rect x="170" y="134" width="4" height="33" rx="2" fill="#D9C48A" opacity=".8"/><rect x="180" y="138" width="4" height="24" rx="2" fill="#D9C48A" opacity=".8"/><rect x="190" y="138" width="4" height="25" rx="2" fill="#D9C48A" opacity=".8"/><rect x="200" y="134" width="4" height="33" rx="2" fill="#D9C48A" opacity=".8"/><rect x="210" y="135" width="4" height="30" rx="2" fill="#D9C48A" opacity=".8"/><rect x="220" y="141" width="4" height="18" rx="2" fill="#D9C48A" opacity=".8"/><rect x="230" y="135" width="4" height="30" rx="2" fill="#D9C48A" opacity=".8"/><rect x="240" y="134" width="4" height="33" rx="2" fill="#D9C48A" opacity=".8"/><rect x="250" y="138" width="4" height="24" rx="2" fill="#D9C48A" opacity=".8"/><rect x="260" y="138" width="4" height="25" rx="2" fill="#D9C48A" opacity=".8"/><g fill="none" stroke="#D9C48A" stroke-width="2.5" opacity=".9"><path d="M120 300c-26-14-52-16-78-10V214c26-6 52-4 78 10 26-14 52-16 78-10v76c-26-6-52-4-78 10z"/><path d="M120 224v76"/></g></svg>',
+    'Campus': '<svg viewBox="0 0 400 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g5" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E8C79A"/><stop offset="1" stop-color="#12294A"/></linearGradient><linearGradient id="hill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#284A7E"/><stop offset="1" stop-color="#12294A"/></linearGradient></defs><rect width="400" height="340" fill="url(#g5)"/><circle cx="120" cy="92" r="30" fill="#D9C48A" opacity=".85"/><path d="M0 200q120-40 400 0v60H0z" fill="url(#hill)"/><path d="M70 214 l7 26 h-14 z" fill="#12294A"/><path d="M86 214 l7 26 h-14 z" fill="#12294A"/><path d="M300 214 l7 26 h-14 z" fill="#12294A"/><path d="M330 214 l7 26 h-14 z" fill="#12294A"/><g fill="#12294A"><rect x="150" y="150" width="120" height="66"/><path d="M150 150l60-30 60 30z"/><rect x="196" y="120" width="20" height="40"/><path d="M196 120l10-14 10 14z"/></g><g fill="#D9C48A" opacity=".9"><path d="M180 190a10 10 0 0 1 20 0v26h-20z"/><path d="M220 190a10 10 0 0 1 20 0v26h-20z"/></g><rect x="0" y="246" width="400" height="94" fill="#0E1D38" opacity=".55"/><path d="M30 256h340" stroke="#4A6FA8" stroke-width="1.5" opacity=".35"/><path d="M30 268h340" stroke="#4A6FA8" stroke-width="1.5" opacity=".35"/><path d="M30 280h340" stroke="#4A6FA8" stroke-width="1.5" opacity=".35"/><path d="M30 292h340" stroke="#4A6FA8" stroke-width="1.5" opacity=".35"/><path d="M30 304h340" stroke="#4A6FA8" stroke-width="1.5" opacity=".35"/></svg>',
+    'Eventi': '<svg viewBox="0 0 400 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g6" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1E3866"/><stop offset="1" stop-color="#0B1729"/></linearGradient><linearGradient id="spot" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#D9C48A" stop-opacity=".30"/><stop offset="1" stop-color="#D9C48A" stop-opacity="0"/></linearGradient></defs><rect width="400" height="340" fill="url(#g6)"/><circle cx="60" cy="50" r="2" fill="#EDE7DA" opacity=".8"/><circle cx="120" cy="36" r="1.6" fill="#EDE7DA" opacity=".8"/><circle cx="200" cy="54" r="2.2" fill="#EDE7DA" opacity=".8"/><circle cx="280" cy="40" r="1.6" fill="#EDE7DA" opacity=".8"/><circle cx="340" cy="60" r="2" fill="#EDE7DA" opacity=".8"/><circle cx="160" cy="80" r="1.4" fill="#EDE7DA" opacity=".8"/><circle cx="320" cy="96" r="1.6" fill="#EDE7DA" opacity=".8"/><circle cx="90" cy="96" r="1.4" fill="#EDE7DA" opacity=".8"/><path d="M110 340 L60 150 L160 150 Z" fill="url(#spot)"/><path d="M290 340 L240 150 L340 150 Z" fill="url(#spot)"/><path d="M30 70 Q200 96 370 70" fill="none" stroke="#D9C48A" stroke-width="1.5" opacity=".6"/><path d="M30 70 l14 0 l-7 16 z" fill="#D9C48A" opacity=".9"/><path d="M64 76 l14 0 l-7 16 z" fill="#4A6FA8" opacity=".9"/><path d="M98 81 l14 0 l-7 16 z" fill="#A9842F" opacity=".9"/><path d="M132 86 l14 0 l-7 16 z" fill="#EDE7DA" opacity=".9"/><path d="M166 89 l14 0 l-7 16 z" fill="#D9C48A" opacity=".9"/><path d="M200 90 l14 0 l-7 16 z" fill="#4A6FA8" opacity=".9"/><path d="M234 89 l14 0 l-7 16 z" fill="#A9842F" opacity=".9"/><path d="M268 86 l14 0 l-7 16 z" fill="#EDE7DA" opacity=".9"/><path d="M302 81 l14 0 l-7 16 z" fill="#D9C48A" opacity=".9"/><path d="M336 76 l14 0 l-7 16 z" fill="#4A6FA8" opacity=".9"/><path d="M370 70 l14 0 l-7 16 z" fill="#A9842F" opacity=".9"/><path d="M120 300h160v40H120z" fill="#12294A"/><path d="M110 300h180" stroke="#D9C48A" stroke-width="3"/></svg>',
+  };
+  return M[t]||'';
+}
+
+
+/* Piè di pagina condiviso (home + pagine interne) */
+function lpFooter(){
+  return `<footer class="lp-foot"><div class="lp-sec-in lp-foot-in">
+      <div class="lp-foot-brand"><span class="mark mark-scuro"><img class="logo-img" src="img/logo.png" alt="La Pacifica Res Publica"></span><div><b>La Pacifica Res Publica</b><span>\u00abCustodire per costruire.\u00bb</span></div></div>
+      <div class="lp-foot-cta">
+        <button class="linkbtn" onclick="apriAccesso('login')">Accedi</button>
+        <button class="btn small" onclick="apriAccesso('reg')">Entra gratis</button>
+      </div>
+    </div></footer>`;
+}
+
+/* Intestazione condivisa dalle pagine interne della landing */
+function lpHeaderPagina(){
+  return `<header class="lp-top"><div class="lp-top-in">
+      <div class="brand" onclick="tornaHome()"><div class="mark"><img class="logo-img" src="img/logo.png" alt="La Pacifica Res Publica"></div><div><b>La Pacifica</b><span>Res Publica</span></div></div>
+      <div class="lp-top-cta">
+        <button class="linkbtn" onclick="tornaHome()">\u2190 Home</button>
+        <button class="btn small" onclick="apriAccesso('reg')">Entra gratis</button>
+      </div>
+    </div></header>`;
+}
+
+/* =====================================================================
+   PAGINA MANIFESTO — i Sette Principi, spiegati (fuori dalla prima pagina)
+   ===================================================================== */
+function renderManifestoPage(){
+  const principi = [
+    ['I','La pace come fondamento','La pace non \u00e8 l\u2019assenza di conflitto, ma la presenza di giustizia. \u00c8 il terreno su cui si regge ogni convivenza: si costruisce con pazienza, giorno dopo giorno, e chiede impegno prima ancora che accordo.'],
+    ['II','Il sapere con coscienza','La conoscenza senza coscienza non genera futuro. Il sapere diventa responsabilit\u00e0: non basta capire il mondo, occorre saperlo abitare con misura etica, sapendo a chi e a che cosa serve ci\u00f2 che impariamo.'],
+    ['III','La dignit\u00e0 della persona','La dignit\u00e0 di ogni persona \u00e8 inviolabile ed \u00e8 il fondamento di ogni diritto. Nessuna appartenenza, condizione o merito la aumenta o la diminuisce: viene prima delle differenze e le rende feconde.'],
+    ['IV','L\u2019unit\u00e0 nella diversit\u00e0','La diversit\u00e0 non \u00e8 un ostacolo da tollerare ma una ricchezza da mettere in dialogo. \u00c8 nell\u2019incontro fra culture che il confronto si fa diplomazia, e la pluralit\u00e0 diventa unit\u00e0 senza cancellare nessuno.'],
+    ['V','La bellezza che educa','La bellezza \u00e8 un linguaggio universale di pace. L\u2019arte, l\u2019armonia e la cura delle forme educano lo sguardo e il cuore, e ci ricordano che ci\u00f2 che \u00e8 giusto pu\u00f2 anche essere bello.'],
+    ['VI','Il bene comune','Il bene di tutti viene prima dell\u2019interesse del singolo. La libert\u00e0 personale trova senso quando si fa responsabilit\u00e0 verso la comunit\u00e0, e la ricerca del bene comune misura la qualit\u00e0 di ogni scelta.'],
+    ['VII','Memoria e futuro','Si custodisce il passato per costruire il domani. La memoria non \u00e8 nostalgia ma radice: conoscere da dove veniamo \u00e8 la condizione per decidere, insieme, dove vogliamo andare.']
+  ];
+  return `<div class="lp">
+    ${lpHeaderPagina()}
+    <section class="lp-page-hero"><div class="lp-sec-in">
+      <div class="eyebrow" style="color:var(--oro)">Il Manifesto</div>
+      <h1 class="lp-page-h1">I Sette Principi</h1>
+      <p class="lp-page-lead">Non dogmi da recitare, ma chiavi per leggere la realt\u00e0. Reggono tutto ci\u00f2 che accade dentro La Pacifica: il Parlamento, l\u2019Accademia, la biblioteca, gli eventi.</p>
+    </div></section>
+    <section class="lp-sec"><div class="lp-sec-in">
+      <div class="man-list">
+        ${principi.map(([n,t,d])=>`<article class="man-item"><div class="man-n">${n}</div>
+          <div class="man-b"><h3>${esc(t)}</h3><p>${esc(d)}</p></div></article>`).join('')}
+      </div>
+      <div class="man-quote">\u00abLa conoscenza senza coscienza non genera futuro.\u00bb<span>\u2014 dal Manifesto de La Pacifica Res Publica</span></div>
+      <div class="lp-cta" style="justify-content:center;margin-top:26px">
+        <button class="btn oro lp-btn" onclick="apriAccesso('reg')">Entra e comincia</button>
+        <button class="lp-btn2" onclick="tornaHome()">\u2190 Torna alla home</button>
+      </div>
+    </div></section>
+    ${lpFooter()}
+  </div>`;
+}
+
+/* =====================================================================
+   PAGINA MECENATI — tutte le informazioni (fuori dalla prima pagina)
+   ===================================================================== */
+function renderMecenatiPage(){
+  return `<div class="lp">
+    ${lpHeaderPagina()}
+    <section class="lp-page-hero"><div class="lp-sec-in">
+      <div class="eyebrow" style="color:var(--oro)">Mecenati</div>
+      <h1 class="lp-page-h1">Costruttori accademici di pace</h1>
+      <p class="lp-page-lead">Chi sostiene La Pacifica non fa una donazione astratta: acquista <b>pacchetti di accessi</b> alla formazione e li destina a studenti e docenti che altrimenti non potrebbero permetterseli. \u00c8 un mecenatismo concreto, che si misura in ragazzi che studiano.</p>
+    </div></section>
+
+    <section class="lp-sec"><div class="lp-sec-in">
+      <div class="lp-h"><div class="eyebrow">Come funziona</div><h2>Tre passaggi</h2></div>
+      <div class="lp-grid lp-g3">
+        <div class="mec-step"><span class="mec-sn">1</span><h4>Scegli una formula</h4><p>Ogni formula \u00e8 \u201ctot euro \u2192 tot accessi\u201d. Dal singolo accesso annuale fino a decine, per la misura di una scuola o di un istituto.</p></div>
+        <div class="mec-step"><span class="mec-sn">2</span><h4>Sottoscrivi l\u2019impegno</h4><p>Compili i dati e ricevi un riferimento con le coordinate per il bonifico. Nessun addebito automatico: paghi con i tuoi tempi.</p></div>
+        <div class="mec-step"><span class="mec-sn">3</span><h4>Distribuisci gli accessi</h4><p>A pagamento accreditato, gli accessi vengono emessi come codici che puoi assegnare a chi vuoi tu.</p></div>
+      </div>
+    </div></section>
+
+    <section class="lp-sec lp-mec-formule"><div class="lp-sec-in">
+      <div class="lp-h"><div class="eyebrow">Le formule</div><h2>Scegli la tua misura</h2>
+        <p class="lp-lead">Pi\u00f9 la formula \u00e8 ampia, pi\u00f9 il costo per accesso scende. Ogni accesso \u00e8 un percorso in mano a un ragazzo.</p></div>
+      <div id="mec-box" class="lp-plans"></div>
+    </div></section>
+
+    <section class="lp-sec"><div class="lp-sec-in">
+      <div class="card" style="padding:20px 22px">
+        <div class="eyebrow">Trasparenza</div>
+        <p class="muted small" style="margin:8px 0 0">Gli accessi si attivano solo dopo l\u2019accredito effettivo del bonifico, confermato manualmente dalla Presidenza. Il trattamento fiscale (erogazione liberale o acquisto con controprestazione) dipende dalla natura del sostegno: per l\u2019inquadramento corretto \u00e8 bene sentire un commercialista. Per aziende ed enti \u00e8 possibile concordare formule dedicate.</p>
+      </div>
+      <div class="lp-cta" style="justify-content:center;margin-top:24px">
+        <button class="lp-btn2" onclick="tornaHome()">\u2190 Torna alla home</button>
+      </div>
+    </div></section>
+    ${lpFooter()}
+  </div>`;
+}
+
+let paginaLanding='home';
+function apriPagina(p){ paginaLanding=p; renderLanding(); window.scrollTo(0,0); }
+function renderLanding(){
+  $('app').style.display='none';
+  const _ar=$('auth-root'); if(_ar) _ar.style.display='block';
+  if(paginaLanding==='manifesto'){ TRK.log('pageview','manifesto'); $('auth-root').innerHTML = renderManifestoPage(); osservaReveal(); return; }
+  if(paginaLanding==='mecenati'){ TRK.log('pageview','mecenati'); $('auth-root').innerHTML = renderMecenatiPage(); setTimeout(caricaMecenati,0); osservaReveal(); return; }
+  TRK.log('pageview','landing');
+  setTimeout(caricaMecenati,0);
+  setTimeout(caricaRassegnaLanding,0);
+
+  const principi = [
+    ['I','La pace come fondamento','Non l\u2019assenza di conflitto, ma la presenza di giustizia.'],
+    ['II','Il sapere con coscienza','La conoscenza senza coscienza non genera futuro.'],
+    ['III','La dignit\u00e0 della persona','Inviolabile: \u00e8 il fondamento di ogni diritto.'],
+    ['IV','L\u2019unit\u00e0 nella diversit\u00e0','Il dialogo tra culture che si fa diplomazia.'],
+    ['V','La bellezza che educa','L\u2019arte come linguaggio universale di pace.'],
+    ['VI','Il bene comune','Il bene di tutti prima dell\u2019interesse del singolo.'],
+    ['VII','Memoria e futuro','Custodire il passato per costruire il domani.'],
+  ];
+
+  const pilastri = [
+    {n:'I',  ico:'\u2696\uFE0E', t:'Parlamento dei Giovani', d:'150 delegati, sette commissioni, proposte di legge e voto in aula.', free:'Il documentario sull\u2019emiciclo', chiuso:'Seggio e voto \u2014 su invito'},
+    {n:'II', ico:'\uD83D\uDCD6', t:'Accademia', d:'Il Percorso di Pace in otto corsi tenuti dai formatori.', free:'Lezioni aperte e assaggi', chiuso:'Corsi completi e attestati'},
+    {n:'III',ico:'\u25B6', t:'Video On Demand', d:'Documentari, lezioni aperte e conferenze sulla cultura di pace.', free:'Documentari e lezioni', chiuso:'Catalogo completo con Civis'},
+    {n:'IV', ico:'\uD83D\uDCDA', t:'Biblioteca Audio', d:'Testi e audiolibri da leggere e ascoltare, con voce e sintesi IA.', free:'Testi e audiolibri scelti + voce IA', chiuso:'Tutta la biblioteca con Civis'},
+    {n:'V',  ico:'\u26EA', t:'Campus', d:'Fine settimana formativi all\u2019Abbazia di Maguzzano, sul Lago di Garda.', free:'Programmi e calendario', chiuso:'Posti su prenotazione'},
+    {n:'VI', ico:'\uD83C\uDFAD', t:'Eventi', d:'Mostre ed incontri de La Pacifica, aperti alla citt\u00e0.', free:'Programma di Speculum 2027', chiuso:'Ingresso con biglietto'},
+  ];
+
+  const clip = (s,n) => { s=String(s||'').replace(/\s+/g,' ').trim(); return s.length>n ? s.slice(0,n).trim()+'\u2026' : s; };
+  const liberi = [
+    ...TESTI.filter(t=>t.free).map(t=>({tp:'Testo', ico:'\u270E', tit:t.tit, meta:(t.autore+' \u00b7 '+(t.lettura||'')), desc:clip((t.testo||'').split('\n')[0],130), cta:'Leggi e ascolta', fn:"apriTesto('"+t.id+"')"})),
+    ...AUDIO.filter(a=>a.free).map(a=>({tp:'Audiolibro', ico:'\u266A', tit:a.tit, meta:(a.autore+' \u00b7 '+a.durata), desc:clip(a.testo,130), cta:'Ascolta', fn:"apriAudio('"+a.id+"')"})),
+    ...VOD.filter(v=>livelloConsentito(v.livello)).map(v=>({tp:v.tipo, ico:'\u25B6', tit:v.tit, meta:(v.durata+' \u00b7 '+commNome(v.comm)), desc:clip(v.desc,130), cta:'Guarda', fn:"playVideo('"+v.id+"')"})),
+  ];
+
+  const ev = EVENTI[0] || null;
+  const evSide = ev ? ev.programma.split('\n').slice(0,6).map(r=>`<li>${esc(r)}</li>`).join('') : '';
+
+  $('auth-root').innerHTML = `
+  <div class="lp">
+    <header class="lp-top"><div class="lp-top-in">
+      <div class="brand" onclick="tornaHome()"><div class="mark"><img class="logo-img" src="img/logo.png" alt="La Pacifica Res Publica"></div><div><b>La Pacifica</b><span>Res Publica</span></div></div>
+      <div class="lp-top-cta">
+        <button class="linkbtn" onclick="apriAccesso('login')">Accedi</button>
+        <button class="btn small" onclick="apriAccesso('reg')">Entra gratis</button>
+      </div>
+    </div></header>
+
+    <section class="lp-hero">
+      <div class="lp-hero-art">
+        <picture>
+          <source srcset="img/scuola-di-atene.webp" type="image/webp">
+          <img class="lp-fresco" src="img/scuola-di-atene.jpg" width="1280" height="808"
+               fetchpriority="high" decoding="async"
+               alt="La Scuola di Atene di Raffaello Sanzio: i filosofi riuniti sotto grandi arcate, con Platone che indica il cielo e Aristotele che indica la terra.">
+        </picture>
+      </div>
+      <div class="lp-hero-in"><div class="lp-hero-copy">
+        <div class="eyebrow lp-eye">La Pacifica Res Publica</div>
+        <h1 class="lp-h1">Un\u2019accademia internazionale per <em>costruire&nbsp;la&nbsp;pace</em>.</h1>
+        <p class="lp-sub">Sette principi, sei pilastri, un solo ingresso: Parlamento dei Giovani, Accademia, video, biblioteca audio con voce IA ed eventi. Molto \u00e8 gratuito \u2014 e da qui puoi gi\u00e0 leggere e ascoltare, senza account.</p>
+        <div class="lp-cta">
+          <button class="btn oro lp-btn" onclick="apriAccesso('reg')">Entra gratis</button>
+          <button class="lp-btn2" onclick="apriAccesso('login')">Ho gi\u00e0 un account</button>
+        </div>
+        <div class="lp-quote">\u00abLa conoscenza senza coscienza non genera futuro.\u00bb \u2014 dal Manifesto</div>
+      </div></div>
+      <p class="lp-credit">Raffaello Sanzio, <em>La Scuola di Atene</em> (1509\u20131511) \u2014 Musei Vaticani, Stanza della Segnatura</p>
+    </section>
+
+    <section class="lp-sec lp-frieze">
+      <div class="lp-sec-in">
+        <div class="lp-h"><div class="eyebrow">Il Manifesto</div><h2>I Sette Principi</h2>
+          <p class="lp-lead">Non dogmi da recitare, ma chiavi per leggere la realt\u00e0. Reggono tutto ci\u00f2 che accade qui dentro.</p></div>
+        <div class="lp-cta" style="justify-content:center;margin-top:4px">
+          <button class="btn oro lp-btn" onclick="apriPagina('manifesto')">Scopri i Sette Principi \u2192</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="lp-sec lp-pillars">
+      <div class="lp-sec-in">
+        <div class="lp-h"><div class="eyebrow">L\u2019ecosistema</div><h2>Sei pilastri, un unico ingresso</h2>
+          <p class="lp-lead">Ogni pilastro ha una soglia aperta a tutti e una parte riservata a chi entra o sostiene l\u2019Accademia.</p></div>
+        <div class="lp-grid lp-g3">
+          ${pilastri.map(p=>`<div class="lp-pill">
+            <div class="lp-pill-bg">${pillScene(p.t)}</div>
+            <span class="lp-pn">${p.n}</span>
+            <div class="lp-pill-c">
+              <h3>${esc(p.t)}</h3><p>${esc(p.d)}</p>
+              <div class="lp-split">
+                <div class="lp-free"><span class="badge verde">Gratis</span> ${esc(p.free)}</div>
+                <div class="lp-lock"><span class="lp-key">\u2726</span> ${esc(p.chiuso)}</div>
+              </div>
+            </div></div>`).join('')}
+        </div>
+      </div>
+    </section>
+
+    <section class="lp-sec lp-svc">
+      <div class="lp-sec-in">
+        <div class="lp-h"><div class="eyebrow" style="color:var(--oro)">Servizi gratuiti</div>
+          <h2>Comincia adesso, senza iscriverti</h2>
+          <p class="lp-lead">Questi contenuti sono liberi e pienamente fruibili: leggi i testi e ascoltali con la voce IA, guarda i documentari. L\u2019account serve solo per salvare il tuo percorso e sbloccare il resto.</p></div>
+        <div class="lp-grid lp-g3">
+          ${liberi.map(x=>`<article class="tile lp-tile">
+            <div class="cover lp-cover"><span class="k">${x.ico}</span><span class="tag">${esc(x.tp)} \u00b7 gratuito</span></div>
+            <div class="body"><h4>${esc(x.tit)}</h4><div class="meta">${esc(x.meta)}</div>
+              <p class="small muted" style="flex:1">${esc(x.desc)}</p>
+              <div class="foot"><span class="badge verde">Gratuito</span>
+                <button class="btn small" onclick="${x.fn}">${esc(x.cta)} \u2192</button></div>
+            </div></article>`).join('')}
+          <article class="tile lp-tile lp-tile-locked">
+            <div class="cover lp-cover lp-cover-lock"><span class="k">\u2726</span><span class="tag">Civis</span></div>
+            <div class="body"><h4>Tutta la biblioteca, i corsi e i live</h4>
+              <div class="meta">Video On Demand completo \u00b7 audio illimitato \u00b7 sintesi IA</div>
+              <p class="small muted" style="flex:1">Con la membership Civis sblocchi l\u2019intero catalogo e accompagni il Parlamento dei Giovani.</p>
+              <div class="foot"><span class="badge grigio">Riservato</span>
+                <button class="btn small ghost" onclick="apriAccesso('reg')">Diventa Civis \u2192</button></div>
+            </div></article>
+        </div>
+
+        ${ev?`<div class="lp-event">
+          <div class="lp-event-body">
+            <div class="eyebrow" style="color:var(--oro-chiaro)">Evento \u00b7 ${esc(ev.tipo)}</div>
+            <h3>${esc(ev.tit)}</h3>
+            <p class="lp-event-sub">${esc(ev.sub||'')}</p>
+            <p class="lp-event-desc">${esc(clip(ev.desc,300))}</p>
+            <div class="lp-event-meta">${esc(ev.periodo||'')} \u00b7 ${esc(ev.luogo||'')}</div>
+            <div class="lp-cta" style="margin-top:20px">
+              <button class="btn oro lp-btn" onclick="apriAccesso('reg')">Crea un account per prenotare</button>
+            </div>
+          </div>
+          <div class="lp-event-side">
+            <div class="eyebrow" style="color:var(--oro-chiaro)">Dodici mesi, dodici specchi</div>
+            <ul class="lp-months">${evSide}<li class="lp-more">\u2026e altri sei mesi, fino a dicembre.</li></ul>
+          </div>
+        </div>`:''}
+      </div>
+    </section>
+
+    <section class="lp-sec lp-rass"><div class="lp-sec-in">
+      <div class="eyebrow">Ogni giorno</div>
+      <h2 style="font-size:34px;margin:6px 0 8px">La pace, oggi</h2>
+      <p class="muted" style="max-width:640px;margin-bottom:22px">Notizie da fonti internazionali e gli appuntamenti da non perdere — aggiornate ogni giorno, aperte a tutti.</p>
+      <div id="lp-rass"></div>
+    </div></section>
+    <section class="lp-sec"><div class="lp-sec-in">
+      <div class="eyebrow">Mecenati</div>
+      <h2 style="font-size:34px;margin:6px 0 8px">Costruttori accademici di pace</h2>
+      <p class="muted" style="max-width:640px;margin-bottom:22px">Sostieni la formazione acquistando pacchetti di accessi da destinare a studenti e docenti. A pagamento accreditato gli accessi vengono emessi e potrai distribuirli.</p>
+      <div class="lp-cta" style="justify-content:center;margin-top:4px"><button class="btn oro lp-btn" onclick="apriPagina('mecenati')">Scopri come sostenere \u2192</button></div>
+    </div></section>
+    <section class="lp-sec lp-civis">
+      <div class="lp-sec-in">
+        <div class="lp-h center"><div class="eyebrow" style="color:var(--oro-chiaro)">Civis Pacificae</div>
+          <h2 style="color:#fff">Un solo abbonamento, tutto l\u2019ecosistema</h2>
+          <p class="lp-lead" style="color:#C7D0E0;margin-left:auto;margin-right:auto">Ogni iscrizione sostiene il Parlamento dei Giovani e le progettualit\u00e0 dell\u2019associazione.</p></div>
+        <div class="lp-plans">
+          <div class="lp-plan"><h4>Gratuito</h4><div class="lp-pr">0 \u20ac</div>
+            <ul><li>Dashboard personale</li><li>1\u00aa lezione di ogni corso</li><li>Video e audiolibri gratuiti</li></ul>
+            <button class="lp-btn2" onclick="apriAccesso('reg')">Entra gratis</button></div>
+          <div class="lp-plan feat"><span class="lp-tagline">Consigliato</span><h4>Civis</h4><div class="lp-pr">12,50 \u20ac<small>/mese</small></div>
+            <ul><li>Video On Demand completo</li><li>Biblioteca illimitata + IA</li><li>Sconto 20% sui corsi</li></ul>
+            <button class="btn oro" onclick="apriAccesso('reg')">Attiva Civis</button>
+            <p class="lp-fine">oppure 120 \u20ac/anno</p></div>
+          <div class="lp-plan"><h4>Academicus</h4><div class="lp-pr">590 \u20ac<small>/anno</small></div>
+            <ul><li>Intero catalogo (8 corsi)</li><li>Live mensili con i formatori</li><li>Attestati dell\u2019Accademia</li></ul>
+            <button class="lp-btn2" onclick="apriAccesso('reg')">Attiva Academicus</button></div>
+        </div>
+      </div>
+    </section>
+
+    ${lpFooter()}
+  </div>`;
+  $('auth-root').style.display='block';
+  window.scrollTo(0,0);
+  osservaReveal();
+}
+
+/* =====================================================================
+   AUTENTICAZIONE
+===================================================================== */
+function renderAuth(){
+  $('app').style.display='none';
+  $('auth-root').innerHTML = `
+  <div class="auth">
+    <div class="auth-art">
+      <div>
+        <div class="mk"><img class="logo-img" src="img/logo.png" alt="La Pacifica Res Publica"></div>
+        <div class="eyebrow" style="color:var(--oro-chiaro)">La Pacifica Res Publica</div>
+        <h1>Un\u2019accademia internazionale per <em>costruire&nbsp;la&nbsp;pace</em>.</h1>
+        <p>Un solo accesso a quattro mondi: il Parlamento dei Giovani, l’Accademia di formazione, i video on demand e la biblioteca audio con motore di intelligenza artificiale.</p>
+      </div>
+      <div class="four">
+        <div><span class="d">⚖︎</span> Parlamento dei Giovani — 150 delegati, sette commissioni</div>
+        <div><span class="d">📖</span> Accademia — il Percorso di Pace in otto corsi</div>
+        <div><span class="d">▶</span> Video On Demand — documentari, lezioni, conferenze</div>
+        <div><span class="d">♪</span> Biblioteca Audio — letture e sintesi con IA</div>
+      </div>
+      <div class="pie">«La conoscenza senza coscienza non genera futuro.» — Dal Manifesto</div>
+    </div>
+    <div class="auth-form">
+      <div class="auth-box">
+        <button class="linkbtn lp-back" onclick="tornaHome()" style="margin-bottom:16px;display:inline-flex;gap:6px;align-items:center">← La Pacifica</button>
+        <h2 id="auth-title">Bentornato</h2>
+        <p class="sub" id="auth-sub">Accedi al tuo account per entrare nell’ecosistema.</p>
+        <div class="seg">
+          <button id="seg-login" class="${authTab==='login'?'on':''}" onclick="setAuthTab('login')">Accedi</button>
+          <button id="seg-reg" class="${authTab==='reg'?'on':''}" onclick="setAuthTab('reg')">Crea account</button>
+        </div>
+        <div id="auth-fields"></div>
+        <div id="auth-msg"></div>
+      </div>
+    </div>
+  </div>`;
+  renderAuthFields();
+  $('auth-root').style.display='block';
+}
+function setAuthTab(t){ authTab=t; renderAuth(); }
+function renderAuthFields(){
+  const reg = authTab==='reg';
+  $('auth-title').textContent = reg ? 'Crea il tuo account' : 'Bentornato';
+  $('auth-sub').textContent = reg ? 'Un’unica iscrizione per tutto l’ecosistema.' : 'Accedi al tuo account per entrare nell’ecosistema.';
+  $('auth-fields').innerHTML = `
+    ${reg?`<div class="field"><label>Nome e cognome</label><input id="f-nome" placeholder="Es. Giulia Conti"></div>`:''}
+    <div class="field"><label>Email</label><input id="f-email" type="email" placeholder="nome@email.it"></div>
+    <div class="field"><label>Password</label><input id="f-pass" type="password" placeholder="Almeno 6 caratteri"></div>
+    ${reg?`<div class="field"><label>Codice d’invito <span class="muted small">(facoltativo)</span></label>
+       <input id="f-code" placeholder="Codice delegato o della Presidenza"></div>`:''}
+    <button class="btn full" id="auth-go" style="margin-top:6px" onclick="${reg?'doRegister()':'doLogin()'}">
+      ${reg?'Crea account ed entra':'Accedi'}</button>
+    <p class="small muted center" style="margin-top:14px">
+      ${reg?'Hai già un account? ':'Non hai un account? '}
+      <button class="linkbtn" onclick="setAuthTab('${reg?'login':'reg'}')">${reg?'Accedi':'Registrati'}</button>
+    </p>`;
+}
+function authMsg(html,cls){ $('auth-msg').innerHTML = html?`<div class="notice ${cls}">${html}</div>`:''; }
+function busy(on){ const b=$('auth-go'); if(b){ b.disabled=on; b.innerHTML = on?'<span class="spin"></span>':b.dataset.lbl||b.textContent; if(!on&&b.dataset.lbl)b.textContent=b.dataset.lbl; } }
+
+async function doRegister(){
+  const nome=($('f-nome').value||'').trim(), email=($('f-email').value||'').trim().toLowerCase(),
+        pass=$('f-pass').value||'', code=($('f-code').value||'').trim();
+  if(nome.length<2) return authMsg('Inserisci il tuo nome e cognome.','err');
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return authMsg('Inserisci un’email valida.','err');
+  if(pass.length<6) return authMsg('La password deve avere almeno 6 caratteri.','err');
+  busy(true);
+  try{
+    await DB.signUp(nome, email, pass);
+    // alcune istanze richiedono conferma email: proviamo comunque il login
+    try{ await DB.signIn(email, pass); TRK.log('login','registrazione'); }
+    catch(e){ busy(false); return authMsg('Account creato. Controlla la tua email per confermarlo, poi accedi.','ok'); }
+    if(code){
+      try{
+        // prova prima come codice di fondazione (Presidenza); se non lo è, come codice delegato
+        try { await DB.redeemFounder(code); }
+        catch(_) { await DB.redeemCode(code); }
+      }catch(e){ toast(e.message||'Codice non valido'); }
+    }
+    await enterApp();
+    toast('Benvenuto in La Pacifica.');
+  }catch(e){
+    busy(false);
+    authMsg(e.message && /already/i.test(e.message) ? 'Esiste già un account con questa email.' : (e.message||'Errore in registrazione.'),'err');
+  }
+}
+async function doLogin(){
+  const email=($('f-email').value||'').trim().toLowerCase(), pass=$('f-pass').value||'';
+  busy(true);
+  try{ await DB.signIn(email, pass); TRK.log('login','login'); await enterApp(); }
+  catch(e){ busy(false); authMsg('Email o password non corretti.','err'); }
+}
+async function logout(){ try{ await DB.signOut(); }catch(e){} io=null; $('app').style.display='none'; closeModal(); renderLanding(); }
+/* =====================================================================
+   SHELL + NAVIGAZIONE
+===================================================================== */
+/* =====================================================================
+   Tracciamento d'uso — privacy-first.
+   Niente IP, niente user-agent grezzo, niente identita': solo categorie
+   grossolane + un id di sessione casuale che si azzera a ogni visita.
+   Parte SOLO dopo consenso e rispetta Do Not Track / Global Privacy Control.
+   ===================================================================== */
+const TRK = (function(){
+  let sess = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  let prov = null, dev = null, consenso = null;
+  function store(k,v){ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v); }catch(e){ return null; } }
+  function dnt(){ try{ return navigator.doNotTrack==='1' || window.doNotTrack==='1' || navigator.msDoNotTrack==='1' || navigator.globalPrivacyControl===true; }catch(e){ return false; } }
+  function device(){
+    if(dev) return dev;
+    let mob=false; try{ mob = navigator.userAgentData ? !!navigator.userAgentData.mobile : /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent||''); }catch(e){}
+    const w = window.innerWidth||1024;
+    dev = mob ? (w>700 ? 'tablet' : 'mobile') : (w<600 ? 'mobile' : (w<=1024 ? 'tablet' : 'desktop'));
+    return dev;
+  }
+  function provenienza(){
+    if(prov!==null) return prov;
+    let r=''; try{ r=document.referrer||''; }catch(e){}
+    if(!r){ prov='diretto'; return prov; }
+    try{ const h=new URL(r).hostname.replace(/^www\./,'');
+      if(h===location.hostname) prov='interno';
+      else if(/google\.|bing\.|duckduckgo|yahoo|ecosia|qwant|search/i.test(h)) prov='ricerca';
+      else if(/facebook|instagram|twitter|x\.com|t\.co|linkedin|whatsapp|telegram|tiktok|youtube|reddit/i.test(h)) prov='social';
+      else prov=h.slice(0,40);
+    }catch(e){ prov='altro'; }
+    return prov;
+  }
+  function attivo(){ return consenso===true && !dnt(); }
+  function log(tipo, vista, dettaglio){
+    if(!attivo()) return;
+    try{ DB.traccia({ tipo, vista:vista||'', dettaglio:dettaglio||'', dispositivo:device(),
+      provenienza:provenienza(), autenticato: !!io, ruolo: io?io.ruolo:null, sessione: sess }); }catch(e){}
+  }
+  function decidi(v){ consenso=!!v; store('pacifica_consenso', v?'si':'no'); const b=$('cookie-bar'); if(b) b.remove();
+    if(v){ log('pageview', io?vista:'landing'); } }   // registra la pagina corrente appena si accetta
+  function init(){
+    if(window.__DEMO){ consenso=true; return; }        // nella demo il consenso e' implicito
+    if(dnt()){ consenso=false; return; }
+    const prec = store('pacifica_consenso');
+    if(prec==='si'){ consenso=true; } else if(prec==='no'){ consenso=false; } else { consenso=null; mostraBanner(); }
+  }
+  function mostraBanner(){
+    if($('cookie-bar')) return;
+    const b=document.createElement('div'); b.id='cookie-bar';
+    b.innerHTML = `<div class="cb-in"><div class="cb-txt">
+        Usiamo statistiche <b>anonime</b> per capire come viene usato il portale (pagine viste, dispositivo, provenienza generica). Nessun dato personale, nessun profilo, nessuna pubblicit\u00e0.</div>
+      <div class="cb-btn"><button class="btn ghost small" onclick="TRK.decidi(false)">Rifiuta</button>
+        <button class="btn oro small" onclick="TRK.decidi(true)">Accetto</button></div></div>`;
+    document.body.appendChild(b);
+  }
+  return { log, decidi, init, attivo, dnt };
+})();
+
+const NAV = [
+  {id:'dashboard', lab:'Dashboard'},
+  {id:'parlamento',lab:'Parlamento'},
+  {id:'rassegna',  lab:'La pace oggi'},
+  {id:'novita',    lab:'Novit\u00e0'},
+  {id:'accademia', lab:'Accademia'},
+  {id:'vod',       lab:'Video'},
+  {id:'audio',     lab:'Biblioteca'},
+  {id:'campus',    lab:'Campus'},
+  {id:'eventi',    lab:'Eventi'},
+  {id:'abbonamenti',lab:'Abbonamenti'},
+];
+async function enterApp(){
+  await refreshMe();
+  await loadCatalog();
+  $('auth-root').style.display='none';
+  $('app').style.display='block';
+  go('dashboard');
+}
+function openMenu(){ document.body.classList.add('menu-open'); const h=$('hamburger'); if(h){ h.classList.add('on'); h.setAttribute('aria-expanded','true'); } }
+function closeMenu(){ document.body.classList.remove('menu-open'); const h=$('hamburger'); if(h){ h.classList.remove('on'); h.setAttribute('aria-expanded','false'); } }
+function toggleMenu(){ document.body.classList.contains('menu-open') ? closeMenu() : openMenu(); }
+function go(v,c={}){ vista=v; ctx=c; closeMenu(); window.scrollTo(0,0); render(); TRK.log('pageview', v); }
+
+function render(){
+  $('nav').innerHTML = NAV.map(n=>`<button class="${vista===n.id?'on':''}" onclick="go('${n.id}')">${n.lab}</button>`).join('')
+    + (io.ruolo==='presidenza'?`<button class="${vista==='presidenza'?'on':''}" onclick="go('presidenza')">Presidenza</button>`:'');
+  const mb=io.membership;
+  const badge = mb==='academicus'?'<span class="badge oro">Academicus</span>'
+              : mb==='civis'?'<span class="badge blu">Civis</span>'
+              : '<span class="badge grigio">Free</span>';
+  $('topbar-right').innerHTML = `${badge}
+    <div class="chip"><span class="av">${initials(io.nome)}</span>${esc(io.nome.split(' ')[0])}
+      <button class="x" style="font-size:16px;width:auto;height:auto;margin-left:2px" title="Esci" onclick="logout()">⏻</button></div>`;
+  const R = { dashboard:renderDashboard, parlamento:renderParlamento, accademia:renderAccademia,
+    vod:renderVod, audio:renderAudio, rassegna:renderRassegna, novita:renderNovita, campus:renderCampus, eventi:renderEventi, abbonamenti:renderAbbonamenti, presidenza:renderPresidenza, corso:renderCorso };
+  $('main').innerHTML = `<div class="view">${(R[vista]||renderDashboard)()}</div>`;
+  osservaReveal();
+}
+
+/* =====================================================================
+   DINAMISMO — comparsa in dissolvenza al primo ingresso nello schermo.
+   - Rispetta "riduci animazioni" (accessibilità): se attivo, nulla si muove.
+   - Se manca IntersectionObserver o il JS non parte, i contenuti restano
+     comunque visibili (l'opacità 0 si applica solo con html.anim).
+   - Usa un observer, non listener sullo scroll: leggero.
+   ===================================================================== */
+let _revObs=null;
+function osservaReveal(){
+  try{
+    if(!('IntersectionObserver' in window)) return;
+    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    document.documentElement.classList.add('anim');
+    const sel='.lp-h,.lp-pill,.lp-tile,.lp-plan,.man-item,.mec-step,.mec-step,.news-item,.ev-item,.lp-event,.page-head,.view .card,.view .tile,.view .plan,.nov-item,.g-stat,.rass-col,.lp-rass';
+    const nodes=[].slice.call(document.querySelectorAll(sel))
+      .filter(el=>!el.classList.contains('reveal') && !(el.closest && el.closest('.lp-hero')));
+    if(!nodes.length) return;
+    nodes.forEach(el=>el.classList.add('reveal'));
+    if(!_revObs) _revObs=new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); _revObs.unobserve(e.target); } });
+    },{rootMargin:'0px 0px -6% 0px',threshold:.05});
+    nodes.forEach(function(el){
+      const sibs=[].slice.call(el.parentNode.children).filter(function(c){return c.classList && c.classList.contains('reveal');});
+      const idx=Math.max(0,sibs.indexOf(el));
+      el.style.transitionDelay=Math.min(idx*70,400)+'ms';
+      _revObs.observe(el);
+    });
+  }catch(e){}
+}
+
+function tempoFa(iso){
+  if(!iso) return '';
+  const d=new Date(iso), min=Math.round((Date.now()-d)/60000);
+  if(min<60) return min<=1?'ora':min+' min fa';
+  const h=Math.round(min/60); if(h<24) return h+' h fa';
+  const g=Math.round(h/24); return g===1?'ieri':g+' giorni fa';
+}
+function fmtGiorno(iso){ try{ return new Date(iso).toLocaleDateString('it-IT',{day:'numeric',month:'long'}); }catch(e){ return iso; } }
+
+/* =====================================================================
+   NOVITA' (lato utenti) — si aggiorna da sola: legge il catalogo e mostra
+   le ultime aggiunte in ordine di data. Nessun elenco da mantenere a mano.
+   ===================================================================== */
+function novitaItems(){
+  const out=[]; const ed = (typeof editoreDi==='function');
+  const push=(tipo,ico,tit,creato,fn,meta)=>{ if(creato&&tit) out.push({tipo,ico,tit,creato,fn,meta:meta||''}); };
+  (typeof CORSI!=='undefined'?CORSI:[]).filter(c=>c.pubblicato!==false).forEach(c=>push('Corso','\u25C8',c.tit,c.creato,"go('accademia')",commNomeSicuro(c.comm)||''));
+  (typeof VOD!=='undefined'?VOD:[]).filter(v=>v.pubblicato!==false).forEach(v=>push('Video','\u25B6',v.tit,v.creato,"playVideo('"+v.id+"')",v.tipo));
+  (typeof TESTI!=='undefined'?TESTI:[]).filter(t=>t.pubblicato!==false).forEach(t=>push('Testo','\u2749',t.tit,t.creato,"apriTesto('"+t.id+"')",t.autore));
+  (typeof AUDIO!=='undefined'?AUDIO:[]).filter(a=>a.pubblicato!==false).forEach(a=>push('Audio','\u266A',a.tit,a.creato,"apriAudio('"+a.id+"')",a.autore));
+  (typeof EVENTI!=='undefined'?EVENTI:[]).filter(e=>e.pubblicato!==false).forEach(e=>push('Evento','\u2726',e.tit,e.creato,"go('eventi')",e.periodo||''));
+  (typeof DOSSIER!=='undefined'?DOSSIER:[]).forEach(d=>push('Dossier','\u00A7',d.tit,d.creato,"go('parlamento')",d.id));
+  (typeof NOTIZIE!=='undefined'?NOTIZIE:[]).filter(n=>!n.nascosta).forEach(n=>push('Notizia','\u25CF',n.tit,n.data,"go('rassegna')",ed?editoreDi(n.fonte):''));
+  out.sort((a,b)=> new Date(b.creato)-new Date(a.creato));
+  return out;
+}
+function novitaBadge(t){ return t==='Corso'?'blu':(t==='Video'?'blu':(t==='Notizia'?'verde':(t==='Evento'?'oro':'grigio'))); }
+function novitaHTML(limite){
+  const items = novitaItems().slice(0, limite||24);
+  if(!items.length) return '<div class="empty">Ancora nessuna novit\u00e0: le aggiunte compariranno qui da sole.</div>';
+  return `<div class="nov-list">`+items.map(it=>`<button class="nov-item" onclick="${it.fn}">
+      <span class="nov-ic">${it.ico}</span>
+      <span class="nov-b"><span class="nov-top"><span class="badge ${novitaBadge(it.tipo)}">${esc(it.tipo)}</span><span class="nov-when">${esc(tempoFa(it.creato))}</span></span>
+      <span class="nov-tit">${esc(it.tit)}</span>${it.meta?`<span class="nov-meta">${esc(it.meta)}</span>`:''}</span>
+      <span class="nov-go">\u203A</span></button>`).join('')+`</div>`;
+}
+function renderNovita(){
+  return `<div class="page-head"><div class="eyebrow">Aggiornato di continuo</div><h1>Novit\u00e0</h1>
+    <p class="lead">Le ultime aggiunte al portale \u2014 nuovi corsi, video, testi, eventi e dossier \u2014 in ordine di arrivo. Questa pagina si aggiorna da sola.</p></div>
+    ${novitaHTML(30)}`;
+}
+
+/* =====================================================================
+   GUIDA (lato amministratore) — spiega come caricare, e mostra lo stato
+   attuale (conteggi e ultimo aggiornamento) letto dal vivo dai dati.
+   ===================================================================== */
+function guidaConta(arr){ arr=arr||[];
+  const pub=arr.filter(x=>x.pubblicato!==false).length;
+  const date=arr.map(x=>x.creato||x.data).filter(Boolean).map(d=>+new Date(d)).filter(n=>!isNaN(n)).sort((a,b)=>a-b);
+  return { tot:arr.length, pub, ultimo: date.length?tempoFa(new Date(date[date.length-1]).toISOString()):'\u2014' };
+}
+function renderGuidaAdmin(){
+  const A = (v)=> (typeof v!=='undefined'&&v)?v:[];
+  const sez=[['Corsi',A(CORSI)],['Video',A(VOD)],['Audiolibri',A(AUDIO)],['Testi',A(TESTI)],
+    ['Pacchetti',A(PACCHETTI)],['Campus',A(CAMPUS)],['Eventi',A(EVENTI)],['Dossier',A(DOSSIER)],
+    ['Livelli',A(LIVELLI)],['Formule',A(FORMULE)],['Fonti',A(FONTI)],['Notizie',A(NOTIZIE)]];
+  const stato = sez.map(([nome,arr])=>{ const c=guidaConta(arr);
+    return `<div class="g-stat"><b>${esc(nome)}</b><span>${c.tot} element${c.tot===1?'o':'i'}${(c.pub!==c.tot)?` \u00b7 ${c.pub} pubblicat${c.pub===1?'o':'i'}`:''}</span><span class="g-when">agg. ${esc(c.ultimo)}</span></div>`;
+  }).join('');
+  const passo = (n,t)=>`<li><b>${esc(n)}</b> \u2014 ${t}</li>`;
+  return `<div class="page-head" style="padding-top:0"><div class="eyebrow">Guida</div>
+      <h2 style="font-size:26px;margin:2px 0 4px">Come caricare i contenuti</h2>
+      <p class="lead" style="font-size:15px">Ogni sezione ha lo stesso ritmo: <b>Contenuti \u2192 scegli la scheda \u2192 Aggiungi</b> (o la matita per modificare), compili, e spunti <b>Pubblicato</b> quando vuoi renderlo visibile.</p></div>
+    <div class="card" style="padding:18px;margin-bottom:16px">
+      <div class="eyebrow">Stato attuale</div>
+      <p class="muted small" style="margin:8px 0 12px">Si aggiorna da solo ogni volta che carichi qualcosa.</p>
+      <div class="g-stats">${stato}</div></div>
+    <div class="card" style="padding:18px;margin-bottom:16px">
+      <div class="eyebrow">Passo per passo</div>
+      <ol class="g-steps">
+        ${passo('Aprire il pannello','sei gia\u2019 qui: <i>Presidenza</i>. La scheda <i>Contenuti</i> raccoglie tutte le sezioni.')}
+        ${passo('Aggiungere','in ogni sezione, il bottone <i>+ Aggiungi</i> apre il modulo. L\u2019<i>identificativo</i> \u00e8 un codice breve (es. <code>c9</code>) e non si cambia dopo.')}
+        ${passo('Pubblicare o tenere in bozza','finch\u00e9 <i>Pubblicato</i> \u00e8 spento, il contenuto resta invisibile agli utenti: utile per prepararlo con calma.')}
+        ${passo('Ordinare','il campo <i>Ordine</i> decide la posizione: numeri pi\u00f9 bassi vengono prima.')}
+        ${passo('Modificare o eliminare','la matita modifica, il cestino elimina. Alcune eliminazioni sono protette (es. una formula con impegni gi\u00e0 sottoscritti).')}
+      </ol></div>
+    <div class="card" style="padding:18px">
+      <div class="eyebrow">Note per alcune sezioni</div>
+      <ul class="g-steps" style="list-style:disc;padding-left:20px">
+        <li><b>Video</b>: incolla l\u2019URL (YouTube, Vimeo o file). Il <i>livello di accesso</i> decide chi lo vede; l\u2019indirizzo resta protetto per chi non ne ha diritto.</li>
+        <li><b>Livelli</b>: sono i permessi (Pubblico, Civis, Academicus\u2026). Li crei e li assegni ai contenuti; una spunta qualsiasi basta a soddisfarli.</li>
+        <li><b>Rassegna</b>: aggiungi una <i>fonte</i> RSS e premi <i>Sincronizza</i>. Puoi spegnere una fonte o nascondere un singolo articolo in un clic.</li>
+        <li><b>Mecenati</b>: le <i>formule</i> definiscono \u201cX euro \u2192 X accessi\u201d. Quando un bonifico risulta accreditato, <i>Segna pagato</i> emette gli accessi.</li>
+        <li><b>Ente</b>: qui vivono IBAN e dati dell\u2019ente. Finch\u00e9 l\u2019IBAN \u00e8 vuoto, chi sottoscrive riceve un avviso invece di coordinate.</li>
+        <li><b>Statistiche</b>: numeri anonimi e aggregati. Nessun dato personale, nel rispetto del consenso e di \u201cDo Not Track\u201d.</li>
+      </ul>
+      <p class="muted small" style="margin-top:12px">Le stesse aggiunte compaiono agli utenti nella pagina <b>Novit\u00e0</b>, in ordine di arrivo.</p></div>`;
+}
+function editoreDi(fonteId){ const f=(FONTI||[]).find(x=>x.id===fonteId); return f?(f.editore||f.nome):''; }
+function rassegnaHTML(){
+  const nz = (NOTIZIE||[]).filter(n=>!n.nascosta);
+  const ev = (EVENTIPACE||[]).filter(e=>e.pubblicato!==false && (!e.fine ? e.inizio>=oggiISO() : e.fine>=oggiISO()));
+  const news = nz.length ? nz.slice(0,12).map(n=>`<a class="news-item" href="${esc(n.url||'#')}" ${n.url?'target="_blank" rel="noopener noreferrer"':''}>
+      ${n.img?`<div class="news-img" style="background-image:url('${esc(n.img)}')"></div>`:''}
+      <div class="news-body"><h4>${esc(n.tit)}</h4>
+        ${n.sommario?`<p>${esc(n.sommario)}</p>`:''}
+        <div class="news-meta">${esc(editoreDi(n.fonte))}${n.data?' \u00b7 '+esc(tempoFa(n.data)):''}</div></div></a>`).join('')
+    : `<div class="empty" style="grid-column:1/-1">Nessuna notizia al momento. Torna piu\u2019 tardi.</div>`;
+  const eventi = ev.length ? ev.slice(0,8).map(e=>`<div class="ev-item">
+      <div class="ev-date"><b>${new Date(e.inizio).getDate()}</b><span>${new Date(e.inizio).toLocaleDateString('it-IT',{month:'short'})}</span></div>
+      <div class="ev-b"><h4>${esc(e.tit)}</h4>
+        <div class="news-meta">${esc([fmtGiorno(e.inizio)+(e.fine?(' \u2013 '+fmtGiorno(e.fine)):''), e.luogo].filter(Boolean).join(' \u00b7 '))}</div>
+        ${e.desc?`<p class="muted small" style="margin-top:6px">${esc(e.desc)}</p>`:''}
+        ${e.url?`<a class="btn small ghost" style="margin-top:8px" href="${esc(e.url)}" target="_blank" rel="noopener noreferrer">Dettagli</a>`:''}</div></div>`).join('')
+    : `<div class="empty">Nessun evento in programma.</div>`;
+  return `<div class="rassegna">
+    <div class="rass-col"><div class="rass-head"><h3>Notizie sulla pace</h3>
+      ${nz.length?`<span class="muted small">aggiornata ${tempoFa((nz[0]||{}).data)}</span>`:''}</div>
+      <div class="news-grid">${news}</div>
+      ${(FONTI||[]).some(f=>f.attiva)?`<p class="muted small" style="margin-top:10px">Fonti: ${esc(Array.from(new Set((FONTI||[]).filter(f=>f.attiva).map(f=>f.editore||f.nome))).join(', '))}. Le notizie rimandano alla fonte originale.</p>`:''}
+    </div>
+    <div class="rass-col"><div class="rass-head"><h3>Eventi e iniziative</h3></div>
+      <div class="ev-list">${eventi}</div></div>
+  </div>`;
+}
+function oggiISO(){ return new Date().toISOString().slice(0,10); }
+function renderRassegna(){
+  return `<div class="page-head"><div class="eyebrow">Ogni giorno</div><h1>La pace, oggi</h1>
+    <p class="lead">Notizie da fonti internazionali e gli appuntamenti da non perdere. Le notizie arrivano dalle fonti selezionate e rimandano all\u2019originale.</p></div>
+    ${rassegnaHTML()}`;
+}
+
+/* =====================================================================
+   DASHBOARD
+===================================================================== */
+function renderDashboard(){
+  const oggi = new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
+  const mb=io.membership;
+  const statoAbb = mb==='academicus'?'Civis Academicus — accesso completo'
+    : mb==='civis'?'Civis — VOD e Biblioteca illimitati'
+    : 'Account gratuito — sblocca tutto con la membership';
+  const nCorsi = CORSI.filter(c=>haAccesso('corso:'+c.id)).length;
+  const pillars = [
+    {id:'parlamento', num:'I', ico:'⚖︎', t:'Parlamento', d:'Simula un parlamento con commissioni, proposte di legge e votazioni.', lock:!(io.ruolo==='delegato'||io.ruolo==='presidenza')},
+    {id:'accademia', num:'II', ico:'📖', t:'Accademia', d:'Il Percorso di Pace in otto corsi tenuti dai formatori.', lock:false},
+    {id:'vod', num:'III', ico:'▶', t:'Video On Demand', d:'Documentari, lezioni aperte e conferenze sulla cultura di pace.', lock:false},
+    {id:'audio', num:'IV', ico:'📚', t:'Biblioteca', d:'Audiolibri e testi da leggere e ascoltare, con sintesi e percorsi su misura.', lock:false},
+    {id:'campus', num:'V', ico:'⛪', t:'Campus', d:'Campus formativi in presenza all’Abbazia di Maguzzano, con possibilità di soggiorno.', lock:false},
+    {id:'eventi', num:'VI', ico:'🎭', t:'Eventi', d:'Mostre ed eventi de La Pacifica. In arrivo: Speculum 2027, la mostra dei dodici mesi.', lock:false},
+  ];
+  const corsoAttivo = CORSI.find(c=>haAccesso('corso:'+c.id));
+  const audioFree = AUDIO.find(a=>a.free)||AUDIO[0];
+  return `
+  <div class="page-head">
+    <div class="eyebrow">${esc(oggi)}</div>
+    <h1>Benvenuto, ${esc(io.nome.split(' ')[0])}.</h1>
+    <p class="lead">${statoAbb}. ${mb==='free'?'<button class="linkbtn" onclick="go(\'abbonamenti\')">Vedi i piani →</button>':''}</p>
+  </div>
+  <div class="temple" style="margin-bottom:26px">
+    ${pillars.map(p=>`<button class="pillar" onclick="go('${p.id}')">
+      ${p.lock?'<span class="lock">su invito</span>':''}
+      <span class="num">${p.num}</span><span class="ico">${p.ico}</span>
+      <h3>${p.t}</h3><p>${p.d}</p><span class="go">Entra →</span></button>`).join('')}
+  </div>
+  <div class="stats" style="margin-bottom:26px">
+    <div class="stat"><div class="n">${nCorsi}/8</div><div class="l">Corsi a tua disposizione</div></div>
+    <div class="stat"><div class="n">${VOD.filter(v=>v.free||haAccesso('vod-premium')).length}</div><div class="l">Video sbloccati</div></div>
+    <div class="stat"><div class="n">${AUDIO.filter(a=>a.free||haAccesso('audio-premium')).length + TESTI.filter(t=>t.free||haAccesso('audio-premium')).length}</div><div class="l">Letture e audiolibri</div></div>
+    <div class="stat"><div class="n">${(io.acquisti||[]).filter(a=>a.startsWith('campus:')).length}</div><div class="l">Campus prenotati</div></div>
+  </div>
+  <div class="grid g2">
+    <div class="card" style="padding:22px">
+      <div class="eyebrow">Continua</div>
+      <h3 style="font-size:24px;margin:4px 0 10px">Riprendi il tuo percorso</h3>
+      ${corsoAttivo?`<div class="lesson on" onclick="go('corso',{id:'${corsoAttivo.id}'})">
+        <span class="n">${(io.progress[corsoAttivo.id]||[]).length||1}</span>
+        <span class="t">${esc(corsoAttivo.tit)}<br><span class="d" style="margin:0">${esc(corsoAttivo.form)} · ${(io.progress[corsoAttivo.id]||[]).length}/8 lezioni</span></span>
+        <span class="go" style="margin-left:auto;color:var(--oltremare);font-weight:700">Riprendi →</span></div>`
+        :`<p class="muted small">Non hai ancora corsi attivi. Esplora l’Accademia o attiva una membership per cominciare.</p>
+          <div style="margin-top:14px"><button class="btn small" onclick="go('accademia')">Esplora l’Accademia</button></div>`}
+    </div>
+    <div class="card" style="padding:22px">
+      <div class="eyebrow">Dalla Biblioteca</div>
+      <h3 style="font-size:24px;margin:4px 0 10px">Per cominciare, in ascolto</h3>
+      <div class="lesson on" onclick="go('audio',{open:'${audioFree.id}'})">
+        <span class="n">♪</span>
+        <span class="t">${esc(audioFree.tit)}<br><span class="d" style="margin:0">${esc(audioFree.autore)} · ${audioFree.durata}</span></span>
+        <span class="go" style="margin-left:auto;color:var(--oltremare);font-weight:700">Ascolta →</span></div>
+      <p class="muted small" style="margin-top:12px">Il motore IA può leggere ad alta voce, riassumere e costruire un percorso di ascolto su misura.</p>
+    </div>
+  </div>`;
+}
+
+/* =====================================================================
+   ACCADEMIA + PLAYER
+===================================================================== */
+function renderAccademia(){
+  const tutto = io.membership==='academicus';
+  return `
+  <div class="page-head"><div class="eyebrow">Pilastro II · Il Percorso di Pace</div>
+    <h1>L’Accademia</h1>
+    <p class="lead">Otto corsi, sei formatori, ottantaquattro lezioni da venticinque minuti. ${tutto?'Con la membership Academicus hai accesso a tutto il catalogo.':'Acquista i corsi singolarmente, in pacchetti o tutto il Percorso — oppure sblocca tutto con la membership Academicus.'}</p></div>
+  ${!tutto?`<div class="card" style="padding:18px 22px;margin-bottom:24px;display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+    <div style="flex:1;min-width:220px"><div class="eyebrow">Percorso completo</div>
+      <h3 style="font-size:24px">Tutti gli 8 corsi + attestato finale</h3>
+      <p class="muted small">Il modo più conveniente per affrontare l’intero Percorso di Pace.</p></div>
+    <div style="text-align:right"><div class="price" style="font-size:34px">${euro(PREZZO_PERCORSO)}</div>
+      <button class="btn oro" onclick="compra('percorso')">Acquista il Percorso</button></div></div>`:''}
+  <div class="grid g3">
+    ${CORSI.map(c=>{
+      const ok = haAccesso('corso:'+c.id), done=(io.progress[c.id]||[]).length;
+      return `<div class="tile">
+        <div class="cover"><span class="k">${c.id.slice(1)}</span><span class="tag">${esc(c.pacc)}</span></div>
+        <div class="body"><h4>${esc(c.tit)}</h4>
+          <div class="meta">${esc(c.form)} · 8 lezioni · 25′</div>
+          <p class="small muted" style="flex:1">${esc(c.desc)}</p>
+          <div class="foot">
+            ${ok?`<span class="badge verde">${done>0?done+'/8 lezioni':'Disponibile'}</span>
+                 <button class="btn small" onclick="go('corso',{id:'${c.id}'})">${done>0?'Riprendi':'Inizia'}</button>`
+               :`<span class="price">${euro(PREZZO_CORSO)}</span>
+                 <button class="btn small ghost" onclick="compra('corso:${c.id}')">Acquista</button>`}
+          </div></div></div>`;
+    }).join('')}
+  </div>
+  ${!tutto?`<h2 style="font-size:28px;margin:34px 0 14px">Pacchetti tematici</h2>
+  <div class="grid g3">${PACCHETTI.map(p=>`<div class="card" style="padding:20px">
+    <div class="eyebrow">Risparmi ${euro(p.full-p.prezzo)}</div>
+    <h4 style="font-size:23px;margin:3px 0 6px">${esc(p.nome)}</h4>
+    <p class="small muted">${p.corsi.map(id=>esc(CORSI.find(c=>c.id===id).tit)).join(' · ')}</p>
+    <div class="foot" style="display:flex;justify-content:space-between;align-items:center;margin-top:14px">
+      <span class="price">${euro(p.prezzo)}</span>
+      ${p.corsi.every(id=>haAccesso('corso:'+id))?'<span class="badge verde">Già tuo</span>':`<button class="btn small ghost" onclick="compra('pacc:${p.id}')">Acquista pacchetto</button>`}
+    </div></div>`).join('')}</div>`:''}`;
+}
+
+const LEZTIT = ['Le domande fondamentali','Il metodo e il dialogo','Concetti e definizioni','Il pensiero in azione','Casi e testimonianze','Pratica guidata','Sintesi e discussione','Verifica e attestato'];
+function renderCorso(){
+  const c = CORSI.find(x=>x.id===ctx.id);
+  if(!c) return renderAccademia();
+  if(!haAccesso('corso:'+c.id)){ go('accademia'); return ''; }
+  const sel = ctx.lez||1, done=io.progress[c.id]||[];
+  return `
+  <button class="linkbtn" onclick="go('accademia')">← Tutti i corsi</button>
+  <div class="page-head" style="margin-top:12px"><div class="eyebrow">${esc(c.form)} · ${esc(c.pacc)}</div><h1>${esc(c.tit)}</h1></div>
+  <div class="grid" style="grid-template-columns:1.6fr 1fr;gap:24px">
+    <div>
+      <div class="player"><div class="play" onclick="completaLezione('${c.id}',${sel})">▶</div>
+        <div style="z-index:1;text-align:center"><div class="eyebrow" style="color:var(--oro-chiaro)">Lezione ${sel} di 8</div>
+          <h3 style="color:#fff;font-size:26px;margin-top:4px">${esc(LEZTIT[sel-1])}</h3>
+          <p style="color:#C7D0E0;font-size:13px;margin-top:4px">25 minuti · premi play per segnare come completata</p></div></div>
+      <div class="card" style="padding:18px;margin-top:16px">
+        <h4 style="font-size:20px">Su questa lezione</h4>
+        <p class="muted small" style="margin-top:6px">${esc(c.desc)}</p>
+        <div style="display:flex;gap:10px;margin-top:14px">
+          ${sel>1?`<button class="btn small ghost" onclick="go('corso',{id:'${c.id}',lez:${sel-1}})">← Precedente</button>`:''}
+          ${sel<8?`<button class="btn small" onclick="completaLezione('${c.id}',${sel},true)">Completa e prosegui →</button>`
+            :`<button class="btn small oro" onclick="completaLezione('${c.id}',8,false,true)">Completa il corso 🎓</button>`}
+        </div></div>
+    </div>
+    <div class="card" style="padding:16px">
+      <div class="eyebrow" style="padding:0 6px">Programma · ${done.length}/8</div>
+      <div class="lesson-list" style="margin-top:8px">
+        ${LEZTIT.map((t,i)=>{ const n=i+1; return `<div class="lesson ${n===sel?'on':''} ${done.includes(n)?'done':''}" onclick="go('corso',{id:'${c.id}',lez:${n}})">
+          <span class="n">${done.includes(n)?'✓':n}</span><span class="t">${esc(t)}</span><span class="d">25′</span></div>`;}).join('')}
+      </div></div>
+  </div>`;
+}
+async function completaLezione(cid,n,avanza,fine){
+  try{ await DB.markLesson(cid,n); io.progress[cid]=io.progress[cid]||[]; if(!io.progress[cid].includes(n)) io.progress[cid].push(n); }
+  catch(e){ toast('Errore nel salvataggio.'); }
+  if(fine){ toast('Corso completato! Attestato disponibile. 🎓'); go('accademia'); return; }
+  if(avanza && n<8) go('corso',{id:cid,lez:n+1}); else { render(); toast('Lezione completata.'); }
+}
+
+/* =====================================================================
+   VIDEO ON DEMAND
+===================================================================== */
+function vaiA(cta){
+  if(!cta) return;
+  if(cta==='registrati'){ if(!io) apriAccesso('reg'); return; }
+  if(io) go(cta); else apriAccesso('reg');
+}
+function renderVod(){
+  const bloccati = VOD.filter(v=>!livelloConsentito(v.livello));
+  const invito = (bloccati.find(v=>livello(v.livello).cta)||{});
+  const Linv = invito.livello?livello(invito.livello):null;
+  return `
+  <div class="page-head"><div class="eyebrow">Pilastro III \u00b7 La vetrina</div>
+    <h1>Video On Demand</h1>
+    <p class="lead">Documentari, lezioni aperte, conferenze e le registrazioni dei live. ${bloccati.length?'Alcuni titoli sono aperti a tutti; per gli altri serve il livello indicato su ciascuna scheda.':'Hai accesso a tutto il catalogo.'}</p></div>
+  ${Linv?`<div class="card" style="padding:16px 20px;margin-bottom:22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+    <div><b>${esc(Linv.invito||('Sblocca '+Linv.nome))}</b> <span class="muted small">\u2014 ${bloccati.length} ${bloccati.length===1?'titolo ancora chiuso':'titoli ancora chiusi'}</span></div>
+    <button class="btn oro small" onclick="vaiA('${esc(Linv.cta)}')">Sblocca</button></div>`:''}
+  <div class="grid g3">
+    ${VOD.map(v=>{ const ok=livelloConsentito(v.livello); const L=livello(v.livello); return `<div class="tile">
+      <div class="cover" style="background:linear-gradient(135deg,#1B3A6B,#0E1D38)"><span class="k" style="font-size:30px">\u25B6</span><span class="tag">${esc(v.tipo)}${L.ospiti?' \u00b7 gratuito':''}</span></div>
+      <div class="body"><h4>${esc(v.tit)}</h4><div class="meta">${v.durata} \u00b7 ${esc(commNome(v.comm))}</div>
+        <p class="small muted" style="flex:1">${esc(v.desc)}</p>
+        <div class="foot">${ok?`<span class="badge ${L.ospiti?'verde':'blu'}">${esc(L.ospiti?'Gratuito':L.nome)}</span>
+          <button class="btn small" onclick="playVideo('${v.id}')">Guarda</button>`
+          :`<span class="badge grigio">\ud83d\udd12 ${esc(L.nome)}</span>${L.cta?`<button class="btn small ghost" onclick="vaiA('${esc(L.cta)}')">Sblocca</button>`:''}`}
+        </div></div></div>`;}).join('')}
+  </div>`;
+}
+/* Riconosce YouTube, Vimeo e file diretti. L'indirizzo dell'embed viene sempre
+   RICOSTRUITO a partire dall'identificativo estratto, mai inoltrato com'e':
+   cosi' un valore storto nel database non puo' finire dentro l'HTML.
+   Ritorna {tipo:'iframe'|'file'|'link', src} oppure null se l'URL manca. */
+function videoSorgente(raw){
+  const s = String(raw==null?'':raw).trim();
+  if(!s) return null;
+  let u; try{ u = new URL(s); }catch(e){ return null; }
+  if(u.protocol !== 'https:') return null;            /* blocca http:, javascript:, data: */
+  const host = u.hostname.replace(/^www\./,'');
+  const path = u.pathname.split('/').filter(Boolean);
+
+  const yt = (id,t) => /^[A-Za-z0-9_-]{11}$/.test(id||'')
+    ? { tipo:'iframe', src:'https://www.youtube-nocookie.com/embed/'+id+(/^\d+$/.test(t||'')?'?start='+t:'') }
+    : null;
+  if(host==='youtu.be') return yt(path[0], u.searchParams.get('t'));
+  if(host==='youtube.com' || host==='m.youtube.com' || host==='youtube-nocookie.com'){
+    if(path[0]==='watch') return yt(u.searchParams.get('v'), u.searchParams.get('t'));
+    if(['embed','shorts','live','v'].indexOf(path[0])>=0)
+      return yt(path[1], u.searchParams.get('start') || u.searchParams.get('t'));
+  }
+  const vm = (id,h) => /^\d+$/.test(id||'')
+    ? { tipo:'iframe', src:'https://player.vimeo.com/video/'+id+(/^[A-Za-z0-9]+$/.test(h||'')?'?h='+h:'') }
+    : null;
+  if(host==='vimeo.com'){ const i=path.findIndex(x=>/^\d+$/.test(x)); if(i>=0) return vm(path[i], path[i+1]); }
+  if(host==='player.vimeo.com' && path[0]==='video') return vm(path[1], u.searchParams.get('h'));
+
+  if(/\.(mp4|webm|ogv|ogg|mov|m4v)$/i.test(u.pathname)) return { tipo:'file', src:u.href };
+  return { tipo:'link', src:u.href };                 /* riconosciuto ma non incorporabile */
+}
+let vodTok=0;
+async function playVideo(id){
+  const v=VOD.find(x=>x.id===id);
+  if(!v) return;
+  TRK.log('click','vod', v.tit);
+  const L=livello(v.livello);
+  /* Questo controllo serve solo all'interfaccia: la parola definitiva ce l'ha
+     la RLS su video_sources, che a chi non ha diritto l'indirizzo non lo manda. */
+  if(!livelloConsentito(v.livello)){ vaiA(L.cta); return; }
+  const tok=++vodTok;
+  const testa=`<h3 style="font-size:24px">${esc(v.tit)}</h3><span class="badge blu">${esc(v.tipo)}</span>`;
+  const coda=`<p class="muted small" style="margin-top:14px">${esc(v.desc)}</p>`;
+  const scatola=t=>`<div class="player" style="aspect-ratio:16/9"><div style="z-index:1;text-align:center;padding:0 24px">${t}</div></div>`;
+  openModal(testa, scatola('<p style="color:#C7D0E0;font-size:13px">Carico il video\u2026</p>') + coda, null, 'largo');
+  let url=null; try{ url = await DB.videoUrl(id); }catch(e){}
+  if(tok!==vodTok) return;                       /* l'utente ha gia' aperto altro */
+  const cassa=document.querySelector('.modal-b'); if(!cassa) return;
+  const src=videoSorgente(url);
+  let player;
+  if(url===null) player = scatola('<p style="color:#C7D0E0;font-size:13px">Non riesco a recuperare questo video. Se il tuo abbonamento \u00e8 appena cambiato, prova a rientrare.</p>');
+  else if(!src)  player = scatola('<div class="play" style="margin:0 auto 12px">\u25B6</div><p style="color:#C7D0E0;font-size:13px">Questo video non ha ancora un indirizzo collegato.</p>');
+  else if(src.tipo==='link') player = scatola(`<p style="color:#C7D0E0;font-size:13px;margin-bottom:12px">Questo indirizzo non si pu\u00f2 incorporare.</p><a class="btn oro small" href="${esc(src.src)}" target="_blank" rel="noopener noreferrer">Apri il video</a>`);
+  else if(src.tipo==='iframe') player = `<div class="player-frame"><iframe src="${esc(src.src)}" title="${esc(v.tit)}" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>`;
+  else player = `<div class="player-frame"><video src="${esc(src.src)}" controls preload="metadata" playsinline></video></div>`;
+  cassa.innerHTML = player + coda;
+}
+/* =====================================================================
+   BIBLIOTECA AUDIO — MOTORE IA
+===================================================================== */
+let ttsUtter=null, bibTab='audio';
+let readText='', readTitle='', readerCaps=[];
+function findMedia(id){ return AUDIO.find(x=>x.id===id) || TESTI.find(x=>x.id===id); }
+function renderAudio(){
+  const premium = haAccesso('audio-premium');
+  if(ctx.open){ const a=AUDIO.find(x=>x.id===ctx.open); const o=ctx.open; ctx.open=null; setTimeout(()=>{ if(a&&(a.free||premium)) apriAudio(o); },50); }
+  return `
+  <div class="page-head"><div class="eyebrow">Pilastro IV · La biblioteca quotidiana</div>
+    <h1>La Biblioteca <span class="muted" style="font-size:24px">audiolibri e testi, con motore IA</span></h1>
+    <p class="lead">Leggi e ascolta: audiolibri con voce e testi da leggere a schermo, con riassunti e percorsi su misura. ${premium?'Hai accesso illimitato e a tutte le funzioni IA.':'Alcuni titoli sono gratuiti; la biblioteca completa e l’IA sono incluse in Civis.'}</p></div>
+  <div class="seg" style="max-width:360px;margin-bottom:20px">
+    <button class="${bibTab==='audio'?'on':''}" onclick="setBibTab('audio')">Audiolibri</button>
+    <button class="${bibTab==='testi'?'on':''}" onclick="setBibTab('testi')">Testi</button>
+  </div>
+  <div id="bib-area">${bibArea(premium)}</div>`;
+}
+function setBibTab(t){ bibTab=t; const a=$('bib-area'); if(a) a.innerHTML=bibArea(haAccesso('audio-premium')); }
+function bibArea(premium){
+  if(bibTab==='testi'){
+    return `<div class="grid g3">
+      ${TESTI.map(t=>{ const ok=t.free||premium; return `<div class="tile">
+        <div class="cover" style="background:linear-gradient(135deg,#3A2E1E,#23170A)"><span class="k" style="font-size:30px">📖</span><span class="tag">Testo${t.free?' · gratuito':''}</span></div>
+        <div class="body"><h4>${esc(t.tit)}</h4><div class="meta">${esc(t.autore)} · ${(t.capitoli&&t.capitoli.length)?(t.capitoli.length+' capitoli'):esc(t.lettura||'lettura')}</div>
+          <div class="foot">${ok?`<span class="badge ${t.free?'verde':'blu'}">${t.free?'Gratuito':'Incluso'}</span>
+            <button class="btn small" onclick="apriTesto('${t.id}')">Leggi</button>`
+            :`<span class="badge grigio">🔒 Civis</span><button class="btn small ghost" onclick="go('abbonamenti')">Sblocca</button>`}
+          </div></div></div>`;}).join('')}
+    </div>`;
+  }
+  return `<div class="ai-panel" style="margin-bottom:24px">
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <div style="flex:1;min-width:240px"><div class="eyebrow">Percorso su misura</div>
+        <h3 style="font-size:22px;margin-top:2px">Chiedi all’IA cosa ascoltare</h3>
+        <p class="muted small">Raccontale cosa ti interessa: costruirà un percorso dal catalogo.</p></div>
+      ${premium?`<button class="btn oro" onclick="percorsoIA()">✦ Crea il mio percorso</button>`
+        :`<button class="btn ghost" onclick="go('abbonamenti')">🔒 Sblocca con Civis</button>`}
+    </div>
+    <div id="ia-percorso" style="margin-top:14px"></div>
+  </div>
+  <div class="grid g3">
+    ${AUDIO.map(a=>{ const ok=a.free||premium; return `<div class="tile">
+      <div class="cover" style="background:linear-gradient(135deg,#2A2440,#15233F)"><span class="k" style="font-size:30px">♪</span><span class="tag">Audiolibro${a.free?' · gratuito':''}</span></div>
+      <div class="body"><h4>${esc(a.tit)}</h4><div class="meta">${esc(a.autore)} · ${a.durata}</div>
+        <div class="foot">${ok?`<span class="badge ${a.free?'verde':'blu'}">${a.free?'Gratuito':'Incluso'}</span>
+          <button class="btn small" onclick="apriAudio('${a.id}')">Apri</button>`
+          :`<span class="badge grigio">🔒 Civis</span><button class="btn small ghost" onclick="go('abbonamenti')">Sblocca</button>`}
+        </div></div></div>`;}).join('')}
+  </div>`;
+}
+function apriTesto(id){
+  const t=TESTI.find(x=>x.id===id);
+  const premium = haAccesso('audio-premium') || t.free;
+  if(!premium){ go('abbonamenti'); return; }
+  const iaOn = haAccesso('audio-premium') && aiUrl();
+  const caps=(t.capitoli||[]).filter(c=>c&&((c.c&&c.c.length)||(c.t&&c.t.length)));
+  const chaptered=caps.length>0;
+  readerCaps=caps;
+  readText = chaptered ? (caps[0].c||'') : (t.testo||'');
+  readTitle = t.tit + (chaptered && caps[0].t ? ' — '+caps[0].t : '');
+  const nav = chaptered ? `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <button class="btn small ghost" onclick="capStep(-1)" title="Capitolo precedente">◀</button>
+      <select id="reader-sel" onchange="setReaderCap(this.selectedIndex)" style="flex:1;min-width:200px;padding:9px 10px;border:1px solid var(--linea);border-radius:8px;font-family:inherit">
+        ${caps.map((c,i)=>`<option value="${i}">${esc((i+1)+'. '+(c.t||('Capitolo '+(i+1))))}</option>`).join('')}
+      </select>
+      <button class="btn small ghost" onclick="capStep(1)" title="Capitolo successivo">▶</button>
+    </div>` : '';
+  openModal(
+    `<div><h3 style="font-size:25px">${esc(t.tit)}</h3><span class="muted small">${esc(t.autore)} · ${esc(t.lettura||'')}${chaptered?(' · '+caps.length+' capitoli'):''}</span></div>`,
+    `<div class="card" style="padding:14px;background:var(--avorio);border:none;margin-bottom:14px">
+       <div style="display:flex;align-items:center;gap:14px">
+         <button class="btn" id="tts-btn" onclick="toggleTTS('${t.id}')">▶ Ascolta (voce IA)</button>
+         <div class="wave hidden" id="tts-wave">${'<span></span>'.repeat(6)}</div>
+         <span class="muted small" id="tts-state">${chaptered?'Legge il capitolo selezionato':'Oppure leggi qui sotto'}</span>
+       </div></div>
+     ${nav}
+     ${chaptered?`<div id="reader-ct" class="eyebrow" style="margin-bottom:6px">${esc(caps[0].t||'Capitolo 1')}</div>`:''}
+     <div id="reader-body" style="font-family:'Cormorant Garamond',Georgia,serif;font-size:19px;line-height:1.75;white-space:pre-wrap;max-height:46vh;overflow:auto;padding-right:6px">${esc(readText)}</div>
+     <div class="divider"></div><div class="eyebrow">Motore IA ${chaptered?'(sul capitolo aperto)':''}</div>
+     ${iaOn?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
+        <button class="btn small ghost" onclick="iaAzione('${t.id}','riassunto')">✦ Riassumi in 3 punti</button>
+        <button class="btn small ghost" onclick="iaAzione('${t.id}','idea')">✦ L’idea centrale</button>
+        <button class="btn small ghost" onclick="iaAzione('${t.id}','collega')">✦ Collega ai corsi</button>
+      </div><div class="ai-out" id="ia-out">Scegli un’azione: il motore IA elabora il testo in tempo reale.</div>`
+      :`<p class="muted small">Le funzioni IA ${haAccesso('audio-premium')?'richiedono la configurazione dell’Edge Function (vedi README).':'sono incluse nella membership Civis.'}</p>`}
+    `, ()=>{ stopTTS(); readText=''; readTitle=''; readerCaps=[]; });
+}
+function setReaderCap(i){
+  const c=readerCaps[i]; if(!c) return;
+  stopTTS();
+  readText = c.c||''; readTitle = readTitle.split(' — ')[0] + (c.t?' — '+c.t:'');
+  const b=$('reader-body'); if(b){ b.innerHTML=esc(readText); b.scrollTop=0; }
+  const ct=$('reader-ct'); if(ct) ct.textContent = c.t||('Capitolo '+(i+1));
+  const sel=$('reader-sel'); if(sel) sel.selectedIndex=i;
+}
+function capStep(d){ const sel=$('reader-sel'); if(!sel) return; let i=Math.max(0,Math.min(sel.options.length-1, sel.selectedIndex+d)); setReaderCap(i); }
+function apriAudio(id){
+  const a=AUDIO.find(x=>x.id===id);
+  const premium = haAccesso('audio-premium') || a.free;
+  if(!premium){ go('abbonamenti'); return; }
+  const iaOn = haAccesso('audio-premium') && aiUrl();
+  readText=a.testo||''; readTitle=a.tit; readerCaps=[];
+  openModal(
+    `<div><h3 style="font-size:25px">${esc(a.tit)}</h3><span class="muted small">${esc(a.autore)} · ${a.durata}</span></div>`,
+    `<div class="card" style="padding:16px;background:var(--avorio);border:none">
+       <div style="display:flex;align-items:center;gap:14px">
+         <button class="btn" id="tts-btn" onclick="toggleTTS('${a.id}')">▶ Ascolta (voce IA)</button>
+         <div class="wave hidden" id="tts-wave">${'<span></span>'.repeat(6)}</div>
+         <span class="muted small" id="tts-state">Lettura vocale del browser</span>
+       </div></div>
+     <p style="font-size:14.5px;line-height:1.7;margin:16px 0;max-height:200px;overflow:auto">${esc(a.testo)}</p>
+     <div class="divider"></div><div class="eyebrow">Motore IA</div>
+     ${iaOn?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
+        <button class="btn small ghost" onclick="iaAzione('${a.id}','riassunto')">✦ Riassumi in 3 punti</button>
+        <button class="btn small ghost" onclick="iaAzione('${a.id}','idea')">✦ L’idea centrale</button>
+        <button class="btn small ghost" onclick="iaAzione('${a.id}','collega')">✦ Collega ai corsi</button>
+      </div><div class="ai-out" id="ia-out">Scegli un’azione: il motore IA elabora il testo in tempo reale.</div>`
+      :`<p class="muted small">Le funzioni IA (riassunti, idea centrale, collegamenti) ${haAccesso('audio-premium')?'richiedono la configurazione dell’Edge Function (vedi README).':'sono incluse nella membership Civis.'}</p>`}
+    `, ()=>{ stopTTS(); readText=''; readTitle=''; });
+}
+function toggleTTS(id){
+  if(ttsUtter && window.speechSynthesis && speechSynthesis.speaking){ stopTTS(); return; }
+  if(!('speechSynthesis' in window)){ toast('Sintesi vocale non disponibile.'); return; }
+  const txt = (readText&&readText.length) ? readText : ((findMedia(id)||{}).testo||'');
+  if(!txt){ toast('Nessun testo da leggere.'); return; }
+  ttsUtter=new SpeechSynthesisUtterance(txt); ttsUtter.lang='it-IT'; ttsUtter.rate=.98;
+  const it=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.startsWith('it')); if(it) ttsUtter.voice=it;
+  ttsUtter.onend=()=>stopTTS(); speechSynthesis.cancel(); speechSynthesis.speak(ttsUtter);
+  const b=$('tts-btn'); if(b) b.textContent='⏸ Pausa';
+  $('tts-wave')&&$('tts-wave').classList.remove('hidden'); if($('tts-state')) $('tts-state').textContent='In lettura…';
+}
+function stopTTS(){
+  if('speechSynthesis' in window) speechSynthesis.cancel(); ttsUtter=null;
+  const b=$('tts-btn'); if(b) b.textContent='▶ Ascolta (voce IA)';
+  $('tts-wave')&&$('tts-wave').classList.add('hidden'); if($('tts-state')) $('tts-state').textContent='Lettura vocale del browser';
+}
+async function iaAzione(id,tipo){
+  const a=findMedia(id), out=$('ia-out'); if(!out) return;
+  const body = (readText&&readText.length) ? readText : (a?a.testo:'');
+  const titolo = (readTitle&&readTitle.length) ? readTitle : (a?a.tit:'');
+  out.innerHTML='<span class="spin"></span> Il motore IA sta elaborando…';
+  const sys='Sei il bibliotecario IA de La Pacifica Res Publica, un’accademia per la pace. Rispondi in italiano, colto ma chiaro e conciso.';
+  const prompt = tipo==='riassunto'?`Riassumi in 3 punti elenco brevi:\n\n"""${body}"""`
+    : tipo==='idea'?`Esprimi in 2-3 frasi l’idea centrale e perché conta per chi studia la pace:\n\n"""${body}"""`
+    : `Brano "${titolo}". Collegalo a 2 corsi tra: ${CORSI.map(c=>c.tit).join('; ')}. Una frase per ciascuno.`;
+  try{ out.textContent = (await DB.ai(sys,prompt)) || 'Nessuna risposta.'; }
+  catch(e){ out.innerHTML='<span style="color:var(--porpora)">Motore IA non disponibile. Configura l’Edge Function (README) o riprova.</span>'; }
+}
+function percorsoIA(){
+  const box=$('ia-percorso'); if(!box) return;
+  box.innerHTML=`<div class="field" style="margin:0"><textarea id="ia-desc" rows="2" placeholder="Es. Mi interessano la nonviolenza e la diplomazia, ho 30 minuti al giorno…"></textarea></div>
+    <button class="btn small oro" style="margin-top:8px" onclick="generaPercorso()">Genera percorso</button>
+    <div class="ai-out hidden" id="ia-perc-out" style="margin-top:12px"></div>`;
+}
+async function generaPercorso(){
+  const desc=($('ia-desc').value||'').trim(), out=$('ia-perc-out');
+  if(desc.length<5){ toast('Descrivi cosa ti interessa.'); return; }
+  out.classList.remove('hidden'); out.innerHTML='<span class="spin"></span> Costruisco il tuo percorso…';
+  const cat=AUDIO.map(a=>`- ${a.tit} (${a.autore}, ${a.durata})`).join('\n');
+  const sys='Sei il bibliotecario IA de La Pacifica. Consigli percorsi SOLO tra i titoli forniti. Italiano, conciso, ordine numerato con una frase di motivazione per titolo.';
+  try{ out.textContent=(await DB.ai(sys,`Catalogo:\n${cat}\n\nInteressi: "${desc}".\nProponi 3-4 titoli ordinati con motivazione.`))||'Nessuna risposta.'; }
+  catch(e){ out.innerHTML='<span style="color:var(--porpora)">Motore IA non disponibile.</span>'; }
+}
+
+/* =====================================================================
+   PARLAMENTO
+===================================================================== */
+let cacheProposte=[], occupati=0;
+function renderParlamento(){
+  caricaParl();
+  return `<div id="parl"><div class="empty"><div class="spin" style="width:24px;height:24px;margin:0 auto"></div></div></div>`;
+}
+async function caricaParl(){
+  try{ occupati = await DB.seatsOccupied(); cacheProposte = await DB.proposals(); }catch(e){ cacheProposte=[]; }
+  if(vista!=='parlamento') return;
+  const box=$('parl'); if(box) box.innerHTML = parlInner(io.ruolo==='delegato'||io.ruolo==='presidenza');
+  drawEmiciclo();
+}
+/* I dossier europei: materia prima, non proposte. Da qui il delegato
+   apre la fonte ufficiale e ne trae la SUA proposta. */
+function pannelloDossier(){
+  if(!DOSSIER.length) return '';
+  const righe = COMMISSIONI.map(c=>{
+    const ds = dossierDi(c.id);
+    if(!ds.length) return '';
+    return `<div class="card" style="padding:18px;margin-bottom:12px">
+      <div class="eyebrow">${esc(c.nome)}</div>
+      ${ds.slice(0,6).map(d=>`<div class="lesson" style="cursor:default">
+        <span class="t">${esc(d.tit)}<br><span class="d" style="margin:0">${esc(d.id)}${d.stato?' \u00b7 '+esc(d.stato):''}${d.commUe && d.commUe.length?' \u00b7 '+esc(d.commUe.join(', ')):' \u00b7 referral pendente'}</span></span>
+        <span style="margin-left:auto;display:flex;gap:8px">
+          <a class="btn small ghost" href="${esc(d.url)}" target="_blank" rel="noopener noreferrer">Scheda ufficiale</a>
+          ${d.urlTesto?`<a class="btn small ghost" href="${esc(d.urlTesto)}" target="_blank" rel="noopener noreferrer">Testo</a>`:''}
+        </span></div>`).join('')}
+      ${ds.length>6?`<p class="muted small" style="margin-top:8px">e altri ${ds.length-6}.</p>`:''}
+    </div>`;
+  }).filter(Boolean).join('');
+  if(!righe) return '';
+  return `<h2 style="margin:30px 0 6px;font-size:28px">Dossier europei aperti</h2>
+    <p class="muted small" style="margin-bottom:14px">Procedure legislative in corso al Parlamento europeo, smistate alle commissioni per materia. Fonte: Osservatorio legislativo \u2014 \u00a9 Unione europea, Parlamento europeo. Sono materiale di lavoro: la proposta resta tua.</p>
+    ${righe}`;
+}
+function parlInner(accesso){
+  if(!accesso){
+    return `<div class="page-head"><div class="eyebrow">Pilastro I · su invito</div>
+      <h1>Il Parlamento dei Giovani</h1>
+      <p class="lead">Centocinquanta giovani menti simulano in tutto e per tutto un parlamento: commissioni, proposte di legge, emendamenti e votazioni. Una palestra per allenarsi a diventare diplomatici e parlamentari.</p></div>
+    <div class="grid g2">
+      <div class="hemi"><svg id="emiciclo" viewBox="0 0 1000 540"></svg>
+        <div class="legend"><span><i style="background:var(--oltremare)"></i>Seggio assegnato</span><span><i style="background:#E7E2D4"></i>Libero</span></div></div>
+      <div class="card" style="padding:24px;display:flex;flex-direction:column;justify-content:center">
+        <h3 style="font-size:26px">L’accesso è su invito</h3>
+        <p class="muted" style="margin:8px 0 16px">Il Parlamento è riservato ai delegati selezionati e alla Presidenza. I delegati ricevono un codice personale e, con esso, l’accesso completo all’ecosistema come borsa di studio.</p>
+        <div class="stats" style="grid-template-columns:1fr 1fr">
+          <div class="stat"><div class="n">${occupati}/150</div><div class="l">Seggi assegnati</div></div>
+          <div class="stat"><div class="n">7</div><div class="l">Commissioni permanenti</div></div></div></div>
+    </div>
+    ${pannelloDossier()}
+    <h2 style="margin:30px 0 14px;font-size:28px">Le sette commissioni</h2>
+    <div class="grid g3">${COMMISSIONI.map(c=>`<div class="card" style="padding:18px">
+      <div class="eyebrow">${esc(c.pr)}</div><h4 style="font-size:21px;margin-top:4px">${esc(c.nome)}</h4></div>`).join('')}</div>`;
+  }
+  const inComm=cacheProposte.filter(p=>p.stato==='commissione').length, inAula=cacheProposte.filter(p=>p.stato==='aula').length;
+  return `<div class="page-head"><div class="eyebrow">Pilastro I · ${io.ruolo==='presidenza'?'Presidenza':'Delegato — seggio n.'+io.seggio}</div>
+    <h1>Il Parlamento dei Giovani</h1>
+    <p class="lead">${io.comm?('Sei assegnato alla Commissione <b>'+esc(commNome(io.comm))+'</b>.'):'Presiedi l’Assemblea.'} Deposita proposte, esaminale, portale in Aula e vota.</p></div>
+  <div class="grid g2" style="margin-bottom:24px">
+    <div class="hemi"><svg id="emiciclo" viewBox="0 0 1000 540"></svg>
+      <div class="legend"><span><i style="background:var(--oltremare)"></i>Assegnato</span><span><i style="background:#E7E2D4"></i>Libero</span></div></div>
+    <div>
+      <div class="stats" style="grid-template-columns:1fr 1fr;margin-bottom:14px">
+        <div class="stat"><div class="n">${occupati}/150</div><div class="l">Delegati in Aula</div></div>
+        <div class="stat"><div class="n">${cacheProposte.length}</div><div class="l">Proposte depositate</div></div></div>
+      <div class="card" style="padding:18px">
+        <div class="eyebrow">Deposita una proposta</div>
+        <div class="field" style="margin-top:8px"><input id="pr-tit" placeholder="Titolo della proposta di legge"></div>
+        <div class="field"><textarea id="pr-txt" rows="3" placeholder="Testo e motivazione…"></textarea></div>
+        <button class="btn small" onclick="depositaProposta()">Deposita in commissione</button></div>
+    </div></div>
+  <h2 style="font-size:26px;margin:6px 0 14px">Iter delle proposte <span class="muted" style="font-size:15px">· ${inComm} in commissione · ${inAula} in Aula</span></h2>
+  ${cacheProposte.length===0?`<div class="empty"><div class="ico">⚖︎</div>Nessuna proposta ancora. Deposita la prima qui sopra.</div>`
+    :`<div class="grid g2">${cacheProposte.map(propCard).join('')}</div>`}`;
+}
+function propCard(p){
+  const tot=Object.keys(p.voti||{}).length, fav=Object.values(p.voti||{}).filter(v=>v==='f').length, con=Object.values(p.voti||{}).filter(v=>v==='c').length;
+  const mioVoto=(p.voti||{})[io.id], pres=io.ruolo==='presidenza';
+  const badge = p.stato==='commissione'?'<span class="badge blu">In commissione</span>'
+    : p.stato==='aula'?'<span class="badge oro">In votazione</span>'
+    : p.esito==='approvata'?'<span class="badge verde">Approvata</span>':'<span class="badge grigio">Respinta</span>';
+  let azioni='';
+  if(p.stato==='commissione'&&pres) azioni=`<button class="btn small oro" onclick="calendarizza('${p.id}')">Porta in Aula</button>`;
+  if(p.stato==='aula') azioni=`<div style="display:flex;gap:7px;flex-wrap:wrap">
+    <button class="btn small ${mioVoto==='f'?'':'ghost'}" onclick="vota('${p.id}','f')">Favorevole</button>
+    <button class="btn small ghost" style="${mioVoto==='c'?'background:var(--porpora);color:#fff;border-color:var(--porpora)':''}" onclick="vota('${p.id}','c')">Contrario</button>
+    ${pres?`<button class="btn small" style="background:var(--inchiostro)" onclick="chiudiVoto('${p.id}')">Chiudi votazione</button>`:''}</div>`;
+  return `<div class="card" style="padding:18px">
+    <div style="display:flex;justify-content:space-between;align-items:start;gap:10px"><h4 style="font-size:21px">${esc(p.titolo)}</h4>${badge}</div>
+    <p class="muted small" style="margin:6px 0 4px">${esc(commNome(p.commissione))} · proposta da ${esc(p.autore_nome)}</p>
+    <p style="font-size:14px;margin:8px 0 12px">${esc(p.testo)}</p>
+    ${p.stato!=='commissione'?`<p class="small muted" style="margin-bottom:10px">Voti: ${tot} · <b style="color:var(--verde)">${fav} favorevoli</b> · <b style="color:var(--porpora)">${con} contrari</b> · quorum 76</p>`:''}
+    ${azioni}</div>`;
+}
+async function depositaProposta(){
+  const tit=($('pr-tit').value||'').trim(), txt=($('pr-txt').value||'').trim();
+  if(tit.length<5||txt.length<15) return toast('Servono un titolo e un testo motivato.');
+  try{ await DB.createProposal(tit,txt,io.comm||'pace'); await caricaParl(); toast('Proposta depositata.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+async function calendarizza(id){ try{ await DB.setStato(id,'aula'); await caricaParl(); toast('Proposta in Aula.'); }catch(e){ toast('Errore.'); } }
+async function vota(id,v){ try{ await DB.vote(id,v); await caricaParl(); }catch(e){ toast('Errore nel voto.'); } }
+async function chiudiVoto(id){
+  const p=cacheProposte.find(x=>x.id===id);
+  const f=Object.values(p.voti||{}).filter(v=>v==='f').length, c=Object.values(p.voti||{}).filter(v=>v==='c').length;
+  try{ await DB.setStato(id,'chiusa', f>c?'approvata':'respinta'); await caricaParl(); toast('Votazione chiusa.'); }catch(e){ toast('Errore.'); }
+}
+function drawEmiciclo(){
+  const svg=$('emiciclo'); if(!svg) return;
+  const file=[18,22,26,30,34], cx=500, cy=505; let html='', n=0;
+  file.forEach((q,riga)=>{ const r=140+riga*44;
+    for(let k=0;k<q;k++){ n++; const a=Math.PI-(Math.PI*k/(q-1)); const x=(cx+r*Math.cos(a)).toFixed(1); const y=(cy-r*Math.sin(a)).toFixed(1);
+      const assegnato = n<=occupati; const mio = io.seggio===n;
+      html+=`<circle cx="${x}" cy="${y}" r="9" fill="${assegnato?'#1B3A6B':'#E7E2D4'}" stroke="${mio?'#A9842F':'#CFC8B4'}" stroke-width="${mio?2.5:1}"></circle>`; }});
+  html+=`<rect x="455" y="486" width="90" height="24" rx="2" fill="#122747"/><text x="500" y="502" text-anchor="middle" fill="#D9C48A" font-size="11" font-family="Karla" letter-spacing="2">PRESIDENZA</text>`;
+  svg.innerHTML=html;
+}
+
+/* =====================================================================
+   CAMPUS — campus formativi in presenza (Abbazia di Maguzzano)
+===================================================================== */
+function haCampus(id){ return (io.acquisti||[]).some(a=>a==='campus:'+id || a.startsWith('campus:'+id+':')); }
+function renderCampus(){
+  return `
+  <div class="page-head"><div class="eyebrow">Pilastro V · La pace in presenza</div>
+    <h1>I Campus</h1>
+    <p class="lead">Esperienze formative in presenza, con possibilità di soggiorno, presso luoghi di pace e spiritualità. Per ora ci accoglie la <b>Casa di Spiritualità e Centro Ecumenico — Abbazia di Maguzzano</b>, sul Lago di Garda.</p></div>
+  <div class="grid g3">
+    ${CAMPUS.map(c=>{
+      const prenotato = haCampus(c.id);
+      return `<div class="tile">
+        <div class="cover" style="background:linear-gradient(135deg,#3F5B3F,#1E3320)"><span class="k" style="font-size:30px">⛪</span><span class="tag">${esc(c.durata||'In presenza')}</span></div>
+        <div class="body">
+          <h4>${esc(c.tit)}</h4>
+          <div class="meta">📍 ${esc(c.luogo)}</div>
+          <div class="meta">🗓 ${esc(c.data||'Data in via di definizione')} · ${c.posti} posti</div>
+          <p class="small muted" style="flex:1;margin-top:6px">${esc(c.desc)}</p>
+          <div class="foot">
+            <div><span class="muted small">da</span> <span class="price">${euro(c.prezzo)}</span></div>
+            ${prenotato?'<span class="badge verde">Prenotato</span>'
+              :`<button class="btn small" onclick="prenotaCampus('${c.id}')">Prenota</button>`}
+          </div>
+        </div></div>`;
+    }).join('')}
+  </div>
+  <div class="card" style="padding:18px 22px;margin-top:24px;display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap">
+    <span style="font-size:22px">⛪</span>
+    <div style="flex:1;min-width:240px"><b>La sede: Abbazia di Maguzzano</b>
+      <p class="muted small" style="margin:4px 0 0">Casa di Spiritualità e Centro Ecumenico a Lonato del Garda (BS), affacciata sul Lago di Garda: un luogo di accoglienza, silenzio e dialogo, ideale per i nostri campus. La possibilità di soggiorno include vitto e alloggio in pensione completa.</p></div>
+  </div>`;
+}
+function prenotaCampus(id){
+  const c = CAMPUS.find(x=>x.id===id); if(!c) return;
+  const reale = DB.stripeAttivo();
+  openModal(`<div><h3 style="font-size:24px">${esc(c.tit)}</h3><span class="muted small">📍 ${esc(c.luogo)}</span></div>`,
+   `<p class="muted small" style="margin-bottom:14px">🗓 ${esc(c.data||'data da definire')} · ${esc(c.durata||'')} · ${c.posti} posti disponibili</p>
+    <p style="font-size:14px;margin-bottom:16px">${esc(c.desc)}</p>
+    <div class="eyebrow">Scegli la formula</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin:10px 0 16px">
+      <button class="btn ghost" style="justify-content:space-between" onclick="confermaCampus('${c.id}',false)">
+        <span>Solo partecipazione <span class="muted small">(programma e pasti diurni)</span></span><b>${euro(c.prezzo)}</b></button>
+      <button class="btn ghost" style="justify-content:space-between" onclick="confermaCampus('${c.id}',true)">
+        <span>Con soggiorno <span class="muted small">(vitto e alloggio, pensione completa)</span></span><b>${euro(c.prezzoSoggiorno)}</b></button>
+    </div>
+    <p class="muted small">${reale?'Procedendo sarai reindirizzato al pagamento sicuro (Stripe).':'Prenotazione dimostrativa: nessun addebito reale.'}</p>`);
+}
+async function confermaCampus(id, soggiorno){
+  const ref = 'campus:'+id+(soggiorno?':soggiorno':'');
+  try{
+    if(DB.stripeAttivo()){ closeModal(); toast('Apertura pagamento sicuro…'); await DB.checkout('item', ref); return; }
+    await DB.purchase(ref); await refreshMe(); closeModal(); toast('Prenotazione registrata. A presto al Campus!'); render();
+  }catch(e){ toast('Errore: '+(e.message||'prenotazione non riuscita')); }
+}
+
+/* =====================================================================
+   EVENTI — mostre ed eventi de La Pacifica
+===================================================================== */
+function haEvento(id){ return (io.acquisti||[]).some(a=>a==='evento:'+id); }
+function statoEvento(ev){
+  if(haEvento(ev.id)) return {stato:'iscritto'};
+  if(io.ruolo==='presidenza') return {stato:'ok'};
+  if(ev.accesso==='libero') return {stato:'ok'};
+  if(ev.accesso==='civis') return (io.membership==='civis'||io.membership==='academicus')?{stato:'ok'}:{stato:'lock',tier:'Civis'};
+  if(ev.accesso==='academicus') return (io.membership==='academicus')?{stato:'ok'}:{stato:'lock',tier:'Academicus'};
+  if(ev.accesso==='biglietto') return (io.membership==='academicus')?{stato:'ok'}:{stato:'biglietto'};
+  return {stato:'lock'};
+}
+function accessoLabel(ev){
+  return ev.accesso==='libero'?'Partecipazione libera'
+    : ev.accesso==='civis'?'Incluso con Civis'
+    : ev.accesso==='academicus'?'Incluso con Academicus'
+    : 'Biglietto '+euro(ev.prezzo)+(' · incluso con Academicus');
+}
+function ctaEvento(ev){
+  const s=statoEvento(ev);
+  if(s.stato==='iscritto') return '<span class="badge verde">Partecipi ✓</span>';
+  if(s.stato==='ok') return `<button class="btn small" onclick="partecipaEvento('${ev.id}')">Partecipa</button>`;
+  if(s.stato==='biglietto') return `<button class="btn small oro" onclick="compraEvento('${ev.id}')">Biglietto ${euro(ev.prezzo)}</button>`;
+  return `<button class="btn small ghost" onclick="go('abbonamenti')">🔒 Sblocca con ${esc(s.tier||'membership')}</button>`;
+}
+function renderEventi(){
+  return `
+  <div class="page-head"><div class="eyebrow">Pilastro VI · Gli eventi de La Pacifica</div>
+    <h1>Eventi</h1>
+    <p class="lead">Mostre, incontri ed esperienze culturali organizzate da La Pacifica. La partecipazione dipende dall’accesso collegato a ciascun evento e alla tua membership.</p></div>
+  ${EVENTI.length===0?'<div class="empty"><div class="ico">🎭</div>Nessun evento in programma al momento.</div>'
+    : EVENTI.map(ev=>{
+    const righe = (ev.programma||'').split('\n').filter(Boolean);
+    return `<div class="card" style="padding:0;overflow:hidden;margin-bottom:22px">
+      <div style="background:linear-gradient(135deg,#1B3A6B,#122747);color:#fff;padding:26px 26px 22px;position:relative">
+        <div class="eyebrow" style="color:var(--oro-chiaro)">${esc(ev.tipo)} · ${esc(ev.periodo)}</div>
+        <h2 style="color:#fff;font-size:34px;margin:6px 0 4px">${esc(ev.tit)}</h2>
+        <p style="color:#C7D0E0;font-size:16px;max-width:680px">${esc(ev.sub||'')}</p>
+      </div>
+      <div style="padding:22px 26px">
+        <p style="font-size:15px;line-height:1.7;margin-bottom:14px">${esc(ev.desc)}</p>
+        <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+          <span class="muted small">📍 ${esc(ev.luogo||'sede da definire')}</span>
+          <span class="badge ${ev.accesso==='libero'?'verde':ev.accesso==='biglietto'?'oro':'blu'}">${esc(accessoLabel(ev))}</span>
+          <span style="margin-left:auto">${ctaEvento(ev)}</span>
+        </div>
+        ${righe.length?`<div class="divider"></div>
+          <div class="eyebrow">Il programma dei dodici mesi</div>
+          <div class="lesson-list" style="margin-top:8px">
+            ${righe.map((r,i)=>`<div class="lesson" style="cursor:default"><span class="n">${i+1}</span><span class="t">${esc(r)}</span></div>`).join('')}
+          </div>`:''}
+      </div>
+    </div>`;
+  }).join('')}`;
+}
+async function partecipaEvento(id){
+  try{ await DB.purchase('evento:'+id); await refreshMe(); toast('Partecipazione confermata. Ci vediamo all’evento!'); render(); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+async function compraEvento(id){
+  const ref='evento:'+id;
+  try{
+    if(DB.stripeAttivo()){ toast('Apertura pagamento sicuro…'); await DB.checkout('item', ref); return; }
+    await DB.purchase(ref); await refreshMe(); toast('Biglietto acquistato. Ci vediamo all’evento!'); render();
+  }catch(e){ toast('Errore: '+(e.message||'')); }
+}
+
+/* =====================================================================
+   ABBONAMENTI E ACQUISTI
+===================================================================== */
+function renderAbbonamenti(){
+  const m=io.membership;
+  return `<div class="page-head center"><div class="eyebrow">Civis Pacificae</div>
+    <h1>Un solo abbonamento, tutto l’ecosistema</h1>
+    <p class="lead" style="margin:0 auto">Scegli come accompagnare il tuo percorso. Ogni abbonamento sostiene il Parlamento dei Giovani e le progettualità dell’associazione.</p></div>
+  <div class="grid g3" style="margin-top:30px;align-items:stretch">
+    <div class="plan"><h3>Gratuito</h3><div class="pr">0 €</div>
+      <ul><li>Dashboard personale unica</li><li>1ª lezione di ogni corso</li><li>Video e audiolibri gratuiti</li><li>Newsletter dell’Accademia</li></ul>
+      <button class="btn ghost full" disabled>${m==='free'?'Piano attuale':'Incluso'}</button></div>
+    <div class="plan feat"><h3>Civis</h3><div class="pr">12,50 €<small>/mese</small></div>
+      <ul><li>Tutto il livello Gratuito</li><li><b>Video On Demand completo</b></li><li><b>Biblioteca Audio illimitata + IA</b></li><li>Lettura vocale, sintesi, percorsi su misura</li><li>Sconto 20% su tutti i corsi</li></ul>
+      ${m==='civis'?'<button class="btn full" disabled>Piano attuale</button>':m==='academicus'?'<button class="btn ghost full" disabled>Incluso in Academicus</button>':'<button class="btn oro full" onclick="attiva(\'civis\')">Attiva Civis</button>'}
+      <p class="small muted center" style="margin-top:8px">oppure 120 €/anno</p></div>
+    <div class="plan"><h3>Civis Academicus</h3><div class="pr">590 €<small>/anno</small></div>
+      <ul><li>Tutto il livello Civis</li><li><b>Intero catalogo corsi (8)</b></li><li>Live mensili con i formatori</li><li>Attestati dell’Accademia</li><li>Nuovi corsi inclusi</li></ul>
+      ${m==='academicus'?'<button class="btn full" disabled>Piano attuale</button>':'<button class="btn full" onclick="attiva(\'academicus\')">Attiva Academicus</button>'}</div>
+  </div>
+  <div class="card" style="padding:18px 22px;margin-top:24px;display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+    <span style="font-size:22px">🎓</span>
+    <div style="flex:1;min-width:240px"><b>Pagabile con Carta del Docente</b>
+      <p class="muted small" style="margin:0">Corsi e membership annuali (Civis 120 € e Academicus 590 €) sono acquistabili con la Carta del Docente, previo accreditamento S.O.F.I.A.</p></div></div>
+  <p class="center muted small" style="margin-top:18px">${DB.stripeAttivo()?'Pagamenti sicuri gestiti da Stripe. La membership si attiva subito dopo l’incasso.':'Attivazione dimostrativa — nessun addebito reale. Configura Stripe per gli incassi (vedi README).'}</p>`;
+}
+function attiva(piano){
+  const reale=DB.stripeAttivo();
+  openModal(`<h3 style="font-size:24px">Attiva ${piano==='civis'?'Civis':'Civis Academicus'}</h3>`,
+   `<p class="muted small" style="margin-bottom:16px">${reale?'Sarai reindirizzato al pagamento sicuro gestito da Stripe.':'Attivazione dimostrativa: nessun pagamento reale.'}</p>
+    <div class="card" style="padding:16px;background:var(--avorio);border:none;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between"><span>${piano==='civis'?'Civis (12,50 €/mese)':'Civis Academicus (590 €/anno)'}</span><b>${piano==='civis'?'12,50 €':'590,00 €'}</b></div></div>
+    <button class="btn oro full" onclick="confermaAbb('${piano}')">${reale?'Vai al pagamento':'Conferma attivazione'}</button>`);
+}
+async function confermaAbb(piano){
+  try{
+    if(DB.stripeAttivo()){ closeModal(); toast('Apertura pagamento sicuro…'); await DB.checkout('membership', piano); return; }
+    await DB.activate(piano); await refreshMe(); closeModal(); toast(piano==='civis'?'Civis attivo. Buon ascolto!':'Academicus attivo.'); go('dashboard');
+  }
+  catch(e){ toast('Errore: '+(e.message||'attivazione non riuscita')); }
+}
+function compra(what){
+  let lab,prezzo;
+  if(what==='percorso'){ lab='Percorso di Pace completo (8 corsi)'; prezzo=PREZZO_PERCORSO; }
+  else if(what.startsWith('pacc:')){ const p=PACCHETTI.find(x=>x.id===what.split(':')[1]); lab='Pacchetto '+p.nome; prezzo=p.prezzo; }
+  else { const c=CORSI.find(x=>x.id===what.split(':')[1]); lab=c.tit; prezzo=PREZZO_CORSO; }
+  const sconto=io.membership==='civis', finale=sconto?Math.round(prezzo*0.8):prezzo;
+  const reale=DB.stripeAttivo();
+  openModal(`<h3 style="font-size:24px">${esc(lab)}</h3>`,
+   `<p class="muted small" style="margin-bottom:16px">${reale?'Sarai reindirizzato al pagamento sicuro gestito da Stripe.':'Acquisto dimostrativo: nessun addebito reale.'}</p>
+    <div class="card" style="padding:16px;background:var(--avorio);border:none;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between"><span>${esc(lab)}</span><b>${euro(prezzo)}</b></div>
+      ${sconto?`<div style="display:flex;justify-content:space-between;color:var(--verde);font-size:14px;margin-top:6px"><span>Sconto Civis −20%</span><b>−${euro(prezzo-finale)}</b></div>`:''}
+      <div class="divider" style="margin:12px 0"></div>
+      <div style="display:flex;justify-content:space-between;font-size:18px"><b>Totale</b><b class="price" style="font-size:24px">${euro(finale)}</b></div></div>
+    <button class="btn oro full" onclick="confermaAcquisto('${what}')">${reale?'Vai al pagamento':'Conferma acquisto'}</button>`);
+}
+async function confermaAcquisto(what){
+  try{
+    if(DB.stripeAttivo()){ closeModal(); toast('Apertura pagamento sicuro…'); await DB.checkout('item', what); return; }
+    await DB.purchase(what); await refreshMe(); closeModal(); toast('Acquisto completato. Buono studio!'); render();
+  }
+  catch(e){ toast('Errore: '+(e.message||'acquisto non riuscito')); }
+}
+
+/* =====================================================================
+   PRESIDENZA
+===================================================================== */
+let cacheSeggi=[];
+let presTab='delegati', cmsTab='corsi';
+function renderPresidenza(){
+  return `<div class="page-head"><div class="eyebrow">Riservato alla Presidenza</div>
+    <h1>Presidenza dell’Assemblea</h1>
+    <p class="lead">Gestisci i delegati e tutti i contenuti dell’ecosistema: corsi, video, audiolibri, pacchetti e prezzi.</p></div>
+  <div class="seg" style="max-width:420px;margin-bottom:22px">
+    <button class="${presTab==='delegati'?'on':''}" onclick="setPresTab('delegati')">Delegati</button>
+    <button class="${presTab==='contenuti'?'on':''}" onclick="setPresTab('contenuti')">Contenuti</button>
+    <button class="${presTab==='guida'?'on':''}" onclick="setPresTab('guida')">Guida</button>
+  </div>
+  <div id="pres-body">${presTab==='delegati'?renderDelegati():(presTab==='guida'?renderGuidaAdmin():renderCms())}</div>`;
+}
+function setPresTab(t){ presTab=t; const b=$('pres-body'); if(b){ b.innerHTML = t==='delegati'?renderDelegati():(t==='guida'?renderGuidaAdmin():renderCms()); if(t==='delegati') caricaSeggi(); } }
+function renderDelegati(){
+  caricaSeggi();
+  return `<div class="grid g2">
+    <div class="card" style="padding:22px">
+      <div class="eyebrow">Genera codici</div>
+      <div class="field" style="margin-top:8px"><label>Quanti delegati</label>
+        <select id="gen-n"><option>5</option><option>10</option><option>25</option><option>50</option></select></div>
+      <div class="field"><label>Commissione di prima assegnazione</label>
+        <select id="gen-comm">${COMMISSIONI.map(c=>`<option value="${c.id}">${esc(c.nome)}</option>`).join('')}<option value="rota">Distribuisci a rotazione</option></select></div>
+      <button class="btn" onclick="generaCodici()">Genera codici</button>
+      <p class="small muted" id="pres-stat" style="margin-top:12px">—</p></div>
+    <div class="card" style="padding:22px"><div class="eyebrow">Codici generati (liberi)</div>
+      <div id="lista-codici" style="margin-top:10px;max-height:360px;overflow:auto"><div class="spin"></div></div></div>
+  </div>`;
+}
+async function caricaSeggi(){
+  try{ cacheSeggi = await DB.seats(); }catch(e){ cacheSeggi=[]; }
+  if(vista==='presidenza') mostraCodici();
+}
+function mostraCodici(){
+  const box=$('lista-codici'); if(!box) return;
+  const liberi=cacheSeggi.filter(s=>!s.used);
+  if($('pres-stat')) $('pres-stat').textContent=`${cacheSeggi.filter(s=>s.used).length} assegnati · ${cacheSeggi.length} codici generati`;
+  box.innerHTML = liberi.length?liberi.map(s=>`<div class="lesson"><span class="n">${s.n}</span>
+    <span class="t" style="font-family:monospace;font-size:13px">${esc(s.codice)}</span>
+    <span class="d">${esc(commNome(s.commissione).split(' ')[0])}</span></div>`).join('')
+    : '<p class="muted small">Nessun codice libero. Generane di nuovi.</p>';
+}
+async function generaCodici(){
+  const n=parseInt($('gen-n').value), comm=$('gen-comm').value;
+  try{ await DB.generateCodes(n,comm); await caricaSeggi(); toast(n+' codici generati.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+
+/* ---------- Gestione contenuti (CMS) ---------- */
+const CMS_TABS=[['corsi','Corsi'],['video','Video'],['audio','Audiolibri'],['testi','Testi'],['pacchetti','Pacchetti'],['campus','Campus'],['eventi','Eventi'],['livelli','Livelli'],['temi','Temi UE'],['mecenati','Mecenati'],['statistiche','Statistiche'],['rassegna','Rassegna'],['ente','Ente'],['prezzi','Prezzi']];
+function renderCms(){
+  return `<div class="seg" style="max-width:560px;margin-bottom:18px">
+    ${CMS_TABS.map(([k,l])=>`<button class="${cmsTab===k?'on':''}" onclick="setCmsTab('${k}')">${l}</button>`).join('')}
+  </div>
+  <div id="cms-area">${cmsArea()}</div>`;
+}
+function setCmsTab(t){ cmsTab=t; const a=$('cms-area'); if(a) a.innerHTML=cmsArea(); if(t==='temi') caricaOrfani(); if(t==='ente') caricaEnte(); if(t==='mecenati') caricaImpegni(); if(t==='rassegna'){ caricaEventiPaceCms(); caricaNotizieCms(); } if(t==='statistiche') caricaStatistiche(); }
+function pubBadge(p){ return p===false?'<span class="badge grigio">Bozza</span>':'<span class="badge verde">Pubblicato</span>'; }
+function cmsRow(titolo, sub, badge, onEdit, onDel){
+  return `<div class="lesson" style="cursor:default">
+    <span class="t">${esc(titolo)}<br><span class="d" style="margin:0">${esc(sub)}</span></span>
+    <span style="margin-left:auto;display:flex;gap:8px;align-items:center">${badge}
+      <button class="btn small ghost" onclick="${onEdit}">Modifica</button>
+      <button class="btn small ghost" style="color:var(--porpora);border-color:#ECC9C9" onclick="${onDel}">Elimina</button></span></div>`;
+}
+function cmsArea(){
+  if(cmsTab==='prezzi'){
+    return `<div class="card" style="padding:22px;max-width:460px">
+      <div class="eyebrow">Prezzi globali</div>
+      <div class="field" style="margin-top:10px"><label>Prezzo corso singolo (€)</label><input id="pz-corso" type="number" value="${PREZZO_CORSO}"></div>
+      <div class="field"><label>Prezzo Percorso completo (€)</label><input id="pz-perc" type="number" value="${PREZZO_PERCORSO}"></div>
+      <button class="btn" onclick="salvaPrezzi()">Salva prezzi</button>
+      <p class="muted small" style="margin-top:10px">I prezzi di corsi e pacchetti singoli si modificano nelle rispettive schede.</p></div>`;
+  }
+  const add=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div class="eyebrow">${{corsi:'Corsi',video:'Video On Demand',audio:'Audiolibri',testi:'Testi della Biblioteca',pacchetti:'Pacchetti tematici',campus:'Campus in presenza',eventi:'Eventi e mostre',livelli:'Livelli di accesso',temi:'Temi europei → commissioni'}[cmsTab]}</div>
+    <button class="btn small" onclick="nuovo('${cmsTab}')">+ Aggiungi</button></div>`;
+  let rows='';
+  if(cmsTab==='corsi') rows = CORSI.map(c=>cmsRow(c.tit, `${c.form||'—'} · ${commNome(c.comm)||c.comm} · ${euro(c.prezzo||PREZZO_CORSO)}`, pubBadge(c.pubblicato), `editCorso('${c.id}')`, `delCont('corso','${c.id}')`)).join('');
+  if(cmsTab==='rassegna'){
+    const fonti = FONTI.map(f=>cmsRow(f.nome, (f.editore||'')+' \u00b7 '+esc(f.url),
+      (f.attiva?'<span class="badge verde">Attiva</span>':'<span class="badge grigio">Spenta</span>')+(f.ultimoEsito?` <span class="muted small">\u00b7 ${esc(f.ultimoEsito)}</span>`:''),
+      `editFonte('${esc(f.id)}')`, `delCont('fonte','${esc(f.id)}')`,
+      `<button class="btn small" onclick="sincronizza('${esc(f.id)}')">Sincronizza</button>`)).join('');
+    const nasc = NOTIZIE.filter(n=>n.nascosta).length;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <b>Fonti dei feed</b><button class="btn oro small" onclick="editFonte()">Aggiungi fonte</button></div>
+      ${fonti||'<div class="empty">Nessuna fonte. Aggiungine una e incolla l\u2019URL del feed RSS.</div>'}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin:22px 0 12px">
+        <b>Eventi e iniziative</b><button class="btn oro small" onclick="editEventoPace()">Aggiungi evento</button></div>
+      <div id="evp-box" class="muted small">Carico\u2026</div>
+      <div class="card" style="padding:16px;margin-top:20px"><div class="eyebrow">Notizie pubblicate</div>
+        <p class="muted small" style="margin:8px 0">Automatiche, ma puoi togliere dalla pagina qualsiasi articolo in un clic. ${nasc?nasc+' nascoste.':''}</p>
+        <div id="nz-box" class="muted small">Carico\u2026</div></div>`;
+  }
+  if(cmsTab==='statistiche'){
+    return `<p class="muted small" style="margin-bottom:14px">Statistiche <b>anonime</b> e aggregate degli ultimi 30 giorni: nessun dato personale, nessun profilo. Le pagine viste includono chi non ha effettuato l’accesso.</p>
+      <div id="stat-box"><div class="empty"><div class="spin" style="width:22px;height:22px;margin:0 auto"></div></div></div>`;
+  }
+  if(cmsTab==='ente'){
+    return `<div class="card" style="padding:20px">
+      <div class="eyebrow">Dati dell\u2019ente</div>
+      <p class="muted small" style="margin:8px 0 16px">Non stanno nel codice: vivono qui, e si cambiano senza un rilascio. Finche\u2019 l\u2019IBAN e\u2019 vuoto, chi sottoscrive un impegno riceve un avviso invece di coordinate sbagliate.</p>
+      <div id="ente-form" class="muted small">Carico\u2026</div></div>`;
+  }
+  if(cmsTab==='mecenati'){
+    setTimeout(caricaImpegni,0);
+    const f = FORMULE.map(x=>cmsRow(x.nome, euro(x.importo)+' \u00b7 '+x.quanti+' accessi \u00b7 '+esc(x.concede),
+      x.attivo===false?'<span class="badge grigio">Spenta</span>':'<span class="badge verde">Attiva</span>',
+      `editFormula('${esc(x.id)}')`, `delCont('formula','${esc(x.id)}')`)).join('');
+    return add + (f||'<div class="empty">Nessuna formula.</div>') +
+      `<div id="mec-avviso"></div>
+       <div class="card" style="padding:18px;margin-top:16px"><div class="eyebrow">Impegni sottoscritti</div>
+        <p class="muted small" style="margin:8px 0">Il bonifico lo riconosci tu dalla causale: nessun automatismo segna \u201cpagato\u201d al posto tuo. Alla conferma vengono emessi gli accessi, una volta sola.</p>
+        <div id="imp-box" class="muted small">Carico\u2026</div></div>`;
+  }
+  if(cmsTab==='temi'){
+    const el = TEMI.map(t=>cmsRow(t.prefisso+' \u2192 '+commNome(t.commissione), t.nota||'\u2014', '',
+      `editTema('${esc(t.commissione)}','${esc(t.prefisso)}')`, `delTema('${esc(t.commissione)}','${esc(t.prefisso)}')`)).join('');
+    return add + (el||'<div class="empty">Nessuna mappatura.</div>') +
+      `<div class="card" style="padding:18px;margin-top:16px">
+         <div class="eyebrow">Temi arrivati dall\u2019import ma non ancora assegnati</div>
+         <p class="muted small" style="margin:8px 0">L\u2019albero dei temi europei non e\u2019 pubblicato in forma leggibile a macchina: invece di indovinarlo, qui compaiono i codici che i dossier portano davvero. Assegnali e la mappatura si completa da sola.</p>
+         <div id="temi-orfani" class="muted small">Carico\u2026</div></div>`;
+  }
+  if(cmsTab==='livelli') rows = LIVELLI.map(l=>cmsRow(l.nome, regolaInParole(l),
+    l.attivo===false?'<span class="badge grigio">Spento</span>':'<span class="badge verde">Attivo</span>',
+    `editLivello('${l.id}')`, `delCont('livello','${l.id}')`)).join('');
+  if(cmsTab==='video') rows = VOD.map(v=>cmsRow(v.tit, `${v.tipo} · ${v.durata} · ${livello(v.livello).nome}`, pubBadge(v.pubblicato), `editVideo('${v.id}')`, `delCont('video','${v.id}')`)).join('');
+  if(cmsTab==='audio') rows = AUDIO.map(a=>cmsRow(a.tit, `${a.autore} · ${a.durata} · ${a.free?'gratuito':'premium'}`, pubBadge(a.pubblicato), `editAudio('${a.id}')`, `delCont('audio','${a.id}')`)).join('');
+  if(cmsTab==='testi') rows = TESTI.map(t=>cmsRow(t.tit, `${t.autore} · ${(t.capitoli&&t.capitoli.length)?(t.capitoli.length+' capitoli'):(t.lettura||'testo unico')} · ${t.free?'gratuito':'premium'}`, pubBadge(t.pubblicato), `editTesto('${t.id}')`, `delCont('testo','${t.id}')`)).join('');
+  if(cmsTab==='pacchetti') rows = PACCHETTI.map(p=>cmsRow(p.nome, `${(p.corsi||[]).length} corsi · ${euro(p.prezzo)}`, pubBadge(p.pubblicato), `editPacc('${p.id}')`, `delCont('pacchetto','${p.id}')`)).join('');
+  if(cmsTab==='campus') rows = CAMPUS.map(c=>cmsRow(c.tit, `${esc(c.data||'data da definire')} · ${euro(c.prezzo)} / ${euro(c.prezzoSoggiorno)} con soggiorno`, pubBadge(c.pubblicato), `editCampus('${c.id}')`, `delCont('campus','${c.id}')`)).join('');
+  if(cmsTab==='eventi') rows = EVENTI.map(e=>cmsRow(e.tit, `${esc(e.tipo)} · ${esc(e.periodo||'')} · ${e.accesso==='biglietto'?('biglietto '+euro(e.prezzo)):e.accesso}`, pubBadge(e.pubblicato), `editEvento('${e.id}')`, `delCont('evento','${e.id}')`)).join('');
+  return `<div class="card" style="padding:20px">${add}<div class="lesson-list">${rows||'<p class="muted small">Nessun elemento. Usa “Aggiungi”.</p>'}</div></div>`;
+}
+
+/* campi riutilizzabili */
+function fId(v,dis){ return `<div class="field"><label>Identificativo (codice breve, es. c9)</label><input id="cf-id" value="${esc(v||'')}" ${dis?'disabled':''}></div>`; }
+function fSelComm(v){ return `<div class="field"><label>Commissione</label><select id="cf-comm">${COMMISSIONI.map(c=>`<option value="${c.id}" ${v===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}</select></div>`; }
+function fPub(v){ return `<label style="display:flex;gap:8px;align-items:center;font-size:14px;margin:6px 0 14px"><input type="checkbox" id="cf-pub" ${v!==false?'checked':''} style="width:auto"> Pubblicato (visibile agli utenti)</label>`; }
+function getId(edit){ return edit || ($('cf-id').value||'').trim(); }
+
+/* CORSI */
+function nuovo(t){ if(t==='rassegna')editFonte(); else if(t==='mecenati')editFormula(); else if(t==='ente')return; else if(t==='temi')editTema(); else if(t==='livelli')editLivello(); else if(t==='corsi')editCorso(); else if(t==='video')editVideo(); else if(t==='audio')editAudio(); else if(t==='testi')editTesto(); else if(t==='pacchetti')editPacc(); else if(t==='campus')editCampus(); else if(t==='eventi')editEvento(); }
+function editCorso(id){
+  const c = id?CORSI.find(x=>x.id===id):{};
+  openModal(`<h3 style="font-size:23px">${id?'Modifica corso':'Nuovo corso'}</h3>`,
+    `${fId(c.id, !!id)}
+     <div class="field"><label>Titolo</label><input id="cf-tit" value="${esc(c.tit||'')}"></div>
+     <div class="field"><label>Formatore</label><input id="cf-form" value="${esc(c.form||'')}"></div>
+     ${fSelComm(c.comm)}
+     <div class="field"><label>Pacchetto (etichetta)</label><input id="cf-pacc" value="${esc(c.pacc||'')}"></div>
+     <div class="field"><label>Descrizione</label><textarea id="cf-desc" rows="3">${esc(c.desc||'')}</textarea></div>
+     <div class="grid g2"><div class="field"><label>Prezzo (€)</label><input id="cf-prezzo" type="number" value="${c.prezzo||PREZZO_CORSO}"></div>
+       <div class="field"><label>Ordine</label><input id="cf-ord" type="number" value="${c.ordine||(CORSI.length+1)}"></div></div>
+     ${fPub(c.pubblicato)}
+     <button class="btn full" onclick="salvaCorso('${id||''}')">Salva corso</button>`);
+}
+async function salvaCorso(edit){
+  const id=getId(edit); if(!id) return toast('Inserisci un identificativo.');
+  const o={ id, tit:$('cf-tit').value.trim(), form:$('cf-form').value.trim(), comm:$('cf-comm').value,
+    pacc:$('cf-pacc').value.trim(), desc:$('cf-desc').value.trim(), prezzo:parseInt($('cf-prezzo').value||PREZZO_CORSO,10),
+    ordine:parseInt($('cf-ord').value||0,10), pubblicato:$('cf-pub').checked };
+  if(o.tit.length<2) return toast('Il titolo è obbligatorio.');
+  try{ await DB.saveCourse(o); await loadCatalog(); closeModal(); go('presidenza'); presTab='contenuti'; setPresTab('contenuti'); toast('Corso salvato.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+/* VIDEO */
+function editVideo(id){
+  const v = id?VOD.find(x=>x.id===id):{};
+  openModal(`<h3 style="font-size:23px">${id?'Modifica video':'Nuovo video'}</h3>`,
+    `${fId(v.id, !!id)}
+     <div class="field"><label>Titolo</label><input id="cf-tit" value="${esc(v.tit||'')}"></div>
+     <div class="grid g2"><div class="field"><label>Tipo</label><input id="cf-tipo" value="${esc(v.tipo||'Documentario')}"></div>
+       <div class="field"><label>Durata</label><input id="cf-dur" value="${esc(v.durata||'')}" placeholder="es. 24 min"></div></div>
+     ${fSelComm(v.comm)}
+     <div class="field"><label>Descrizione</label><textarea id="cf-desc" rows="3">${esc(v.desc||'')}</textarea></div>
+     <div class="field"><label>URL del video (facoltativo)</label><input id="cf-url" value="${esc(v.url||'')}" placeholder="https://…"></div>
+     <div class="grid g2"><div class="field"><label>Ordine</label><input id="cf-ord" type="number" value="${v.ordine||(VOD.length+1)}"></div>
+       <div class="field"><label>Livello di accesso</label><select id="cf-liv">${LIVELLI.filter(l=>l.attivo!==false).map(l=>`<option value="${l.id}" ${(v.livello||'civis')===l.id?'selected':''}>${esc(l.nome)}</option>`).join('')}</select></div></div>
+     ${fPub(v.pubblicato)}
+     <button class="btn full" onclick="salvaVideo('${id||''}')">Salva video</button>`);
+}
+async function salvaVideo(edit){
+  const id=getId(edit); if(!id) return toast('Inserisci un identificativo.');
+  const o={ id, tit:$('cf-tit').value.trim(), tipo:$('cf-tipo').value.trim()||'Video', durata:$('cf-dur').value.trim(),
+    comm:$('cf-comm').value, desc:$('cf-desc').value.trim(), url:$('cf-url').value.trim(),
+    ordine:parseInt($('cf-ord').value||0,10), livello:$('cf-liv').value, pubblicato:$('cf-pub').checked };
+  if(o.tit.length<2) return toast('Il titolo è obbligatorio.');
+  try{ await DB.saveVideo(o); await loadCatalog(); closeModal(); setPresTab('contenuti'); toast('Video salvato.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+/* STATISTICHE */
+function svgBarreOrizz(dati, colore){
+  if(!dati || !dati.length) return '<p class="muted small">Nessun dato.</p>';
+  const max = Math.max(1, ...dati.map(d=>d.n));
+  return `<div class="stat-bars">` + dati.map(d=>{
+    const w = Math.round(100*d.n/max);
+    return `<div class="sb-row"><span class="sb-lab" title="${esc(d.lab)}">${esc(d.lab)}</span>
+      <span class="sb-track"><span class="sb-fill" style="width:${w}%;background:${colore||'var(--oltremare)'}"></span></span>
+      <span class="sb-val">${d.n}</span></div>`;
+  }).join('') + `</div>`;
+}
+function svgGiorni(dati){
+  if(!dati || !dati.length) return '';
+  const W=640, H=140, pad=22, max=Math.max(1, ...dati.map(d=>d.n));
+  const bw = (W-pad*2)/dati.length;
+  const barre = dati.map((d,i)=>{
+    const h = Math.round((H-pad*2) * d.n/max);
+    const x = pad + i*bw, y = H-pad-h;
+    return `<rect x="${(x+2).toFixed(1)}" y="${y}" width="${(bw-4).toFixed(1)}" height="${h}" rx="2" fill="var(--oltremare)"></rect>`;
+  }).join('');
+  const etich = dati.map((d,i)=>{ if(dati.length>10 && i%2) return ''; const x=pad+i*bw+bw/2;
+    const gg=new Date(d.giorno); const lab=gg.getDate()+'/'+(gg.getMonth()+1);
+    return `<text x="${x.toFixed(1)}" y="${H-6}" font-size="9" text-anchor="middle" fill="#8A93A0">${lab}</text>`; }).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" class="stat-svg" role="img" aria-label="Visite per giorno">
+    <line x1="${pad}" y1="${H-pad}" x2="${W-pad}" y2="${H-pad}" stroke="#E7E1D4"></line>${barre}${etich}</svg>`;
+}
+async function caricaStatistiche(){
+  const box=$('stat-box'); if(!box) return;
+  let r=null, giorni=[], disp=[], sez=[], prov=[];
+  try{ [r,giorni,disp,sez,prov] = await Promise.all([
+    DB.statRiepilogo(), DB.statGiorni(14), DB.statDispositivi(), DB.statSezioni(), DB.statProvenienze()
+  ]); }catch(e){}
+  if(!box) return;
+  const kpi=(v,l)=>`<div class="stat-kpi"><b>${v==null?'\u2013':v}</b><span>${l}</span></div>`;
+  const nomeSez = v => (v==='landing'?'Porta d\u2019ingresso':(commNomeSicuro(v)||v));
+  box.innerHTML = `
+    <div class="stat-kpis">
+      ${kpi(r?r.visite_oggi:null,'visite oggi')}
+      ${kpi(r?r.visite_7g:null,'ultimi 7 giorni')}
+      ${kpi(r?r.visite_30g:null,'ultimi 30 giorni')}
+      ${kpi(r?r.sessioni_30g:null,'visitatori (sessioni)')}
+      ${kpi(r?r.login_30g:null,'accessi')}
+      ${kpi(r?(r.perc_mobile+'%'):null,'da smartphone')}
+      ${kpi(r?(r.perc_autenticato+'%'):null,'da utenti autenticati')}
+    </div>
+    <div class="stat-card"><h4>Visite per giorno</h4>${svgGiorni(giorni)||'<p class="muted small">Nessun dato.</p>'}</div>
+    <div class="grid g2">
+      <div class="stat-card"><h4>Dispositivo</h4>${svgBarreOrizz(disp.map(d=>({lab:d.dispositivo,n:+d.n})),'var(--oltremare)')}</div>
+      <div class="stat-card"><h4>Provenienza (visitatori)</h4>${svgBarreOrizz(prov.map(d=>({lab:d.provenienza,n:+d.n})),'var(--oro)')}</div>
+    </div>
+    <div class="stat-card"><h4>Sezioni pi\u00f9 viste</h4>${svgBarreOrizz(sez.map(d=>({lab:nomeSez(d.vista),n:+d.n})),'var(--oltremare)')}</div>
+    <p class="muted small" style="margin-top:8px">Dati aggregati e anonimi. Il tracciamento rispetta il consenso e \u201cDo Not Track\u201d. Nessun IP, user-agent o identit\u00e0 viene registrato.</p>`;
+}
+function commNomeSicuro(id){ try{ const c=COMMISSIONI.find(x=>x.id===id); return c?c.nome:null; }catch(e){ return null; } }
+/* RASSEGNA */
+function editFonte(id){
+  const f = id?FONTI.find(x=>x.id===id):{};
+  openModal(`<h3 style="font-size:23px">${id?'Modifica fonte':'Nuova fonte'}</h3>`,
+    `${fId(f.id,!!id)}
+     <div class="field"><label>Nome</label><input id="fo-nome" value="${esc(f.nome||'')}" placeholder="ONU \u2014 Pace e sicurezza"></div>
+     <div class="field"><label>URL del feed RSS/Atom</label><input id="fo-url" value="${esc(f.url||'')}" placeholder="https://news.un.org/.../rss.xml"></div>
+     <div class="field"><label>Editore (per l\u2019attribuzione)</label><input id="fo-ed" value="${esc(f.editore||'')}" placeholder="UN News"></div>
+     <label style="display:flex;gap:8px;align-items:center;font-size:14px;margin:6px 0 14px"><input type="checkbox" id="fo-att" ${f.attiva!==false?'checked':''} style="width:auto"> Attiva (le sue notizie compaiono in pagina)</label>
+     <button class="btn full" onclick="salvaFonte('${id||''}')">Salva fonte</button>`);
+}
+async function salvaFonte(edit){
+  const id=getId(edit); if(!id) return toast('Inserisci un identificativo.');
+  const o={ id, nome:$('fo-nome').value.trim(), url:$('fo-url').value.trim(), editore:$('fo-ed').value.trim(), attiva:$('fo-att').checked };
+  if(!o.nome||!/^https?:\/\//i.test(o.url)) return toast('Nome e URL (http/https) sono obbligatori.');
+  try{ await DB.saveFonte(o); await loadCatalog(); closeModal(); setPresTab('contenuti'); toast('Fonte salvata.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+async function sincronizza(id){
+  toast('Sincronizzo\u2026');
+  try{ const r = await DB.sincronizzaFonte(id); await loadCatalog(); setPresTab('contenuti');
+    toast('Importate '+(r.importate||0)+' voci.'); }
+  catch(e){ toast(String(e.message||e).replace(/^.*: /,'')); }
+}
+async function caricaNotizieCms(){
+  const box=$('nz-box'); if(!box) return;
+  box.innerHTML = NOTIZIE.length ? NOTIZIE.slice(0,40).map(n=>`<div class="lesson" style="cursor:default">
+      <span class="t" style="${n.nascosta?'opacity:.5':''}">${esc(n.tit)}<br><span class="d" style="margin:0">${esc(editoreDi(n.fonte))}${n.data?' \u00b7 '+esc(fmtGiorno(n.data)):''}${n.nascosta?' \u00b7 nascosta':''}</span></span>
+      <button class="btn small ghost" style="margin-left:auto" onclick="toggleNotizia('${n.id}',${n.nascosta?'false':'true'})">${n.nascosta?'Ripristina':'Nascondi'}</button>
+    </div>`).join('') : 'Nessuna notizia importata.';
+}
+async function toggleNotizia(id,nascondi){
+  try{ await DB.setNotiziaNascosta(id, nascondi==='true'||nascondi===true); await loadCatalog(); setPresTab('contenuti'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+async function caricaEventiPaceCms(){
+  const box=$('evp-box'); if(!box) return;
+  box.innerHTML = EVENTIPACE.length ? EVENTIPACE.map(e=>`<div class="lesson" style="cursor:default">
+      <span class="t">${esc(e.tit)}<br><span class="d" style="margin:0">${esc(fmtGiorno(e.inizio))}${e.luogo?' \u00b7 '+esc(e.luogo):''}${e.pubblicato===false?' \u00b7 bozza':''}</span></span>
+      <span style="margin-left:auto;display:flex;gap:8px"><button class="btn small ghost" onclick="editEventoPace('${e.id}')">Modifica</button>
+        <button class="btn small ghost" onclick="delCont('eventopace','${e.id}')">Elimina</button></span></div>`).join('') : 'Nessun evento.';
+}
+function editEventoPace(id){
+  const e = id?EVENTIPACE.find(x=>String(x.id)===String(id)):{};
+  openModal(`<h3 style="font-size:23px">${id?'Modifica evento':'Nuovo evento'}</h3>`,
+    `<div class="field"><label>Titolo</label><input id="ep-tit" value="${esc(e.tit||'')}"></div>
+     <div class="field"><label>Descrizione</label><input id="ep-desc" value="${esc(e.desc||'')}"></div>
+     <div class="grid g2"><div class="field"><label>Inizio</label><input id="ep-in" type="date" value="${esc(e.inizio||'')}"></div>
+       <div class="field"><label>Fine (facoltativa)</label><input id="ep-fin" type="date" value="${esc(e.fine||'')}"></div></div>
+     <div class="field"><label>Luogo</label><input id="ep-luo" value="${esc(e.luogo||'')}"></div>
+     <div class="field"><label>Link (facoltativo)</label><input id="ep-url" value="${esc(e.url||'')}"></div>
+     <label style="display:flex;gap:8px;align-items:center;font-size:14px;margin:6px 0 14px"><input type="checkbox" id="ep-pub" ${e.pubblicato!==false?'checked':''} style="width:auto"> Pubblicato</label>
+     <button class="btn full" onclick="salvaEventoPace('${id||''}')">Salva evento</button>`);
+}
+async function salvaEventoPace(edit){
+  const o={ id:edit||undefined, tit:$('ep-tit').value.trim(), desc:$('ep-desc').value.trim(),
+    inizio:$('ep-in').value, fine:$('ep-fin').value||null, luogo:$('ep-luo').value.trim(),
+    url:$('ep-url').value.trim(), pubblicato:$('ep-pub').checked };
+  if(!o.tit||!o.inizio) return toast('Titolo e data di inizio sono obbligatori.');
+  try{ await DB.saveEventoPace(o); await loadCatalog(); closeModal(); setPresTab('contenuti'); toast('Evento salvato.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+/* MECENATI */
+const CAMPI_ENTE=[['ente_denominazione','Denominazione'],['ente_cf','Codice fiscale'],['ente_piva','Partita IVA'],
+  ['ente_sede','Sede legale'],['ente_intestatario','Intestatario del conto'],['ente_iban','IBAN'],
+  ['ente_banca','Banca'],['ente_pec','PEC'],['ente_email','Email'],['ente_privacy_url','URL informativa privacy']];
+async function caricaEnte(){
+  const box=$('ente-form'); if(!box) return;
+  try{ ENTE = await DB.datiEnte(); }catch(e){ ENTE={}; }
+  box.innerHTML = CAMPI_ENTE.map(([k,n])=>`<div class="field"><label>${n}${k==='ente_iban'?' \u2014 controllalo due volte':''}</label>
+      <input id="en-${k}" value="${esc(ENTE[k]||'')}"></div>`).join('') +
+    `<button class="btn full" onclick="salvaEnte()">Salva i dati dell\u2019ente</button>`;
+}
+async function salvaEnte(){
+  try{
+    for(const [k] of CAMPI_ENTE){ const el=$('en-'+k); if(el) await DB.saveSetting(k, el.value.trim()); }
+    ENTE = await DB.datiEnte(); toast('Dati salvati.');
+  }catch(e){ toast('Errore: '+(e.message||'')); }
+}
+async function caricaImpegni(){
+  try{ ENTE = await DB.datiEnte(); }catch(e){}
+  const att = FORMULE.filter(f=>f.attivo!==false).length;
+  const av = $('mec-avviso');
+  if(av) av.innerHTML = (att && !(ENTE.ente_iban||'').trim())
+    ? `<div class="card" style="padding:14px 16px;background:#FCEEEE;border-color:#E3B7B7;margin-bottom:14px">
+         <b>${att} ${att===1?'formula \u00e8 pubblicata':'formule sono pubblicate'}, ma l\u2019IBAN \u00e8 vuoto.</b>
+         <p class="small" style="margin-top:6px">Chi sottoscrive ora riceve \u201cti contatteremo\u201d invece delle coordinate. Compila i dati in <b>Ente</b>.</p></div>` : '';
+  const box=$('imp-box'); if(!box) return;
+  let l=[]; try{ l = await DB.impegni(); }catch(e){}
+  box.innerHTML = l.length ? l.map(i=>`<div class="lesson" style="cursor:default">
+      <span class="t">${esc(i.ragione_sociale)}<br><span class="d" style="margin:0">${esc(i.riferimento)} \u00b7 ${euro(i.importo)} \u00b7 ${i.quanti} accessi \u00b7 ${esc(i.referente)} \u00b7 ${esc(i.email)}</span></span>
+      <span style="margin-left:auto;display:flex;gap:8px;align-items:center">
+        <span class="badge ${i.stato==='pagato'?'verde':(i.stato==='annullato'?'grigio':'blu')}">${esc(i.stato)}</span>
+        ${i.stato==='sottoscritto'?`<button class="btn small" onclick="confermaPagato('${i.id}','${esc(i.riferimento)}')">Segna pagato</button>`:''}
+        ${i.stato==='pagato'?`<button class="btn small ghost" onclick="vediVoucher('${i.id}')">Codici</button>`:''}
+      </span></div>`).join('') : 'Nessun impegno.';
+}
+function confermaPagato(id, rif){
+  openModal(`<h3 style="font-size:22px">Confermi l\u2019accredito?</h3>`,
+    `<p class="muted" style="margin-bottom:6px">Stai dichiarando che il bonifico con causale <b>${esc(rif)}</b> risulta accreditato sul conto.</p>
+     <p class="muted small" style="margin-bottom:16px">Alla conferma gli accessi vengono emessi. L\u2019operazione non si ripete e non si annulla.</p>
+     <button class="btn full" onclick="eseguiPagato('${id}')">S\u00ec, l\u2019accredito c\u2019\u00e8</button>`);
+}
+async function eseguiPagato(id){
+  try{ const v = await DB.segnaPagato(id); closeModal(); setPresTab('contenuti');
+    toast('Emessi '+v.length+' accessi.'); }
+  catch(e){ toast(String(e.message||e).replace(/^.*: /,'')); }
+}
+async function vediVoucher(id){
+  let l=[]; try{ const { data } = await DB.rawVoucher(id); l=data||[]; }catch(e){}
+  openModal(`<h3 style="font-size:22px">Codici emessi</h3>`,
+    l.length? `<p class="muted small" style="margin-bottom:10px">Consegnali al mecenate. Chi li riscatta ottiene l\u2019accesso.</p>
+      <div style="max-height:340px;overflow:auto"><textarea readonly style="width:100%;height:300px;font-family:monospace;font-size:13px">${esc(l.map(v=>v.codice+(v.used?'  (usato)':'')).join('\n'))}</textarea></div>`
+      : '<p class="muted">Nessun codice.</p>');
+}
+function editFormula(id){
+  const f = id?FORMULE.find(x=>x.id===id):{};
+  openModal(`<h3 style="font-size:23px">${id?'Modifica formula':'Nuova formula'}</h3>`,
+    `${fId(f.id,!!id)}
+     <div class="field"><label>Nome</label><input id="fm-nome" value="${esc(f.nome||'')}" placeholder="Costruttore Accademico di Pace"></div>
+     <div class="grid g2"><div class="field"><label>Importo (\u20ac)</label><input id="fm-imp" type="number" step="0.01" value="${f.importo||''}"></div>
+       <div class="field"><label>Quanti accessi</label><input id="fm-qta" type="number" value="${f.quanti||''}"></div></div>
+     <div class="grid g2"><div class="field"><label>Tipo</label><select id="fm-tipo">
+         <option value="membership" ${f.tipo!=='pacchetto'?'selected':''}>Abbonamento</option>
+         <option value="pacchetto" ${f.tipo==='pacchetto'?'selected':''}>Pacchetto tematico</option></select></div>
+       <div class="field"><label>Concede</label><input id="fm-conc" value="${esc(f.concede||'academicus')}" placeholder="civis | academicus | pacc:p1"></div></div>
+     <div class="field"><label>Descrizione</label><input id="fm-desc" value="${esc(f.descrizione||'')}"></div>
+     <div class="grid g2"><div class="field"><label>Durata (mesi)</label><input id="fm-dur" type="number" value="${f.durata_mesi||12}"></div>
+       <div class="field"><label>Ordine</label><input id="fm-ord" type="number" value="${f.ordine||(FORMULE.length+1)*10}"></div></div>
+     <label style="display:flex;gap:8px;align-items:center;font-size:14px;margin:6px 0 14px"><input type="checkbox" id="fm-att" ${f.attivo!==false?'checked':''} style="width:auto"> Attiva</label>
+     <button class="btn full" onclick="salvaFormula('${id||''}')">Salva formula</button>`);
+}
+async function salvaFormula(edit){
+  const id=getId(edit); if(!id) return toast('Inserisci un identificativo.');
+  const o={ id, nome:$('fm-nome').value.trim(), importo:parseFloat($('fm-imp').value||0),
+    quanti:parseInt($('fm-qta').value||0,10), tipo:$('fm-tipo').value, concede:$('fm-conc').value.trim(),
+    desc:$('fm-desc').value.trim(), durata:parseInt($('fm-dur').value||12,10),
+    ordine:parseInt($('fm-ord').value||0,10), attivo:$('fm-att').checked };
+  if(!(o.importo>0) || !(o.quanti>0)) return toast('Importo e numero di accessi devono essere maggiori di zero.');
+  if(o.tipo==='membership' && ['civis','academicus'].indexOf(o.concede)<0) return toast('Un abbonamento concede civis o academicus.');
+  try{ await DB.saveFormula(o); FORMULE = await DB.formule(); closeModal(); setPresTab('contenuti'); toast('Formula salvata.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+/* TEMI EUROPEI -> COMMISSIONI */
+async function caricaOrfani(){
+  const box=$('temi-orfani'); if(!box) return;
+  let l=[]; try{ l = await DB.temiNonMappati(); }catch(e){}
+  box.innerHTML = l.length
+    ? l.map(t=>`<div style="display:flex;gap:8px;align-items:center;margin:6px 0">
+        <b>${esc(t.codice)}</b> ${esc(t.nome||'')} <span class="muted">(${t.quanti})</span>
+        <button class="btn small ghost" style="margin-left:auto" onclick="editTema('','${esc(t.codice)}')">Assegna</button></div>`).join('')
+    : 'Nessuno: ogni tema incontrato ha una commissione.';
+}
+function editTema(comm, prefisso){
+  const esiste = !!(comm && prefisso);
+  const t = esiste ? TEMI.find(x=>x.commissione===comm && x.prefisso===prefisso) : {prefisso:prefisso||'', nota:''};
+  openModal(`<h3 style="font-size:23px">${esiste?'Modifica mappatura':'Nuova mappatura'}</h3>`,
+    `<div class="field"><label>Prefisso del tema OEIL</label><input id="tm-pre" value="${esc((t&&t.prefisso)||'')}" placeholder="es. 6.10"></div>
+     <p class="muted small" style="margin:-8px 0 12px">Si confronta per prefisso: <b>3.30</b> cattura 3.30.06 e tutto il ramo.</p>
+     <div class="field"><label>Commissione</label><select id="tm-comm">${COMMISSIONI.map(c=>`<option value="${c.id}" ${comm===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}</select></div>
+     <div class="field"><label>Nota</label><input id="tm-nota" value="${esc((t&&t.nota)||'')}" placeholder="perche' questo ramo va qui"></div>
+     <button class="btn full" onclick="salvaTema('${esc(comm||'')}','${esc(prefisso||'')}')">Salva</button>`);
+}
+async function salvaTema(vc, vp){
+  const o={ commissione:$('tm-comm').value, prefisso:$('tm-pre').value.trim(), nota:$('tm-nota').value.trim() };
+  if(!o.prefisso) return toast('Inserisci il prefisso.');
+  try{
+    if(vc && vp && (vc!==o.commissione || vp!==o.prefisso)) await DB.deleteTema(vc,vp);   /* spostato */
+    await DB.saveTema(o); await loadCatalog(); closeModal(); setPresTab('contenuti'); toast('Mappatura salvata.');
+  }catch(e){ toast('Errore: '+(e.message||'')); }
+}
+async function delTema(c,p){
+  try{ await DB.deleteTema(c,p); await loadCatalog(); setPresTab('contenuti'); toast('Mappatura rimossa.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+/* LIVELLI DI ACCESSO */
+const MEMBERSHIPS=[['free','Gratuito'],['civis','Civis'],['academicus','Academicus']];
+const RUOLI_UT=[['iscritto','Iscritto'],['delegato','Delegato'],['presidenza','Presidenza']];
+function regolaInParole(l){
+  const p=[];
+  if(l.ospiti) p.push('anche senza account');
+  if((l.memberships||[]).length) p.push('abbonamenti: '+l.memberships.join(', '));
+  if((l.ruoli||[]).length) p.push('ruoli: '+l.ruoli.join(', '));
+  return p.length ? p.join(' \u00b7 ') : 'solo presidenza';
+}
+function editLivello(id){
+  const l = id?LIVELLI.find(x=>x.id===id):{memberships:[],ruoli:[]};
+  const usato = id?VOD.filter(v=>v.livello===id).length:0;
+  const spunte=(cls,elenco,sel)=>elenco.map(([k,n])=>`<label style="display:flex;gap:6px;align-items:center;font-size:14px"><input type="checkbox" class="${cls}" value="${k}" ${(sel||[]).indexOf(k)>=0?'checked':''} style="width:auto"> ${n}</label>`).join('');
+  openModal(`<h3 style="font-size:23px">${id?'Modifica livello':'Nuovo livello'}</h3>`,
+    `${fId(l.id, !!id)}
+     <div class="field"><label>Nome mostrato</label><input id="lv-nome" value="${esc(l.nome||'')}" placeholder="es. Sostenitori"></div>
+     <div class="field"><label>Descrizione</label><input id="lv-desc" value="${esc(l.desc||'')}"></div>
+     <div class="card" style="padding:14px 16px;background:var(--avorio);border:none;margin-bottom:14px">
+       <div class="eyebrow">Chi lo soddisfa</div>
+       <label style="display:flex;gap:8px;align-items:center;font-size:14px;margin:10px 0"><input type="checkbox" id="lv-osp" ${l.ospiti?'checked':''} style="width:auto"> Anche senza account</label>
+       <div class="muted small" style="margin-bottom:6px">Abbonamenti</div>
+       <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px">${spunte('lv-m',MEMBERSHIPS,l.memberships)}</div>
+       <div class="muted small" style="margin-bottom:6px">Ruoli</div>
+       <div style="display:flex;gap:14px;flex-wrap:wrap">${spunte('lv-r',RUOLI_UT,l.ruoli)}</div>
+       <p class="muted small" style="margin-top:10px">Basta una spunta qualsiasi perche' il livello sia soddisfatto. La presidenza vede sempre tutto: un livello senza nessuna spunta resta visibile solo a lei, ed e' il modo per tenere una bozza.</p>
+     </div>
+     <div class="field"><label>Invito per chi non ha diritto</label><input id="lv-inv" value="${esc(l.invito||'')}" placeholder="es. Incluso in Civis"></div>
+     <div class="grid g2">
+       <div class="field"><label>Il bottone \u201cSblocca\u201d porta a</label><select id="lv-cta">
+         <option value="" ${!l.cta?'selected':''}>Nessun bottone</option>
+         <option value="abbonamenti" ${l.cta==='abbonamenti'?'selected':''}>Abbonamenti</option>
+         <option value="registrati" ${l.cta==='registrati'?'selected':''}>Registrazione</option></select></div>
+       <div class="field"><label>Ordine</label><input id="lv-ord" type="number" value="${l.ordine||(LIVELLI.length+1)*10}"></div>
+     </div>
+     <label style="display:flex;gap:8px;align-items:center;font-size:14px;margin:6px 0 14px"><input type="checkbox" id="lv-att" ${l.attivo!==false?'checked':''} style="width:auto"> Attivo</label>
+     ${usato?`<p class="muted small" style="margin-bottom:10px">Usato da ${usato} ${usato===1?'video':'video'}.</p>`:''}
+     <button class="btn full" onclick="salvaLivello('${id||''}')">Salva livello</button>`);
+}
+async function salvaLivello(edit){
+  const id=getId(edit); if(!id) return toast('Inserisci un identificativo.');
+  const prese=c=>Array.from(document.querySelectorAll('.'+c)).filter(x=>x.checked).map(x=>x.value);
+  const o={ id, nome:$('lv-nome').value.trim(), desc:$('lv-desc').value.trim(), ospiti:$('lv-osp').checked,
+    memberships:prese('lv-m'), ruoli:prese('lv-r'), invito:$('lv-inv').value.trim(), cta:$('lv-cta').value,
+    ordine:parseInt($('lv-ord').value||0,10), attivo:$('lv-att').checked };
+  if(o.nome.length<2) return toast('Il nome e\u2019 obbligatorio.');
+  try{ await DB.saveLevel(o); await loadCatalog(); closeModal(); setPresTab('contenuti'); toast('Livello salvato.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+/* AUDIO */
+function editAudio(id){
+  const a = id?AUDIO.find(x=>x.id===id):{};
+  openModal(`<h3 style="font-size:23px">${id?'Modifica audiolibro':'Nuovo audiolibro'}</h3>`,
+    `${fId(a.id, !!id)}
+     <div class="field"><label>Titolo</label><input id="cf-tit" value="${esc(a.tit||'')}"></div>
+     <div class="grid g2"><div class="field"><label>Autore</label><input id="cf-aut" value="${esc(a.autore||'')}"></div>
+       <div class="field"><label>Durata</label><input id="cf-dur" value="${esc(a.durata||'')}" placeholder="es. 18 min"></div></div>
+     ${fSelComm(a.comm)}
+     <div class="field"><label>Testo (letto dalla voce IA e usato per le sintesi)</label><textarea id="cf-testo" rows="5">${esc(a.testo||'')}</textarea></div>
+     <div class="grid g2"><div class="field"><label>Ordine</label><input id="cf-ord" type="number" value="${a.ordine||(AUDIO.length+1)}"></div>
+       <div class="field"><label style="margin-top:30px"><input type="checkbox" id="cf-free" ${a.free?'checked':''} style="width:auto"> Gratuito</label></div></div>
+     ${fPub(a.pubblicato)}
+     <button class="btn full" onclick="salvaAudio('${id||''}')">Salva audiolibro</button>`);
+}
+async function salvaAudio(edit){
+  const id=getId(edit); if(!id) return toast('Inserisci un identificativo.');
+  const o={ id, tit:$('cf-tit').value.trim(), autore:$('cf-aut').value.trim(), durata:$('cf-dur').value.trim(),
+    comm:$('cf-comm').value, testo:$('cf-testo').value.trim(),
+    ordine:parseInt($('cf-ord').value||0,10), free:$('cf-free').checked, pubblicato:$('cf-pub').checked };
+  if(o.tit.length<2) return toast('Il titolo è obbligatorio.');
+  try{ await DB.saveAudio(o); await loadCatalog(); closeModal(); setPresTab('contenuti'); toast('Audiolibro salvato.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+/* PACCHETTI */
+function editPacc(id){
+  const p = id?PACCHETTI.find(x=>x.id===id):{corsi:[]};
+  openModal(`<h3 style="font-size:23px">${id?'Modifica pacchetto':'Nuovo pacchetto'}</h3>`,
+    `${fId(p.id, !!id)}
+     <div class="field"><label>Nome</label><input id="cf-nome" value="${esc(p.nome||'')}"></div>
+     <div class="field"><label>Corsi inclusi</label>
+       <div style="display:flex;flex-direction:column;gap:6px;max-height:180px;overflow:auto;border:1px solid var(--linea);border-radius:10px;padding:10px">
+       ${CORSI.map(c=>`<label style="display:flex;gap:8px;align-items:center;font-size:14px"><input type="checkbox" class="cf-pcorso" value="${c.id}" ${(p.corsi||[]).includes(c.id)?'checked':''} style="width:auto"> ${esc(c.tit)}</label>`).join('')}</div></div>
+     <div class="grid g2"><div class="field"><label>Prezzo (€)</label><input id="cf-prezzo" type="number" value="${p.prezzo||0}"></div>
+       <div class="field"><label>Ordine</label><input id="cf-ord" type="number" value="${p.ordine||(PACCHETTI.length+1)}"></div></div>
+     ${fPub(p.pubblicato)}
+     <button class="btn full" onclick="salvaPacc('${id||''}')">Salva pacchetto</button>`);
+}
+async function salvaPacc(edit){
+  const id=getId(edit); if(!id) return toast('Inserisci un identificativo.');
+  const corsi=[...document.querySelectorAll('.cf-pcorso:checked')].map(e=>e.value);
+  const o={ id, nome:$('cf-nome').value.trim(), corsi, prezzo:parseInt($('cf-prezzo').value||0,10),
+    ordine:parseInt($('cf-ord').value||0,10), pubblicato:$('cf-pub').checked };
+  if(o.nome.length<2) return toast('Il nome è obbligatorio.');
+  if(corsi.length===0) return toast('Seleziona almeno un corso.');
+  try{ await DB.savePackage(o); await loadCatalog(); closeModal(); setPresTab('contenuti'); toast('Pacchetto salvato.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+/* TESTI */
+function editTesto(id){
+  const t = id?TESTI.find(x=>x.id===id):{};
+  const caps = (t.capitoli||[]);
+  openModal(`<h3 style="font-size:23px">${id?'Modifica testo / libro':'Nuovo testo / libro'}</h3>`,
+    `${fId(t.id, !!id)}
+     <div class="field"><label>Titolo</label><input id="cf-tit" value="${esc(t.tit||'')}"></div>
+     <div class="grid g2"><div class="field"><label>Autore / fonte</label><input id="cf-aut" value="${esc(t.autore||'')}"></div>
+       <div class="field"><label>Tempo di lettura</label><input id="cf-lett" value="${esc(t.lettura||'')}" placeholder="es. 45 min di lettura"></div></div>
+     ${fSelComm(t.comm)}
+
+     <div class="card" style="padding:14px;background:var(--avorio);border:none;margin:6px 0 14px">
+       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+         <div class="eyebrow" style="margin:0">Contenuto in capitoli</div>
+         <div style="display:flex;gap:8px;flex-wrap:wrap">
+           <label class="btn small ghost" style="cursor:pointer;margin:0">📄 Importa da PDF
+             <input type="file" accept="application/pdf" onchange="importaPdf(this)" style="display:none"></label>
+           <button class="btn small ghost" onclick="capAdd()">+ Capitolo</button>
+         </div>
+       </div>
+       <p class="muted small" id="pdf-status" style="margin:0 0 10px">Carica un PDF (solo testi di pubblico dominio o di cui hai i diritti): verrà diviso in capitoli, che potrai correggere qui sotto. Oppure aggiungi i capitoli a mano.</p>
+       <div id="cap-list">${caps.map(c=>capRowInner(c.t||'', c.c||'')).join('')}</div>
+     </div>
+
+     <div class="field"><label>Oppure — testo unico <span class="muted small">(usato solo se non ci sono capitoli)</span></label>
+       <textarea id="cf-testo" rows="4">${esc(t.testo||'')}</textarea></div>
+     <div class="grid g2"><div class="field"><label>Ordine</label><input id="cf-ord" type="number" value="${t.ordine||(TESTI.length+1)}"></div>
+       <div class="field"><label style="margin-top:30px"><input type="checkbox" id="cf-free" ${t.free?'checked':''} style="width:auto"> Gratuito</label></div></div>
+     ${fPub(t.pubblicato)}
+     <button class="btn full" onclick="salvaTesto('${id||''}')">Salva testo</button>`);
+}
+function capRowInner(t,c){
+  return `<div class="cap-row" style="border:1px solid var(--linea);border-radius:10px;padding:10px;margin-bottom:8px;background:var(--marmo)">
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+      <span style="cursor:grab" title="Trascina per riordinare">⋮⋮</span>
+      <input class="cap-t" value="${esc(t||'')}" placeholder="Titolo del capitolo" style="flex:1;padding:7px 9px;border:1px solid var(--linea);border-radius:8px;font-family:inherit">
+      <button class="btn small ghost" onclick="capDel(this)" title="Rimuovi">✕</button>
+    </div>
+    <textarea class="cap-c" rows="3" placeholder="Testo del capitolo…" style="width:100%">${esc(c||'')}</textarea>
+  </div>`;
+}
+function capAdd(t,c){
+  const list=$('cap-list'); if(!list) return;
+  const wrap=document.createElement('div'); wrap.innerHTML=capRowInner(typeof t==='string'?t:'', typeof c==='string'?c:'');
+  list.appendChild(wrap.firstElementChild);
+}
+function capDel(btn){ const r=btn.closest('.cap-row'); if(r) r.remove(); }
+function capCollect(){
+  return [...document.querySelectorAll('#cap-list .cap-row')].map(r=>({
+    t:(r.querySelector('.cap-t')?.value||'').trim(),
+    c:(r.querySelector('.cap-c')?.value||'').trim()
+  })).filter(x=>x.t||x.c);
+}
+function splitIntoChapters(raw){
+  let text=(raw||'').replace(/\r/g,'');
+  text=text.replace(/(\w)-\n(\w)/g,'$1$2');                 // ricongiungi sillabazione
+  const lines=text.split('\n').map(l=>l.replace(/[ \t]+/g,' ').trim());
+  const isHead=(l)=>{
+    if(!l||l.length>80) return false;
+    if(/^(capitolo|cap\.?|parte|libro|canto|sezione|prologo|epilogo|introduzione|premessa|prefazione)\b/i.test(l)) return true;
+    if(/^[IVXLCDM]+\.?\s+\S/i.test(l)) return true;          // "IV. Titolo"
+    if(/^\d{1,3}[.)]\s+\S/.test(l)) return true;             // "3. Titolo"
+    return false;
+  };
+  const caps=[]; let cur=null;
+  for(const l of lines){
+    if(isHead(l)){ if(cur) caps.push(cur); cur={t:l, c:''}; }
+    else { if(!cur) cur={t:'', c:''}; cur.c += (cur.c?'\n':'')+l; }
+  }
+  if(cur) caps.push(cur);
+  caps.forEach(c=>{ c.c=c.c.replace(/\n{3,}/g,'\n\n').trim(); });
+  const conTitolo=caps.filter(c=>c.t);
+  if(conTitolo.length===0){ const uni=lines.filter(Boolean).join('\n').trim(); return uni?[{t:'', c:uni}]:[]; }
+  if(caps.length && !caps[0].t && caps[0].c) caps[0].t='Introduzione';
+  return caps.filter(c=>c.t||c.c);
+}
+async function importaPdf(input){
+  const file=input.files&&input.files[0]; if(!file) return;
+  const st=$('pdf-status');
+  if(!window.pdfjsLib){ if(st) st.textContent='Libreria PDF non caricata: serve la connessione a internet.'; return; }
+  try{
+    if(st) st.textContent='Estrazione del testo dal PDF in corso…';
+    pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const buf=await file.arrayBuffer();
+    const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+    let full='';
+    for(let p=1;p<=pdf.numPages;p++){
+      const page=await pdf.getPage(p);
+      const tc=await page.getTextContent();
+      let last=null, line='';
+      for(const it of tc.items){
+        const y=it.transform&&it.transform[5];
+        if(last!==null && Math.abs(y-last)>3){ full+=line.trim()+'\n'; line=''; }
+        line+=it.str+(it.hasEOL?'':' '); last=y;
+      }
+      full+=line.trim()+'\n\n';
+    }
+    const caps=splitIntoChapters(full);
+    const list=$('cap-list'); if(list) list.innerHTML='';
+    if(caps.length){ caps.forEach(c=>capAdd(c.t,c.c)); }
+    else { capAdd('',''); }
+    if(st) st.textContent='Trovati '+caps.length+' capitoli da '+pdf.numPages+' pagine. Controlla e correggi prima di salvare.';
+  }catch(e){ if(st) st.textContent='Impossibile leggere il PDF ('+(e.message||'errore')+'). Se è una scansione (immagini) serve prima un OCR.'; }
+  finally{ input.value=''; }
+}
+async function salvaTesto(edit){
+  const id=getId(edit); if(!id) return toast('Inserisci un identificativo.');
+  const capitoli=capCollect();
+  const o={ id, tit:$('cf-tit').value.trim(), autore:$('cf-aut').value.trim(), lettura:$('cf-lett').value.trim(),
+    comm:$('cf-comm').value, testo:$('cf-testo').value.trim(), capitoli,
+    ordine:parseInt($('cf-ord').value||0,10), free:$('cf-free').checked, pubblicato:$('cf-pub').checked };
+  if(o.tit.length<2) return toast('Il titolo è obbligatorio.');
+  if(!o.testo && capitoli.length===0) return toast('Aggiungi almeno un capitolo o il testo unico.');
+  try{ await DB.saveText(o); await loadCatalog(); closeModal(); setPresTab('contenuti'); toast('Testo salvato'+(capitoli.length?(' · '+capitoli.length+' capitoli'):'')+'.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+/* CAMPUS */
+function editCampus(id){
+  const c = id?CAMPUS.find(x=>x.id===id):{};
+  openModal(`<h3 style="font-size:23px">${id?'Modifica campus':'Nuovo campus'}</h3>`,
+    `${fId(c.id, !!id)}
+     <div class="field"><label>Titolo</label><input id="cf-tit" value="${esc(c.tit||'')}"></div>
+     <div class="field"><label>Luogo</label><input id="cf-luogo" value="${esc(c.luogo||'Abbazia di Maguzzano — Casa di Spiritualità e Centro Ecumenico (Lonato del Garda, BS)')}"></div>
+     <div class="grid g2"><div class="field"><label>Data</label><input id="cf-data" value="${esc(c.data||'')}" placeholder="es. 17–18 ottobre 2026"></div>
+       <div class="field"><label>Durata</label><input id="cf-dur" value="${esc(c.durata||'')}" placeholder="es. Weekend · 2 giorni, 1 notte"></div></div>
+     ${fSelComm(c.comm)}
+     <div class="field"><label>Descrizione</label><textarea id="cf-desc" rows="3">${esc(c.desc||'')}</textarea></div>
+     <div class="grid g2"><div class="field"><label>Prezzo partecipazione (€)</label><input id="cf-prezzo" type="number" value="${c.prezzo||120}"></div>
+       <div class="field"><label>Prezzo con soggiorno (€)</label><input id="cf-sogg" type="number" value="${c.prezzoSoggiorno||190}"></div></div>
+     <div class="grid g2"><div class="field"><label>Posti</label><input id="cf-posti" type="number" value="${c.posti||30}"></div>
+       <div class="field"><label>Ordine</label><input id="cf-ord" type="number" value="${c.ordine||(CAMPUS.length+1)}"></div></div>
+     ${fPub(c.pubblicato)}
+     <button class="btn full" onclick="salvaCampus('${id||''}')">Salva campus</button>`);
+}
+async function salvaCampus(edit){
+  const id=getId(edit); if(!id) return toast('Inserisci un identificativo.');
+  const o={ id, tit:$('cf-tit').value.trim(), luogo:$('cf-luogo').value.trim(), data:$('cf-data').value.trim(),
+    durata:$('cf-dur').value.trim(), comm:$('cf-comm').value, desc:$('cf-desc').value.trim(),
+    prezzo:parseInt($('cf-prezzo').value||0,10), prezzoSoggiorno:parseInt($('cf-sogg').value||0,10),
+    posti:parseInt($('cf-posti').value||30,10), ordine:parseInt($('cf-ord').value||0,10), pubblicato:$('cf-pub').checked };
+  if(o.tit.length<2) return toast('Il titolo è obbligatorio.');
+  try{ await DB.saveCampus(o); await loadCatalog(); closeModal(); setPresTab('contenuti'); toast('Campus salvato.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+/* EVENTI */
+function editEvento(id){
+  const e = id?EVENTI.find(x=>x.id===id):{};
+  const acc = e.accesso||'libero';
+  const opt=(v,l)=>`<option value="${v}" ${acc===v?'selected':''}>${l}</option>`;
+  openModal(`<h3 style="font-size:23px">${id?'Modifica evento':'Nuovo evento'}</h3>`,
+    `${fId(e.id, !!id)}
+     <div class="field"><label>Titolo</label><input id="cf-tit" value="${esc(e.tit||'')}"></div>
+     <div class="field"><label>Sottotitolo</label><input id="cf-sub" value="${esc(e.sub||'')}"></div>
+     <div class="grid g2"><div class="field"><label>Tipo</label><input id="cf-tipo" value="${esc(e.tipo||'Mostra')}"></div>
+       <div class="field"><label>Periodo</label><input id="cf-periodo" value="${esc(e.periodo||'')}" placeholder="es. gennaio – dicembre 2027"></div></div>
+     <div class="field"><label>Luogo</label><input id="cf-luogo" value="${esc(e.luogo||'')}"></div>
+     <div class="field"><label>Descrizione</label><textarea id="cf-desc" rows="3">${esc(e.desc||'')}</textarea></div>
+     <div class="grid g2">
+       <div class="field"><label>Accesso</label><select id="cf-acc">
+         ${opt('libero','Partecipazione libera')}${opt('civis','Incluso con Civis')}${opt('academicus','Incluso con Academicus')}${opt('biglietto','Biglietto a pagamento')}</select></div>
+       <div class="field"><label>Prezzo biglietto (€)</label><input id="cf-prezzo" type="number" value="${e.prezzo||0}"></div>
+     </div>
+     <div class="field"><label>Programma <span class="muted small">(una riga per voce/mese)</span></label><textarea id="cf-prog" rows="6">${esc(e.programma||'')}</textarea></div>
+     <div class="field"><label>Ordine</label><input id="cf-ord" type="number" value="${e.ordine||(EVENTI.length+1)}"></div>
+     ${fPub(e.pubblicato)}
+     <button class="btn full" onclick="salvaEvento('${id||''}')">Salva evento</button>`);
+}
+async function salvaEvento(edit){
+  const id=getId(edit); if(!id) return toast('Inserisci un identificativo.');
+  const o={ id, tit:$('cf-tit').value.trim(), sub:$('cf-sub').value.trim(), tipo:$('cf-tipo').value.trim()||'Evento',
+    periodo:$('cf-periodo').value.trim(), luogo:$('cf-luogo').value.trim(), desc:$('cf-desc').value.trim(),
+    accesso:$('cf-acc').value, prezzo:parseInt($('cf-prezzo').value||0,10), programma:$('cf-prog').value,
+    ordine:parseInt($('cf-ord').value||0,10), pubblicato:$('cf-pub').checked };
+  if(o.tit.length<2) return toast('Il titolo è obbligatorio.');
+  try{ await DB.saveEvent(o); await loadCatalog(); closeModal(); setPresTab('contenuti'); toast('Evento salvato.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+/* PREZZI */
+async function salvaPrezzi(){
+  try{
+    await DB.saveSetting('prezzo_corso', parseInt($('pz-corso').value||69,10));
+    await DB.saveSetting('prezzo_percorso', parseInt($('pz-perc').value||440,10));
+    await loadCatalog(); setPresTab('contenuti'); toast('Prezzi aggiornati.');
+  }catch(e){ toast('Errore: '+(e.message||'')); }
+}
+/* ELIMINA (con conferma) */
+function delCont(tipo,id){
+  const nomi={fonte:'la fonte',eventopace:'l\u2019evento',formula:'la formula',livello:'il livello',corso:'il corso',video:'il video',audio:'l’audiolibro',testo:'il testo',pacchetto:'il pacchetto',campus:'il campus',evento:'l’evento'};
+  openModal(`<h3 style="font-size:22px">Elimina contenuto</h3>`,
+    `<p>Vuoi eliminare definitivamente ${nomi[tipo]} <b>${esc(id)}</b>?</p>
+     <div style="display:flex;gap:10px;margin-top:18px">
+       <button class="btn ghost" onclick="closeModal()">Annulla</button>
+       <button class="btn" style="background:var(--porpora)" onclick="confermaDel('${tipo}','${id}')">Elimina</button></div>`);
+}
+async function confermaDel(tipo,id){
+  try{
+    if(tipo==='fonte') await DB.deleteFonte(id);
+    if(tipo==='eventopace') await DB.deleteEventoPace(id);
+    if(tipo==='formula'){
+      /* Il vincolo protegge gli impegni gia' sottoscritti: giusto, ma da solo
+         parla in postgrese. Qui si traduce. */
+      try{ await DB.deleteFormula(id); }
+      catch(err){
+        if(String(err.code||'')==='23503' || /foreign key|violates/i.test(err.message||''))
+          throw new Error('ci sono impegni sottoscritti su questa formula: spegnila invece di eliminarla, gli impegni devono restare tracciati');
+        throw err;
+      }
+    }
+    if(tipo==='livello'){
+      const usato = VOD.filter(v=>v.livello===id).length;
+      if(usato) throw new Error('lo usano ancora '+usato+' video: spostali prima su un altro livello');
+      await DB.deleteLevel(id);
+    }
+    if(tipo==='corso') await DB.deleteCourse(id);
+    if(tipo==='video') await DB.deleteVideo(id);
+    if(tipo==='audio') await DB.deleteAudio(id);
+    if(tipo==='testo') await DB.deleteText(id);
+    if(tipo==='pacchetto') await DB.deletePackage(id);
+    if(tipo==='campus') await DB.deleteCampus(id);
+    if(tipo==='evento') await DB.deleteEvent(id);
+    await loadCatalog(); closeModal(); setPresTab('contenuti'); toast('Contenuto eliminato.');
+  }catch(e){ toast('Errore: '+(e.message||'')); }
+}
+
+/* =====================================================================
+   MODALI + AVVIO
+===================================================================== */
+let onClose=null;
+function openModal(headHtml,bodyHtml,cb,cls){
+  onClose=cb||null;
+  $('modal-root').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()">
+    <div class="modal ${cls||''}"><div class="modal-h"><div>${headHtml}</div><button class="x" onclick="closeModal()">×</button></div>
+    <div class="modal-b">${bodyHtml}</div></div></div>`;
+}
+function closeModal(){ if(onClose){onClose();onClose=null;} $('modal-root').innerHTML=''; }
+
+async function gestisciRitornoPagamento(){
+  const p = new URLSearchParams(location.search);
+  if(p.get('paid')==='1'){
+    toast('Pagamento ricevuto. Attivazione in corso…');
+    // il webhook attiva entro pochi secondi: aggiorniamo un paio di volte
+    for(let i=0;i<4;i++){ await new Promise(r=>setTimeout(r,1500)); await refreshMe(); render();
+      if(io && io.membership!=='free') break; }
+    toast('Tutto pronto. Buon percorso!');
+  } else if(p.get('canceled')==='1'){ toast('Pagamento annullato.'); }
+  if(p.get('paid')||p.get('canceled')) history.replaceState({},'',location.pathname);
+}
+async function avvio(){
+  if(!sb){
+    $('loader').style.display='none';
+    $('auth-root').style.display='block';
+    $('auth-root').innerHTML=`<div style="max-width:560px;margin:80px auto;padding:0 24px">
+      <div class="card" style="padding:30px"><div class="eyebrow">Configurazione richiesta</div>
+      <h1 style="font-size:30px;margin:6px 0 10px">Collega Supabase</h1>
+      <p class="muted">Il portale non è ancora collegato al backend. Apri <code>js/config.js</code> e inserisci l’URL del progetto e la chiave <b>anon</b> di Supabase. Le istruzioni complete sono nel file <b>README.md</b>.</p></div></div>`;
+    return;
+  }
+  if('speechSynthesis' in window) speechSynthesis.getVoices();
+  TRK.init();
+  try{
+    const s = await DB.session();
+    if(s){ await refreshMe(); await loadCatalog(); }
+    else { await loadCatalog(); }   /* la porta d'ingresso mostra il catalogo vero */
+  }catch(e){}
+  $('loader').style.display='none';
+  if(io){ $('auth-root').style.display='none'; $('app').style.display='block'; go('dashboard'); await gestisciRitornoPagamento(); }
+  else renderLanding();
+  // mantieni la sessione sincronizzata
+  if(sb) sb.auth.onAuthStateChange((_e,sess)=>{ if(!sess){ io=null; } });
+}
+window.addEventListener('load', avvio);
+if('speechSynthesis' in window) speechSynthesis.onvoiceschanged=()=>{};
