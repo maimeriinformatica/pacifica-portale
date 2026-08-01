@@ -281,20 +281,20 @@ function lpHeaderPagina(){
    ===================================================================== */
 function renderManifestoPage(){
   const principi = [
-    ['I','La pace come fondamento','La pace non \u00e8 l\u2019assenza di conflitto, ma la presenza di giustizia. \u00c8 il terreno su cui si regge ogni convivenza: si costruisce con pazienza, giorno dopo giorno, e chiede impegno prima ancora che accordo.'],
-    ['II','Il sapere con coscienza','La conoscenza senza coscienza non genera futuro. Il sapere diventa responsabilit\u00e0: non basta capire il mondo, occorre saperlo abitare con misura etica, sapendo a chi e a che cosa serve ci\u00f2 che impariamo.'],
-    ['III','La dignit\u00e0 della persona','La dignit\u00e0 di ogni persona \u00e8 inviolabile ed \u00e8 il fondamento di ogni diritto. Nessuna appartenenza, condizione o merito la aumenta o la diminuisce: viene prima delle differenze e le rende feconde.'],
-    ['IV','L\u2019unit\u00e0 nella diversit\u00e0','La diversit\u00e0 non \u00e8 un ostacolo da tollerare ma una ricchezza da mettere in dialogo. \u00c8 nell\u2019incontro fra culture che il confronto si fa diplomazia, e la pluralit\u00e0 diventa unit\u00e0 senza cancellare nessuno.'],
-    ['V','La bellezza che educa','La bellezza \u00e8 un linguaggio universale di pace. L\u2019arte, l\u2019armonia e la cura delle forme educano lo sguardo e il cuore, e ci ricordano che ci\u00f2 che \u00e8 giusto pu\u00f2 anche essere bello.'],
-    ['VI','Il bene comune','Il bene di tutti viene prima dell\u2019interesse del singolo. La libert\u00e0 personale trova senso quando si fa responsabilit\u00e0 verso la comunit\u00e0, e la ricerca del bene comune misura la qualit\u00e0 di ogni scelta.'],
-    ['VII','Memoria e futuro','Si custodisce il passato per costruire il domani. La memoria non \u00e8 nostalgia ma radice: conoscere da dove veniamo \u00e8 la condizione per decidere, insieme, dove vogliamo andare.']
+    ['I','La Pace come Stato dell\u2019Essere','La pace \u00e8 uno stato interiore di consapevolezza, che si riflette nella vita sociale e civile promuovendo la risoluzione dei conflitti.'],
+    ['II','Conoscenza e Coscienza Unite','Ogni sapere \u00e8 autentico solo quando \u00e8 accompagnato da responsabilit\u00e0 etica e profondit\u00e0 spirituale. La conoscenza senza coscienza non genera futuro.'],
+    ['III','Centralit\u00e0 della Persona Umana','L\u2019essere umano \u00e8 al centro come creatura pensante, relazionale e spirituale. Educare significa formare l\u2019intero essere umano.'],
+    ['IV','Unit\u00e0 nella Diversit\u00e0','Culture, discipline e tradizioni dialogano senza annullarsi. La pace nasce dall\u2019armonia delle differenze.'],
+    ['V','Bellezza come Via Educativa','Arte, parola e bellezza sono strumenti di elevazione, comprensione e trasformazione. La bellezza educa alla pace.'],
+    ['VI','Sapere come Servizio','La conoscenza \u00e8 chiamata a diventare servizio al bene comune, custodia della vita e responsabilit\u00e0 verso le generazioni future.'],
+    ['VII','Storia Vivente e Futuro Consapevole','Il futuro nasce da radici comprese e rinnovate. La storia \u00e8 una memoria che ritorna vivente.']
   ];
   return `<div class="lp">
     ${lpHeaderPagina()}
     <section class="lp-page-hero"><div class="lp-sec-in">
       <div class="eyebrow" style="color:var(--oro)">Il Manifesto</div>
       <h1 class="lp-page-h1">I Sette Principi</h1>
-      <p class="lp-page-lead">Non dogmi da recitare, ma chiavi per leggere la realt\u00e0. Reggono tutto ci\u00f2 che accade dentro La Pacifica: il Parlamento, l\u2019Accademia, la biblioteca, gli eventi.</p>
+      <p class="lp-page-lead">La Pacifica nasce come Accademia Internazionale per la Pace, una <em>Res Publica universale</em> fondata sulla conoscenza, sulla coscienza e sulla dignit\u00e0 dell\u2019essere umano. La nostra iniziativa si riconosce in sette principi fondamentali, che ne costituiscono l\u2019anima e la direzione.</p>
     </div></section>
     <section class="lp-sec"><div class="lp-sec-in">
       <div class="man-list">
@@ -426,7 +426,7 @@ function renderLanding(){
     <section class="lp-sec lp-frieze">
       <div class="lp-sec-in">
         <div class="lp-h"><div class="eyebrow">Il Manifesto</div><h2>I Sette Principi</h2>
-          <p class="lp-lead">Non dogmi da recitare, ma chiavi per leggere la realt\u00e0. Reggono tutto ci\u00f2 che accade qui dentro.</p></div>
+          <p class="lp-lead">Non dogmi da recitare, ma chiavi per leggere la realt\u00e0.</p></div>
         <div class="lp-cta" style="justify-content:center;margin-top:4px">
           <button class="btn oro lp-btn" onclick="apriPagina('manifesto')">Scopri i Sette Principi \u2192</button>
         </div>
@@ -435,8 +435,7 @@ function renderLanding(){
 
     <section class="lp-sec lp-pillars">
       <div class="lp-sec-in">
-        <div class="lp-h"><div class="eyebrow">L\u2019ecosistema</div><h2>Sei pilastri, un unico ingresso</h2>
-          <p class="lp-lead">Ogni pilastro ha una soglia aperta a tutti e una parte riservata a chi entra o sostiene l\u2019Accademia.</p></div>
+        <div class="lp-h"><h2>Le nostre sezioni</h2></div>
         <div class="lp-grid lp-g3">
           ${pilastri.map(p=>`<div class="lp-pill">
             <div class="lp-pill-bg">${pillScene(p.t)}</div>
@@ -454,9 +453,7 @@ function renderLanding(){
 
     <section class="lp-sec lp-svc">
       <div class="lp-sec-in">
-        <div class="lp-h"><div class="eyebrow" style="color:var(--oro)">Servizi gratuiti</div>
-          <h2>Comincia adesso, senza iscriverti</h2>
-          <p class="lp-lead">Questi contenuti sono liberi e pienamente fruibili: leggi i testi e ascoltali con la voce IA, guarda i documentari. L\u2019account serve solo per salvare il tuo percorso e sbloccare il resto.</p></div>
+        <div class="lp-h"><h2>Servizi gratuiti</h2></div>
         <div class="lp-grid lp-g3">
           ${liberi.map(x=>`<article class="tile lp-tile">
             <div class="cover lp-cover"><span class="k">${x.ico}</span><span class="tag">${esc(x.tp)} \u00b7 gratuito</span></div>
@@ -501,9 +498,7 @@ function renderLanding(){
       <div id="lp-rass"></div>
     </div></section>
     <section class="lp-sec"><div class="lp-sec-in">
-      <div class="eyebrow">Mecenati</div>
       <h2 style="font-size:34px;margin:6px 0 8px">Costruttori accademici di pace</h2>
-      <p class="muted" style="max-width:640px;margin-bottom:22px">Sostieni la formazione acquistando pacchetti di accessi da destinare a studenti e docenti. A pagamento accreditato gli accessi vengono emessi e potrai distribuirli.</p>
       <div class="lp-cta" style="justify-content:center;margin-top:4px"><button class="btn oro lp-btn" onclick="apriPagina('mecenati')">Scopri come sostenere \u2192</button></div>
     </div></section>
     <section class="lp-sec lp-civis">
