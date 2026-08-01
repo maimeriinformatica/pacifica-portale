@@ -1,0 +1,14 @@
+# =====================================================================
+#  Supabase — configurazione del progetto (per CLI e CI/CD)
+#  Sostituisci il riferimento con quello del TUO progetto:
+#  Supabase -> Project Settings -> General -> "Reference ID"
+#  (in CI viene comunque usato il segreto SUPABASE_PROJECT_ID)
+# =====================================================================
+project_id = "IL-TUO-PROJECT-REF"
+
+# Le funzioni non elencate usano la verifica JWT (default, corretto: sono
+# chiamate dal sito con la sessione dell'utente).
+# Il webhook di Stripe fa eccezione: lo chiama Stripe, che NON invia un
+# token Supabase. Senza questa riga, il webhook rifiuterebbe le chiamate.
+[functions.stripe-webhook]
+verify_jwt = false

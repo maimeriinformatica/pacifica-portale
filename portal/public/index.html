@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Pacifica Res Publica — Portale</title>
+  <link rel="icon" type="image/png" href="img/favicon.png">
+<meta name="description" content="L’ecosistema digitale de La Pacifica Res Publica: Parlamento dei Giovani, Accademia, Video On Demand e Biblioteca Audio con motore IA.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Karla:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="loader" id="loader"><img class="loader-logo" src="img/logo.png" alt=""><div class="spin" style="width:30px;height:30px"></div></div>
+<div id="auth-root"></div>
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="topbar-in">
+      <div class="brand" onclick="go('dashboard')">
+        <div class="mark"><img class="logo-img" src="img/logo.png" alt="La Pacifica Res Publica"></div>
+        <div><b>La Pacifica</b><span>Res Publica</span></div>
+      </div>
+      <nav class="nav" id="nav"></nav>
+      <div class="topbar-right" id="topbar-right"></div>
+      <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menù" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="nav-backdrop" id="nav-backdrop" onclick="closeMenu()"></div>
+  </header>
+  <main class="wrap" id="main"></main>
+</div>
+<div id="modal-root"></div>
+<div id="toast-root"></div>
+
+<!-- Supabase JS SDK (UMD) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<!-- pdf.js (importazione testi da PDF, solo lato Presidenza) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<!-- Configurazione (URL + chiave pubblica anon) -->
+<script src="/js/config.js"></script>
+<!-- Strato dati (client Supabase + operazioni) -->
+<script src="/js/db.js"></script>
+<!-- Applicazione (catalogo + viste) -->
+<script src="/js/app.js"></script>
+</body>
+</html>

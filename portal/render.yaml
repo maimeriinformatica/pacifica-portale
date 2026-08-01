@@ -1,0 +1,51 @@
+# =====================================================================
+#  Render — configurazione di deploy (Blueprint)
+#  La Pacifica Res Publica · sito statico in /public
+#
+#  Render ospita SOLO il frontend statico. Il backend (database, login,
+#  regole RLS e le Edge Functions) resta su Supabase: Render non lo tocca.
+#
+#  Uso: metti il repo su GitHub -> su Render "New +" -> "Blueprint" ->
+#  scegli il repo. Render legge questo file. Poi imposti le variabili
+#  d'ambiente marcate "sync: false" nel cruscotto (sono i tuoi valori
+#  Supabase). Da lì, ogni push su GitHub ridistribuisce da solo.
+# =====================================================================
+services:
+  - type: web
+    name: pacifica-portale
+    runtime: static
+    # la build genera public/js/config.js dalle variabili d'ambiente
+    buildCommand: node scripts/build-config.js
+    staticPublishPath: public
+    pullRequestPreviewsEnabled: true      # anteprima automatica a ogni pull request
+    envVars:
+      - key: SUPABASE_URL                 # da Supabase -> Project Settings -> API
+        sync: false
+      - key: SUPABASE_ANON_KEY            # chiave PUBBLICA (anon). La protezione vera è la RLS.
+        sync: false
+      - key: FUNCTIONS_BASE               # facoltativa: es. https://xxxx.supabase.co/functions/v1
+        sync: false
+      - key: STRIPE_ENABLED               # "true" solo quando attivi i pagamenti reali
+        value: "false"
+      - key: AI_FUNCTION_URL              # facoltativa
+        sync: false
+    # Stesse intestazioni di sicurezza del deploy Netlify
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*
+        name: Permissions-Policy
+        value: geolocation=(), microphone=(), camera=()
+      - path: /js/config.js
+        name: Cache-Control
+        value: no-store
+    # NB: NON serve una regola di rewrite "/* -> /index.html": questa app è
+    # una singola pagina senza rotte sull'URL. Aggiungila solo se in futuro
+    # introdurrai link profondi (es. /accademia come indirizzo vero).

@@ -1,0 +1,14 @@
+{
+  "name": "pacifica-portale",
+  "version": "1.0.0",
+  "description": "Portale de La Pacifica Res Publica — ecosistema integrato (Supabase + Netlify)",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve public -l 3000",
+    "preview": "npx serve public -l 3000"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "jsdom": "^29.1.1"
+  }
+}
