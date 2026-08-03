@@ -126,7 +126,7 @@ const DB = {
 
   /* ---------- CONTENUTI (catalogo gestibile dalla Presidenza) ---------- */
   async loadCatalog(){
-    const [c,v,a,p,cm,tx,ev,s,lv,tm,ds,fo,nz,ep,ag,ct] = await Promise.all([
+    const [c,v,a,p,cm,tx,ev,s,lv,tm,ds,fo,nz,ep,ag,ct,md] = await Promise.all([
       sb.from('courses').select('*').order('ordine'),
       sb.from('videos').select('*').order('ordine'),
       sb.from('audiobooks').select('*').order('ordine'),
@@ -142,7 +142,8 @@ const DB = {
       sb.from('notizie').select('*').order('pubblicata_il',{ascending:false}).limit(30),
       sb.from('eventi_pace').select('*').order('inizio'),
       sb.from('anagrafiche').select('*').order('cognome'),
-      sb.from('contratti').select('*').order('id',{ascending:false})
+      sb.from('contratti').select('*').order('id',{ascending:false}),
+      sb.from('contratti_modelli').select('*').order('ordine')
     ]);
     const set = {}; (s.data||[]).forEach(r=>set[r.key]=r.value);
     const prezzoCorso = parseInt(set.prezzo_corso||'69',10);
@@ -157,9 +158,10 @@ const DB = {
         cf:r.codice_fiscale, piva:r.partita_iva, email:r.email, tel:r.telefono, indirizzo:r.indirizzo,
         citta:r.citta, cap:r.cap, prov:r.provincia, qualifica:r.qualifica, note:r.note,
         userId:r.user_id, attivo:r.attivo, creato:r.updated_at })),
-      CONTRATTI: (ct.data||[]).map(r=>({ id:r.id, numero:r.numero, anagId:r.anagrafica_id, tipo:r.tipo,
+      CONTRATTI: (ct.data||[]).map(r=>({ id:r.id, numero:r.numero, titolo:r.titolo||'', anagId:r.anagrafica_id, tipo:r.tipo,
         oggetto:r.oggetto, desc:r.descrizione, compenso:r.compenso, inizio:r.data_inizio, fine:r.data_fine,
         stato:r.stato, testo:r.testo, note:r.note, firmatoIl:r.firmato_il, creato:r.updated_at })),
+      MODELLI: (md.data||[]).map(r=>({ id:r.id, titolo:r.titolo, testo:r.testo, attivo:r.attivo, ordine:r.ordine })),
       FONTI: (fo.data||[]).map(r=>({id:r.id, nome:r.nome, url:r.url, editore:r.editore, attiva:r.attiva, ultimoSync:r.ultimo_sync, ultimoEsito:r.ultimo_esito})),
       NOTIZIE: (nz.data||[]).map(r=>({id:r.id, fonte:r.fonte_id, tit:r.titolo, sommario:r.sommario, url:r.url, img:r.immagine, data:r.pubblicata_il, nascosta:r.nascosta})),
       EVENTIPACE: (ep.data||[]).map(r=>({id:r.id, tit:r.titolo, desc:r.descrizione, luogo:r.luogo, url:r.url, inizio:r.inizio, fine:r.fine, pubblicato:r.pubblicato})),
@@ -223,8 +225,12 @@ const DB = {
   async saveContatto(o){ const { error } = await sb.from('contatti').insert({ anagrafica_id:o.anagId,
       data:o.data||undefined, canale:o.canale||'email', oggetto:o.oggetto, note:o.note||'' }); if(error) throw error; },
   async deleteContatto(id){ const { error } = await sb.from('contatti').delete().eq('id',id); if(error) throw error; },
+  async saveModello(o){ const { error } = await sb.from('contratti_modelli').upsert({ id:o.id||undefined,
+      titolo:o.titolo, testo:o.testo||'', attivo:o.attivo!==false, ordine:o.ordine||0,
+      updated_at:new Date().toISOString() }, { onConflict:'id' }); if(error) throw error; },
+  async deleteModello(id){ const { error } = await sb.from('contratti_modelli').delete().eq('id',id); if(error) throw error; },
   async numeroContratto(){ const { data, error } = await sb.rpc('genera_numero_contratto'); if(error) throw error; return data; },
-  async saveContratto(o){ const { error } = await sb.from('contratti').upsert({ id:o.id||undefined, numero:o.numero,
+  async saveContratto(o){ const { error } = await sb.from('contratti').upsert({ id:o.id||undefined, numero:o.numero, titolo:o.titolo||'',
       anagrafica_id:o.anagId, tipo:o.tipo||'docenza', oggetto:o.oggetto, descrizione:o.desc||'',
       compenso:o.compenso||0, data_inizio:o.inizio||null, data_fine:o.fine||null, stato:o.stato||'bozza',
       testo:o.testo||'', note:o.note||'', firmato_il:o.firmatoIl||null,

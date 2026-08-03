@@ -540,3 +540,8 @@ input,select,textarea{font-family:inherit;font-size:15px}
 /* Micro-movimento: lieve zoom della scena del pilastro al passaggio del mouse */
 .lp-pill-bg{transition:transform .8s cubic-bezier(.2,.7,.2,1)}
 .lp-pill:hover .lp-pill-bg{transform:scale(1.06)}
+
+/* ---------- Gestionale: legenda variabili dei modelli di contratto ---------- */
+.var-legend{display:flex;flex-wrap:wrap;gap:6px}
+.var-chip{font:11.5px/1 ui-monospace,SFMono-Regular,monospace;background:var(--avorio);border:1px solid var(--linea);border-radius:6px;padding:4px 7px;cursor:pointer;color:var(--oltremare)}
+.var-chip:hover{border-color:var(--oro);background:#fff}

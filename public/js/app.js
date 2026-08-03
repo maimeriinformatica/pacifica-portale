@@ -54,6 +54,7 @@ let EVENTI = [
 /* Livelli di accesso. Sono dati: la presidenza li crea e li modifica dal CMS.
    Questi qui sotto valgono solo se il catalogo non arriva dal server. */
 let ANAGRAFICHE = [];
+let MODELLI = [];
 let CONTRATTI = [];
 let FONTI = [];
 let NOTIZIE = [];
@@ -154,6 +155,7 @@ async function loadCatalog(){
     if(cat.TEMI) TEMI = cat.TEMI;
     if(cat.DOSSIER) DOSSIER = cat.DOSSIER;
     if(cat.ANAGRAFICHE) ANAGRAFICHE = cat.ANAGRAFICHE;
+    if(cat.MODELLI) MODELLI = cat.MODELLI;
     if(cat.CONTRATTI) CONTRATTI = cat.CONTRATTI;
     if(cat.FONTI) FONTI = cat.FONTI;
     if(cat.NOTIZIE) NOTIZIE = cat.NOTIZIE;
@@ -1684,7 +1686,7 @@ function cmsArea(){
     const nomeAnag = id => { const a=ANAGRAFICHE.find(x=>String(x.id)===String(id)); return a?(a.nome+' '+a.cognome).trim():'?'; };
     const badge = st => ({bozza:'grigio',inviato:'blu',firmato:'verde',archiviato:'oro'}[st]||'grigio');
     const righe = CONTRATTI.map(c=>`<div class="lesson" style="cursor:default">
-        <span class="t"><b>${esc(c.numero)}</b> \u00b7 ${esc(nomeAnag(c.anagId))}<br>
+        <span class="t"><b>${esc(c.numero)}</b> \u00b7 ${esc(nomeAnag(c.anagId))}${c.titolo?' \u00b7 <i>'+esc(c.titolo)+'</i>':''}<br>
           <span class="d" style="margin:0">${esc(c.oggetto)}${c.compenso?` \u00b7 ${euro(c.compenso)}`:''}</span></span>
         <span style="margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
           <span class="badge ${badge(c.stato)}">${esc(c.stato)}</span>
@@ -1694,7 +1696,16 @@ function cmsArea(){
           ${c.stato!=='archiviato'?`<button class="btn small ghost" onclick="archiviaContratto('${c.id}')">Archivia</button>`:''}
           ${c.stato==='bozza'?`<button class="btn small ghost" onclick="delCont('contratto','${c.id}')">Elimina</button>`:''}
         </span></div>`).join('');
-    return add + `<p class="muted small" style="margin-bottom:12px">Ogni contratto \u00e8 numerato (C-anno-progressivo) e il testo generato resta <b>archiviato</b> nel database. \u26a0\ufe0f Il modello \u00e8 generico: prima dell\u2019uso reale fallo verificare a un consulente del lavoro o commercialista.</p>
+    const mod = MODELLI.map(m=>cmsRow(m.titolo, (m.testo||'').replace(/\s+/g,' ').slice(0,90)+'\u2026',
+      m.attivo===false?'<span class="badge grigio">Spento</span>':'<span class="badge verde">Attivo</span>',
+      `editModello('${m.id}')`, `delCont('modello','${m.id}')`)).join('');
+    return add + `<div class="card" style="padding:16px;margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div class="eyebrow">Modelli di contratto</div>
+          <button class="btn small" onclick="editModello()">+ Modello</button></div>
+        <p class="muted small" style="margin:0 0 10px">Ogni modello ha un titolo e un testo con variabili come <code>{{nome_completo}}</code> o <code>{{compenso}}</code>: alla generazione vengono sostituite con i dati veri.</p>
+        ${mod||'<div class="empty">Nessun modello: creane uno per generare contratti.</div>'}
+      </div>` + `<p class="muted small" style="margin-bottom:12px">Ogni contratto \u00e8 numerato (C-anno-progressivo) e il testo generato resta <b>archiviato</b> nel database. \u26a0\ufe0f Il modello \u00e8 generico: prima dell\u2019uso reale fallo verificare a un consulente del lavoro o commercialista.</p>
       ${righe||'<div class="empty">Nessun contratto. Genera il primo con \u201c+ Aggiungi\u201d.</div>'}`;
   }
   if(cmsTab==='rassegna'){
@@ -1941,12 +1952,67 @@ async function eliminaContatto(id,anagId){
 /* =====================================================================
    GESTIONALE — Contratti: genera, stampa, archivia
    ===================================================================== */
+/* Variabili disponibili nei modelli: sostituite alla generazione */
+const VARIABILI_CONTRATTO = [
+  ['numero','numero progressivo (C-2026-001)'],['titolo','titolo del modello'],
+  ['oggetto','oggetto dell\u2019incarico'],['descrizione','attivit\u00e0 previste'],
+  ['compenso','compenso in euro'],['data_inizio','data di inizio'],['data_fine','data di fine'],
+  ['periodo','\u201cdal \u2026 al \u2026\u201d gi\u00e0 composto'],
+  ['nome','nome'],['cognome','cognome'],['nome_completo','nome e cognome'],
+  ['codice_fiscale','codice fiscale'],['partita_iva','partita IVA'],['email','email'],
+  ['telefono','telefono'],['indirizzo','indirizzo'],['residenza','indirizzo completo'],
+  ['qualifica','qualifica'],
+  ['ente_denominazione','denominazione dell\u2019ente'],['ente_intestatario','intestatario conto'],
+  ['ente_email','email dell\u2019ente'],['ente_iban','IBAN'],['ente_banca','banca'],
+  ['oggi','data odierna'],['anno','anno corrente']
+];
+function sostituisciVariabili(testo, ctx){
+  return String(testo||'').replace(/\{\{\s*([a-z_]+)\s*\}\}/gi, (tutto, k) => {
+    k=k.toLowerCase();
+    return (k in ctx && ctx[k]!==null && ctx[k]!==undefined && String(ctx[k])!=='') ? String(ctx[k]) : '__________';
+  });
+}
+
+function editModello(id){
+  const m = id?MODELLI.find(x=>String(x.id)===String(id)):{};
+  const legenda = VARIABILI_CONTRATTO.map(([v,d])=>`<button type="button" class="var-chip" title="${esc(d)}" onclick="inserisciVar('${v}')">{{${v}}}</button>`).join('');
+  openModal(`<h3 style="font-size:23px">${id?'Modifica modello':'Nuovo modello di contratto'}</h3>`,
+    `<div class="field"><label>Titolo del contratto</label><input id="mo-tit" value="${esc(m.titolo||'')}" placeholder="es. Contratto di docenza"></div>
+     <div class="field"><label>Testo del contratto</label>
+       <textarea id="mo-testo" rows="14" style="font:12.5px/1.6 ui-monospace,monospace">${esc(m.testo||'')}</textarea></div>
+     <div class="field"><label>Variabili disponibili (clicca per inserire)</label>
+       <div class="var-legend">${legenda}</div></div>
+     <div class="grid g2">
+       <div class="field"><label>Ordine</label><input id="mo-ord" type="number" value="${m.ordine||((MODELLI.length+1)*10)}"></div>
+       <label style="display:flex;gap:8px;align-items:center;font-size:14px;margin-top:24px"><input type="checkbox" id="mo-att" ${m.attivo!==false?'checked':''} style="width:auto"> Attivo</label></div>
+     <button class="btn full" onclick="salvaModello('${id||''}')">Salva modello</button>`);
+}
+function inserisciVar(v){
+  const t=$('mo-testo'); if(!t) return;
+  const ins='{{'+v+'}}';
+  const a=t.selectionStart||t.value.length, b=t.selectionEnd||a;
+  t.value = t.value.slice(0,a)+ins+t.value.slice(b);
+  t.focus(); t.selectionStart=t.selectionEnd=a+ins.length;
+}
+async function salvaModello(id){
+  const o={ id:id||undefined, titolo:$('mo-tit').value.trim(), testo:$('mo-testo').value,
+    ordine:parseInt($('mo-ord').value||0,10), attivo:$('mo-att').checked };
+  if(!o.titolo) return toast('Il titolo \u00e8 obbligatorio.');
+  if(!o.testo.trim()) return toast('Il testo del contratto \u00e8 vuoto.');
+  try{ await DB.saveModello(o); await loadCatalog(); closeModal(); setPresTab('contenuti'); toast('Modello salvato.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+
 function editContratto(){
-  const formatori = ANAGRAFICHE.filter(a=>a.attivo!==false);
-  if(!formatori.length) return toast('Prima crea un\u2019anagrafica nella scheda Anagrafiche.');
+  const persone = ANAGRAFICHE.filter(a=>a.attivo!==false);
+  if(!persone.length) return toast('Prima crea un\u2019anagrafica nella scheda Anagrafiche.');
+  const attivi = MODELLI.filter(m=>m.attivo!==false);
+  if(!attivi.length) return toast('Prima crea (o riattiva) un modello di contratto.');
   openModal(`<h3 style="font-size:23px">Genera contratto</h3>`,
-    `<div class="field"><label>Incaricato/a (dalle anagrafiche)</label><select id="co-anag">
-       ${formatori.map(a=>`<option value="${a.id}">${esc((a.nome+' '+a.cognome).trim())}${a.qualifica?' \u2014 '+esc(a.qualifica):''}</option>`).join('')}</select></div>
+    `<div class="field"><label>Modello</label><select id="co-mod">
+       ${attivi.map(m=>`<option value="${m.id}">${esc(m.titolo)}</option>`).join('')}</select></div>
+     <div class="field"><label>Incaricato/a (dalle anagrafiche)</label><select id="co-anag">
+       ${persone.map(a=>`<option value="${a.id}">${esc((a.nome+' '+a.cognome).trim())}${a.qualifica?' \u2014 '+esc(a.qualifica):''}</option>`).join('')}</select></div>
      <div class="grid g2"><div class="field"><label>Tipo</label><select id="co-tipo">
          ${['docenza','collaborazione','consulenza','altro'].map(t=>`<option>${t}</option>`).join('')}</select></div>
        <div class="field"><label>Compenso complessivo (\u20ac)</label><input id="co-comp" type="number" min="0" step="0.01" value="0"></div></div>
@@ -1955,55 +2021,12 @@ function editContratto(){
      <div class="grid g2"><div class="field"><label>Inizio</label><input id="co-in" type="date"></div>
        <div class="field"><label>Fine</label><input id="co-fin" type="date"></div></div>
      <div class="field"><label>Note interne (non entrano nel contratto)</label><input id="co-note"></div>
-     <p class="muted small" style="margin:2px 0 12px">Il testo viene generato con i dati dell\u2019ente (scheda Ente) e archiviato. Modello generico: <b>da far verificare a un consulente</b> prima della firma.</p>
+     <p class="muted small" style="margin:2px 0 12px">Le variabili del modello vengono sostituite con questi dati; le variabili senza valore diventano <code>__________</code> da completare a penna. Modello generico: <b>da far verificare a un consulente</b> prima della firma.</p>
      <button class="btn full" onclick="salvaContratto()">Genera e salva</button>`);
-}
-function testoContratto(num, a, d, ente){
-  const g=k=>ente[k]||'';
-  const nomeC=(a.nome+' '+a.cognome).trim();
-  const resid=[a.indirizzo,[a.cap,a.citta,a.prov?'('+a.prov+')':''].filter(Boolean).join(' ')].filter(Boolean).join(', ');
-  const per=(d.inizio||d.fine)?`dal ${d.inizio?fmtGiorno(d.inizio):'\u2014'} al ${d.fine?fmtGiorno(d.fine):'\u2014'}`:'da concordare per iscritto fra le parti';
-  return `CONTRATTO DI INCARICO N. ${num}
-Tipo: ${d.tipo.charAt(0).toUpperCase()+d.tipo.slice(1)}
-
-TRA
-${g('ente_denominazione')||'[Denominazione ente]'} (di seguito, \u201cl\u2019Ente\u201d)${g('ente_email')?`, email ${g('ente_email')}`:''}
-
-E
-${nomeC}${a.cf?`, C.F. ${a.cf}`:''}${a.piva?`, P.IVA ${a.piva}`:''}${resid?`, ${resid}`:''} (di seguito, \u201cl\u2019Incaricato/a\u201d)
-
-SI CONVIENE E SI STIPULA QUANTO SEGUE
-
-Art. 1 \u2014 Oggetto
-L\u2019Ente affida all\u2019Incaricato/a il seguente incarico: ${d.oggetto}.${d.desc?`
-Attivit\u00e0 previste: ${d.desc}`:''}
-
-Art. 2 \u2014 Durata
-L\u2019incarico si svolge ${per}. Non \u00e8 previsto alcun vincolo di subordinazione.
-
-Art. 3 \u2014 Compenso
-Per l\u2019attivit\u00e0 di cui all\u2019Art. 1 \u00e8 riconosciuto un compenso complessivo di ${euro(d.compenso)} lordi, corrisposto secondo le modalit\u00e0 concordate fra le parti, dietro presentazione della documentazione fiscale prevista dalla normativa applicabile.
-
-Art. 4 \u2014 Obblighi dell\u2019Incaricato/a
-L\u2019Incaricato/a svolge l\u2019attivit\u00e0 con diligenza e in coerenza con i principi del Manifesto de La Pacifica Res Publica, utilizzando i materiali nel rispetto dei diritti di terzi.
-
-Art. 5 \u2014 Riservatezza e protezione dei dati
-Le parti si impegnano alla riservatezza sulle informazioni di cui vengano a conoscenza in ragione dell\u2019incarico e trattano i dati personali nel rispetto del Reg. (UE) 2016/679 (GDPR).
-
-Art. 6 \u2014 Recesso
-Ciascuna parte pu\u00f2 recedere con comunicazione scritta con congruo preavviso, fatto salvo il compenso per l\u2019attivit\u00e0 gi\u00e0 svolta.
-
-Art. 7 \u2014 Controversie
-Per ogni controversia le parti tenteranno una composizione amichevole; in difetto, \u00e8 competente il foro previsto dalla legge.
-
-Luogo e data: ______________________________
-
-L\u2019Ente                                    L\u2019Incaricato/a
-
-______________________________            ______________________________`;
 }
 async function salvaContratto(){
   const a=ANAGRAFICHE.find(x=>String(x.id)===String($('co-anag').value)); if(!a) return toast('Scegli un\u2019anagrafica.');
+  const m=MODELLI.find(x=>String(x.id)===String($('co-mod').value)); if(!m) return toast('Scegli un modello.');
   const d={ tipo:$('co-tipo').value, oggetto:$('co-ogg').value.trim(), desc:$('co-desc').value.trim(),
     compenso:parseFloat($('co-comp').value||'0'), inizio:$('co-in').value||null, fine:$('co-fin').value||null,
     note:$('co-note').value.trim() };
@@ -2011,8 +2034,20 @@ async function salvaContratto(){
   try{
     const num = await DB.numeroContratto();
     let ente={}; try{ ente = (await DB.datiEnte())||{}; }catch(e){}
-    const testo = testoContratto(num, a, d, ente);
-    await DB.saveContratto({ numero:num, anagId:a.id, tipo:d.tipo, oggetto:d.oggetto, desc:d.desc,
+    const residenza=[a.indirizzo,[a.cap,a.citta,a.prov?'('+a.prov+')':''].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+    const ctx = {
+      numero:num, titolo:m.titolo, oggetto:d.oggetto, descrizione:d.desc,
+      compenso: d.compenso?euro(d.compenso):'', data_inizio:d.inizio?fmtGiorno(d.inizio):'', data_fine:d.fine?fmtGiorno(d.fine):'',
+      periodo:(d.inizio||d.fine)?`dal ${d.inizio?fmtGiorno(d.inizio):'\u2014'} al ${d.fine?fmtGiorno(d.fine):'\u2014'}`:'da concordare per iscritto fra le parti',
+      nome:a.nome, cognome:a.cognome, nome_completo:(a.nome+' '+a.cognome).trim(),
+      codice_fiscale:a.cf, partita_iva:a.piva, email:a.email, telefono:a.tel,
+      indirizzo:a.indirizzo, residenza, qualifica:a.qualifica,
+      ente_denominazione:ente.ente_denominazione, ente_intestatario:ente.ente_intestatario,
+      ente_email:ente.ente_email, ente_iban:ente.ente_iban, ente_banca:ente.ente_banca,
+      oggi:fmtGiorno(new Date().toISOString()), anno:String(new Date().getFullYear())
+    };
+    const testo = sostituisciVariabili(m.testo, ctx);
+    await DB.saveContratto({ numero:num, titolo:m.titolo, anagId:a.id, tipo:d.tipo, oggetto:d.oggetto, desc:d.desc,
       compenso:d.compenso, inizio:d.inizio, fine:d.fine, stato:'bozza', testo, note:d.note });
     await loadCatalog(); closeModal(); setPresTab('contenuti'); toast('Contratto '+num+' generato.');
   }catch(e){ toast('Errore: '+(e.message||'')); }
@@ -2539,7 +2574,7 @@ async function salvaPrezzi(){
 }
 /* ELIMINA (con conferma) */
 function delCont(tipo,id){
-  const nomi={anagrafica:'l\u2019anagrafica',contratto:'il contratto',fonte:'la fonte',eventopace:'l\u2019evento',formula:'la formula',livello:'il livello',corso:'il corso',video:'il video',audio:'l’audiolibro',testo:'il testo',pacchetto:'il pacchetto',campus:'il campus',evento:'l’evento'};
+  const nomi={anagrafica:'l\u2019anagrafica',contratto:'il contratto',modello:'il modello',fonte:'la fonte',eventopace:'l\u2019evento',formula:'la formula',livello:'il livello',corso:'il corso',video:'il video',audio:'l’audiolibro',testo:'il testo',pacchetto:'il pacchetto',campus:'il campus',evento:'l’evento'};
   openModal(`<h3 style="font-size:22px">Elimina contenuto</h3>`,
     `<p>Vuoi eliminare definitivamente ${nomi[tipo]} <b>${esc(id)}</b>?</p>
      <div style="display:flex;gap:10px;margin-top:18px">
@@ -2549,6 +2584,7 @@ function delCont(tipo,id){
 async function confermaDel(tipo,id){
   try{
     if(tipo==='anagrafica') await DB.deleteAnagrafica(id);
+    if(tipo==='modello') await DB.deleteModello(id);
     if(tipo==='contratto') await DB.deleteContratto(id);
     if(tipo==='fonte') await DB.deleteFonte(id);
     if(tipo==='eventopace') await DB.deleteEventoPace(id);
