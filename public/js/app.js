@@ -53,6 +53,8 @@ let EVENTI = [
 ];
 /* Livelli di accesso. Sono dati: la presidenza li crea e li modifica dal CMS.
    Questi qui sotto valgono solo se il catalogo non arriva dal server. */
+let ANAGRAFICHE = [];
+let CONTRATTI = [];
 let FONTI = [];
 let NOTIZIE = [];
 let EVENTIPACE = [];
@@ -146,6 +148,8 @@ async function loadCatalog(){
     if(cat.LIVELLI && cat.LIVELLI.length) LIVELLI = cat.LIVELLI;
     if(cat.TEMI) TEMI = cat.TEMI;
     if(cat.DOSSIER) DOSSIER = cat.DOSSIER;
+    if(cat.ANAGRAFICHE) ANAGRAFICHE = cat.ANAGRAFICHE;
+    if(cat.CONTRATTI) CONTRATTI = cat.CONTRATTI;
     if(cat.FONTI) FONTI = cat.FONTI;
     if(cat.NOTIZIE) NOTIZIE = cat.NOTIZIE;
     if(cat.EVENTIPACE) EVENTIPACE = cat.EVENTIPACE;
@@ -706,6 +710,7 @@ function go(v,c={}){ vista=v; ctx=c; closeMenu(); window.scrollTo(0,0); render()
 
 function render(){
   $('nav').innerHTML = NAV.map(n=>`<button class="${vista===n.id?'on':''}" onclick="go('${n.id}')">${n.lab}</button>`).join('')
+    + (io.ruolo==='formatore'?`<button class="${vista==='formatore'?'on':''}" onclick="go('formatore')">Area formatore</button>`:'')
     + (io.ruolo==='presidenza'?`<button class="${vista==='presidenza'?'on':''}" onclick="go('presidenza')">Presidenza</button>`:'');
   const mb=io.membership;
   const badge = mb==='academicus'?'<span class="badge oro">Academicus</span>'
@@ -715,7 +720,7 @@ function render(){
     <div class="chip"><span class="av">${initials(io.nome)}</span>${esc(io.nome.split(' ')[0])}
       <button class="x" style="font-size:16px;width:auto;height:auto;margin-left:2px" title="Esci" onclick="logout()">⏻</button></div>`;
   const R = { dashboard:renderDashboard, parlamento:renderParlamento, accademia:renderAccademia,
-    vod:renderVod, audio:renderAudio, rassegna:renderRassegna, novita:renderNovita, campus:renderCampus, eventi:renderEventi, abbonamenti:renderAbbonamenti, presidenza:renderPresidenza, corso:renderCorso };
+    vod:renderVod, audio:renderAudio, rassegna:renderRassegna, novita:renderNovita, formatore:renderFormatore, campus:renderCampus, eventi:renderEventi, abbonamenti:renderAbbonamenti, presidenza:renderPresidenza, corso:renderCorso };
   $('main').innerHTML = `<div class="view">${(R[vista]||renderDashboard)()}</div>`;
   osservaReveal();
 }
@@ -805,7 +810,7 @@ function renderGuidaAdmin(){
   const A = (v)=> (typeof v!=='undefined'&&v)?v:[];
   const sez=[['Corsi',A(CORSI)],['Video',A(VOD)],['Audiolibri',A(AUDIO)],['Testi',A(TESTI)],
     ['Pacchetti',A(PACCHETTI)],['Campus',A(CAMPUS)],['Eventi',A(EVENTI)],['Dossier',A(DOSSIER)],
-    ['Livelli',A(LIVELLI)],['Formule',A(FORMULE)],['Fonti',A(FONTI)],['Notizie',A(NOTIZIE)]];
+    ['Livelli',A(LIVELLI)],['Formule',A(FORMULE)],['Fonti',A(FONTI)],['Notizie',A(NOTIZIE)],['Anagrafiche',A(ANAGRAFICHE)],['Contratti',A(CONTRATTI)]];
   const stato = sez.map(([nome,arr])=>{ const c=guidaConta(arr);
     return `<div class="g-stat"><b>${esc(nome)}</b><span>${c.tot} element${c.tot===1?'o':'i'}${(c.pub!==c.tot)?` \u00b7 ${c.pub} pubblicat${c.pub===1?'o':'i'}`:''}</span><span class="g-when">agg. ${esc(c.ultimo)}</span></div>`;
   }).join('');
@@ -834,6 +839,7 @@ function renderGuidaAdmin(){
         <li><b>Rassegna</b>: aggiungi una <i>fonte</i> RSS e premi <i>Sincronizza</i>. Puoi spegnere una fonte o nascondere un singolo articolo in un clic.</li>
         <li><b>Mecenati</b>: le <i>formule</i> definiscono \u201cX euro \u2192 X accessi\u201d. Quando un bonifico risulta accreditato, <i>Segna pagato</i> emette gli accessi.</li>
         <li><b>Ente</b>: qui vivono IBAN e dati dell\u2019ente. Finch\u00e9 l\u2019IBAN \u00e8 vuoto, chi sottoscrive riceve un avviso invece di coordinate.</li>
+        <li><b>Anagrafiche e Contratti</b>: il gestionale. Registra formatori e collaboratori in <i>Anagrafiche</i> (col diario dei contatti), poi genera i contratti numerati da <i>Contratti</i>: il testo resta archiviato, si stampa, e si segna firmato/archiviato. Collega l\u2019account del formatore per dargli l\u2019Area formatore.</li>
         <li><b>Statistiche</b>: numeri anonimi e aggregati. Nessun dato personale, nel rispetto del consenso e di \u201cDo Not Track\u201d.</li>
       </ul>
       <p class="muted small" style="margin-top:12px">Le stesse aggiunte compaiono agli utenti nella pagina <b>Novit\u00e0</b>, in ordine di arrivo.</p></div>`;
@@ -1629,7 +1635,7 @@ async function generaCodici(){
 }
 
 /* ---------- Gestione contenuti (CMS) ---------- */
-const CMS_TABS=[['corsi','Corsi'],['video','Video'],['audio','Audiolibri'],['testi','Testi'],['pacchetti','Pacchetti'],['campus','Campus'],['eventi','Eventi'],['livelli','Livelli'],['temi','Temi UE'],['mecenati','Mecenati'],['statistiche','Statistiche'],['rassegna','Rassegna'],['ente','Ente'],['prezzi','Prezzi']];
+const CMS_TABS=[['anagrafiche','Anagrafiche'],['contratti','Contratti'],['corsi','Corsi'],['video','Video'],['audio','Audiolibri'],['testi','Testi'],['pacchetti','Pacchetti'],['campus','Campus'],['eventi','Eventi'],['livelli','Livelli'],['temi','Temi UE'],['mecenati','Mecenati'],['statistiche','Statistiche'],['rassegna','Rassegna'],['ente','Ente'],['prezzi','Prezzi']];
 function renderCms(){
   return `<div class="seg" style="max-width:560px;margin-bottom:18px">
     ${CMS_TABS.map(([k,l])=>`<button class="${cmsTab===k?'on':''}" onclick="setCmsTab('${k}')">${l}</button>`).join('')}
@@ -1638,10 +1644,10 @@ function renderCms(){
 }
 function setCmsTab(t){ cmsTab=t; const a=$('cms-area'); if(a) a.innerHTML=cmsArea(); if(t==='temi') caricaOrfani(); if(t==='ente') caricaEnte(); if(t==='mecenati') caricaImpegni(); if(t==='rassegna'){ caricaEventiPaceCms(); caricaNotizieCms(); } if(t==='statistiche') caricaStatistiche(); }
 function pubBadge(p){ return p===false?'<span class="badge grigio">Bozza</span>':'<span class="badge verde">Pubblicato</span>'; }
-function cmsRow(titolo, sub, badge, onEdit, onDel){
+function cmsRow(titolo, sub, badge, onEdit, onDel, extra){
   return `<div class="lesson" style="cursor:default">
     <span class="t">${esc(titolo)}<br><span class="d" style="margin:0">${esc(sub)}</span></span>
-    <span style="margin-left:auto;display:flex;gap:8px;align-items:center">${badge}
+    <span style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap">${badge}${extra||''}
       <button class="btn small ghost" onclick="${onEdit}">Modifica</button>
       <button class="btn small ghost" style="color:var(--porpora);border-color:#ECC9C9" onclick="${onDel}">Elimina</button></span></div>`;
 }
@@ -1659,6 +1665,33 @@ function cmsArea(){
     <button class="btn small" onclick="nuovo('${cmsTab}')">+ Aggiungi</button></div>`;
   let rows='';
   if(cmsTab==='corsi') rows = CORSI.map(c=>cmsRow(c.tit, `${c.form||'—'} · ${commNome(c.comm)||c.comm} · ${euro(c.prezzo||PREZZO_CORSO)}`, pubBadge(c.pubblicato), `editCorso('${c.id}')`, `delCont('corso','${c.id}')`)).join('');
+  if(cmsTab==='anagrafiche'){
+    const righe = ANAGRAFICHE.map(a=>cmsRow(
+      (a.nome+' '+a.cognome).trim(),
+      [a.qualifica, a.email, a.tel].filter(Boolean).join(' \u00b7 '),
+      `<span class="badge ${a.tipo==='formatore'?'blu':'grigio'}">${esc(a.tipo)}</span>${a.userId?' <span class="badge verde">portale</span>':''}${a.attivo===false?' <span class="badge grigio">inattiva</span>':''}`,
+      `editAnagrafica('${a.id}')`, `delCont('anagrafica','${a.id}')`,
+      `<button class="btn small ghost" onclick="apriContatti('${a.id}')">Contatti</button>`)).join('');
+    return `<p class="muted small" style="margin-bottom:12px">Il registro di formatori, collaboratori e fornitori. I dati (codice fiscale, indirizzo) li vede solo la Presidenza; i formatori collegati a un account vedono la propria scheda.</p>
+      ${righe||'<div class="empty">Nessuna anagrafica. Aggiungi la prima.</div>'}`;
+  }
+  if(cmsTab==='contratti'){
+    const nomeAnag = id => { const a=ANAGRAFICHE.find(x=>String(x.id)===String(id)); return a?(a.nome+' '+a.cognome).trim():'?'; };
+    const badge = st => ({bozza:'grigio',inviato:'blu',firmato:'verde',archiviato:'oro'}[st]||'grigio');
+    const righe = CONTRATTI.map(c=>`<div class="lesson" style="cursor:default">
+        <span class="t"><b>${esc(c.numero)}</b> \u00b7 ${esc(nomeAnag(c.anagId))}<br>
+          <span class="d" style="margin:0">${esc(c.oggetto)}${c.compenso?` \u00b7 ${euro(c.compenso)}`:''}</span></span>
+        <span style="margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <span class="badge ${badge(c.stato)}">${esc(c.stato)}</span>
+          <button class="btn small ghost" onclick="leggiContratto('${c.id}')">Leggi</button>
+          <button class="btn small ghost" onclick="stampaContratto('${c.id}')">Stampa</button>
+          ${c.stato==='bozza'||c.stato==='inviato'?`<button class="btn small" onclick="firmaContratto('${c.id}')">Segna firmato</button>`:''}
+          ${c.stato!=='archiviato'?`<button class="btn small ghost" onclick="archiviaContratto('${c.id}')">Archivia</button>`:''}
+          ${c.stato==='bozza'?`<button class="btn small ghost" onclick="delCont('contratto','${c.id}')">Elimina</button>`:''}
+        </span></div>`).join('');
+    return `<p class="muted small" style="margin-bottom:12px">Ogni contratto \u00e8 numerato (C-anno-progressivo) e il testo generato resta <b>archiviato</b> nel database. \u26a0\ufe0f Il modello \u00e8 generico: prima dell\u2019uso reale fallo verificare a un consulente del lavoro o commercialista.</p>
+      ${righe||'<div class="empty">Nessun contratto. Genera il primo con \u201c+ Aggiungi\u201d.</div>'}`;
+  }
   if(cmsTab==='rassegna'){
     const fonti = FONTI.map(f=>cmsRow(f.nome, (f.editore||'')+' \u00b7 '+esc(f.url),
       (f.attiva?'<span class="badge verde">Attiva</span>':'<span class="badge grigio">Spenta</span>')+(f.ultimoEsito?` <span class="muted small">\u00b7 ${esc(f.ultimoEsito)}</span>`:''),
@@ -1724,13 +1757,16 @@ function fPub(v){ return `<label style="display:flex;gap:8px;align-items:center;
 function getId(edit){ return edit || ($('cf-id').value||'').trim(); }
 
 /* CORSI */
-function nuovo(t){ if(t==='rassegna')editFonte(); else if(t==='mecenati')editFormula(); else if(t==='ente')return; else if(t==='temi')editTema(); else if(t==='livelli')editLivello(); else if(t==='corsi')editCorso(); else if(t==='video')editVideo(); else if(t==='audio')editAudio(); else if(t==='testi')editTesto(); else if(t==='pacchetti')editPacc(); else if(t==='campus')editCampus(); else if(t==='eventi')editEvento(); }
+function nuovo(t){ if(t==='anagrafiche')editAnagrafica(); else if(t==='contratti')editContratto(); else if(t==='rassegna')editFonte(); else if(t==='mecenati')editFormula(); else if(t==='ente')return; else if(t==='temi')editTema(); else if(t==='livelli')editLivello(); else if(t==='corsi')editCorso(); else if(t==='video')editVideo(); else if(t==='audio')editAudio(); else if(t==='testi')editTesto(); else if(t==='pacchetti')editPacc(); else if(t==='campus')editCampus(); else if(t==='eventi')editEvento(); }
 function editCorso(id){
   const c = id?CORSI.find(x=>x.id===id):{};
   openModal(`<h3 style="font-size:23px">${id?'Modifica corso':'Nuovo corso'}</h3>`,
     `${fId(c.id, !!id)}
      <div class="field"><label>Titolo</label><input id="cf-tit" value="${esc(c.tit||'')}"></div>
-     <div class="field"><label>Formatore</label><input id="cf-form" value="${esc(c.form||'')}"></div>
+     <div class="field"><label>Formatore (nome mostrato)</label><input id="cf-form" value="${esc(c.form||'')}"></div>
+     <div class="field"><label>Account formatore (per l\u2019Area formatore)</label>
+       <select id="cf-formid"><option value="">\u2014 nessuno \u2014</option>
+       ${ANAGRAFICHE.filter(a=>a.tipo==='formatore'&&a.userId).map(a=>`<option value="${esc(a.userId)}" ${c.formatoreId===a.userId?'selected':''}>${esc(a.nome+' '+a.cognome)}</option>`).join('')}</select></div>
      ${fSelComm(c.comm)}
      <div class="field"><label>Pacchetto (etichetta)</label><input id="cf-pacc" value="${esc(c.pacc||'')}"></div>
      <div class="field"><label>Descrizione</label><textarea id="cf-desc" rows="3">${esc(c.desc||'')}</textarea></div>
@@ -1741,7 +1777,7 @@ function editCorso(id){
 }
 async function salvaCorso(edit){
   const id=getId(edit); if(!id) return toast('Inserisci un identificativo.');
-  const o={ id, tit:$('cf-tit').value.trim(), form:$('cf-form').value.trim(), comm:$('cf-comm').value,
+  const o={ id, tit:$('cf-tit').value.trim(), form:$('cf-form').value.trim(), formatoreId:($('cf-formid')&&$('cf-formid').value)||null, comm:$('cf-comm').value,
     pacc:$('cf-pacc').value.trim(), desc:$('cf-desc').value.trim(), prezzo:parseInt($('cf-prezzo').value||PREZZO_CORSO,10),
     ordine:parseInt($('cf-ord').value||0,10), pubblicato:$('cf-pub').checked };
   if(o.tit.length<2) return toast('Il titolo è obbligatorio.');
@@ -1827,6 +1863,218 @@ async function caricaStatistiche(){
     <p class="muted small" style="margin-top:8px">Dati aggregati e anonimi. Il tracciamento rispetta il consenso e \u201cDo Not Track\u201d. Nessun IP, user-agent o identit\u00e0 viene registrato.</p>`;
 }
 function commNomeSicuro(id){ try{ const c=COMMISSIONI.find(x=>x.id===id); return c?c.nome:null; }catch(e){ return null; } }
+/* =====================================================================
+   GESTIONALE — Anagrafiche
+   ===================================================================== */
+function editAnagrafica(id){
+  const a = id?ANAGRAFICHE.find(x=>String(x.id)===String(id)):{};
+  openModal(`<h3 style="font-size:23px">${id?'Modifica anagrafica':'Nuova anagrafica'}</h3>`,
+    `<div class="grid g2"><div class="field"><label>Nome</label><input id="an-nome" value="${esc(a.nome||'')}"></div>
+       <div class="field"><label>Cognome</label><input id="an-cogn" value="${esc(a.cognome||'')}"></div></div>
+     <div class="grid g2"><div class="field"><label>Tipo</label><select id="an-tipo">
+         ${['formatore','collaboratore','fornitore','ente','altro'].map(t=>`<option ${a.tipo===t?'selected':''}>${t}</option>`).join('')}</select></div>
+       <div class="field"><label>Qualifica</label><input id="an-qual" value="${esc(a.qualifica||'')}" placeholder="es. Docente di bioetica"></div></div>
+     <div class="grid g2"><div class="field"><label>Codice fiscale</label><input id="an-cf" value="${esc(a.cf||'')}"></div>
+       <div class="field"><label>Partita IVA</label><input id="an-piva" value="${esc(a.piva||'')}"></div></div>
+     <div class="grid g2"><div class="field"><label>Email</label><input id="an-email" value="${esc(a.email||'')}"></div>
+       <div class="field"><label>Telefono</label><input id="an-tel" value="${esc(a.tel||'')}"></div></div>
+     <div class="field"><label>Indirizzo</label><input id="an-ind" value="${esc(a.indirizzo||'')}"></div>
+     <div class="grid g3"><div class="field"><label>Citt\u00e0</label><input id="an-citta" value="${esc(a.citta||'')}"></div>
+       <div class="field"><label>CAP</label><input id="an-cap" value="${esc(a.cap||'')}"></div>
+       <div class="field"><label>Prov.</label><input id="an-prov" value="${esc(a.prov||'')}"></div></div>
+     <div class="field"><label>Account del portale (ID utente, per formatori)</label><input id="an-uid" value="${esc(a.userId||'')}" placeholder="incolla l\u2019ID utente Supabase, facoltativo"></div>
+     <div class="field"><label>Note</label><textarea id="an-note" rows="2">${esc(a.note||'')}</textarea></div>
+     <label style="display:flex;gap:8px;align-items:center;font-size:14px;margin:4px 0 14px"><input type="checkbox" id="an-att" ${a.attivo!==false?'checked':''} style="width:auto"> Attiva</label>
+     <button class="btn full" onclick="salvaAnagrafica('${id||''}')">Salva anagrafica</button>`);
+}
+async function salvaAnagrafica(id){
+  const o={ id:id||undefined, nome:$('an-nome').value.trim(), cognome:$('an-cogn').value.trim(),
+    tipo:$('an-tipo').value, qualifica:$('an-qual').value.trim(), cf:$('an-cf').value.trim().toUpperCase(),
+    piva:$('an-piva').value.trim(), email:$('an-email').value.trim(), tel:$('an-tel').value.trim(),
+    indirizzo:$('an-ind').value.trim(), citta:$('an-citta').value.trim(), cap:$('an-cap').value.trim(),
+    prov:$('an-prov').value.trim().toUpperCase(), userId:$('an-uid').value.trim()||null,
+    note:$('an-note').value.trim(), attivo:$('an-att').checked };
+  if(!o.nome) return toast('Il nome \u00e8 obbligatorio.');
+  try{ await DB.saveAnagrafica(o); await loadCatalog(); closeModal(); setPresTab('contenuti'); toast('Anagrafica salvata.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+
+/* Diario contatti dell'anagrafica */
+async function apriContatti(anagId){
+  const a=ANAGRAFICHE.find(x=>String(x.id)===String(anagId)); if(!a) return;
+  openModal(`<h3 style="font-size:23px">Contatti \u2014 ${esc((a.nome+' '+a.cognome).trim())}</h3>`,
+    `<div id="ctt-list" class="muted small">Carico\u2026</div>
+     <div style="border-top:1px solid var(--linea);margin-top:14px;padding-top:14px">
+       <div class="grid g2"><div class="field"><label>Data</label><input id="ct-data" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+         <div class="field"><label>Canale</label><select id="ct-can">${['email','telefono','incontro','videochiamata','altro'].map(c=>`<option>${c}</option>`).join('')}</select></div></div>
+       <div class="field"><label>Oggetto</label><input id="ct-ogg" placeholder="es. Accordi sul calendario del corso"></div>
+       <div class="field"><label>Note</label><textarea id="ct-note" rows="2"></textarea></div>
+       <button class="btn full" onclick="salvaContatto('${anagId}')">Registra contatto</button>
+     </div>`);
+  caricaContattiModal(anagId);
+}
+async function caricaContattiModal(anagId){
+  const box=$('ctt-list'); if(!box) return;
+  try{
+    const rows = await DB.listContatti(anagId);
+    box.innerHTML = rows.length ? rows.map(r=>`<div class="lesson" style="cursor:default">
+        <span class="t">${esc(r.oggetto)}<br><span class="d" style="margin:0">${esc(fmtGiorno(r.data))} \u00b7 ${esc(r.canale)}${r.note?' \u00b7 '+esc(r.note):''}</span></span>
+        <button class="btn small ghost" style="margin-left:auto" onclick="eliminaContatto('${r.id}','${anagId}')">Elimina</button></div>`).join('')
+      : 'Nessun contatto registrato.';
+  }catch(e){ box.textContent='Errore nel caricamento.'; }
+}
+async function salvaContatto(anagId){
+  const o={ anagId, data:$('ct-data').value, canale:$('ct-can').value, oggetto:$('ct-ogg').value.trim(), note:$('ct-note').value.trim() };
+  if(!o.oggetto) return toast('L\u2019oggetto \u00e8 obbligatorio.');
+  try{ await DB.saveContatto(o); $('ct-ogg').value=''; $('ct-note').value=''; caricaContattiModal(anagId); toast('Contatto registrato.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+async function eliminaContatto(id,anagId){
+  try{ await DB.deleteContatto(id); caricaContattiModal(anagId); }catch(e){ toast('Errore: '+(e.message||'')); }
+}
+
+/* =====================================================================
+   GESTIONALE — Contratti: genera, stampa, archivia
+   ===================================================================== */
+function editContratto(){
+  const formatori = ANAGRAFICHE.filter(a=>a.attivo!==false);
+  if(!formatori.length) return toast('Prima crea un\u2019anagrafica nella scheda Anagrafiche.');
+  openModal(`<h3 style="font-size:23px">Genera contratto</h3>`,
+    `<div class="field"><label>Incaricato/a (dalle anagrafiche)</label><select id="co-anag">
+       ${formatori.map(a=>`<option value="${a.id}">${esc((a.nome+' '+a.cognome).trim())}${a.qualifica?' \u2014 '+esc(a.qualifica):''}</option>`).join('')}</select></div>
+     <div class="grid g2"><div class="field"><label>Tipo</label><select id="co-tipo">
+         ${['docenza','collaborazione','consulenza','altro'].map(t=>`<option>${t}</option>`).join('')}</select></div>
+       <div class="field"><label>Compenso complessivo (\u20ac)</label><input id="co-comp" type="number" min="0" step="0.01" value="0"></div></div>
+     <div class="field"><label>Oggetto dell\u2019incarico</label><input id="co-ogg" placeholder="es. Docenza del corso \u201cEtica dell\u2019IA\u201d"></div>
+     <div class="field"><label>Descrizione dell\u2019attivit\u00e0</label><textarea id="co-desc" rows="3" placeholder="lezioni, materiali, presenze richieste\u2026"></textarea></div>
+     <div class="grid g2"><div class="field"><label>Inizio</label><input id="co-in" type="date"></div>
+       <div class="field"><label>Fine</label><input id="co-fin" type="date"></div></div>
+     <div class="field"><label>Note interne (non entrano nel contratto)</label><input id="co-note"></div>
+     <p class="muted small" style="margin:2px 0 12px">Il testo viene generato con i dati dell\u2019ente (scheda Ente) e archiviato. Modello generico: <b>da far verificare a un consulente</b> prima della firma.</p>
+     <button class="btn full" onclick="salvaContratto()">Genera e salva</button>`);
+}
+function testoContratto(num, a, d, ente){
+  const g=k=>ente[k]||'';
+  const nomeC=(a.nome+' '+a.cognome).trim();
+  const resid=[a.indirizzo,[a.cap,a.citta,a.prov?'('+a.prov+')':''].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+  const per=(d.inizio||d.fine)?`dal ${d.inizio?fmtGiorno(d.inizio):'\u2014'} al ${d.fine?fmtGiorno(d.fine):'\u2014'}`:'da concordare per iscritto fra le parti';
+  return `CONTRATTO DI INCARICO N. ${num}
+Tipo: ${d.tipo.charAt(0).toUpperCase()+d.tipo.slice(1)}
+
+TRA
+${g('ente_denominazione')||'[Denominazione ente]'} (di seguito, \u201cl\u2019Ente\u201d)${g('ente_email')?`, email ${g('ente_email')}`:''}
+
+E
+${nomeC}${a.cf?`, C.F. ${a.cf}`:''}${a.piva?`, P.IVA ${a.piva}`:''}${resid?`, ${resid}`:''} (di seguito, \u201cl\u2019Incaricato/a\u201d)
+
+SI CONVIENE E SI STIPULA QUANTO SEGUE
+
+Art. 1 \u2014 Oggetto
+L\u2019Ente affida all\u2019Incaricato/a il seguente incarico: ${d.oggetto}.${d.desc?`
+Attivit\u00e0 previste: ${d.desc}`:''}
+
+Art. 2 \u2014 Durata
+L\u2019incarico si svolge ${per}. Non \u00e8 previsto alcun vincolo di subordinazione.
+
+Art. 3 \u2014 Compenso
+Per l\u2019attivit\u00e0 di cui all\u2019Art. 1 \u00e8 riconosciuto un compenso complessivo di ${euro(d.compenso)} lordi, corrisposto secondo le modalit\u00e0 concordate fra le parti, dietro presentazione della documentazione fiscale prevista dalla normativa applicabile.
+
+Art. 4 \u2014 Obblighi dell\u2019Incaricato/a
+L\u2019Incaricato/a svolge l\u2019attivit\u00e0 con diligenza e in coerenza con i principi del Manifesto de La Pacifica Res Publica, utilizzando i materiali nel rispetto dei diritti di terzi.
+
+Art. 5 \u2014 Riservatezza e protezione dei dati
+Le parti si impegnano alla riservatezza sulle informazioni di cui vengano a conoscenza in ragione dell\u2019incarico e trattano i dati personali nel rispetto del Reg. (UE) 2016/679 (GDPR).
+
+Art. 6 \u2014 Recesso
+Ciascuna parte pu\u00f2 recedere con comunicazione scritta con congruo preavviso, fatto salvo il compenso per l\u2019attivit\u00e0 gi\u00e0 svolta.
+
+Art. 7 \u2014 Controversie
+Per ogni controversia le parti tenteranno una composizione amichevole; in difetto, \u00e8 competente il foro previsto dalla legge.
+
+Luogo e data: ______________________________
+
+L\u2019Ente                                    L\u2019Incaricato/a
+
+______________________________            ______________________________`;
+}
+async function salvaContratto(){
+  const a=ANAGRAFICHE.find(x=>String(x.id)===String($('co-anag').value)); if(!a) return toast('Scegli un\u2019anagrafica.');
+  const d={ tipo:$('co-tipo').value, oggetto:$('co-ogg').value.trim(), desc:$('co-desc').value.trim(),
+    compenso:parseFloat($('co-comp').value||'0'), inizio:$('co-in').value||null, fine:$('co-fin').value||null,
+    note:$('co-note').value.trim() };
+  if(!d.oggetto) return toast('L\u2019oggetto dell\u2019incarico \u00e8 obbligatorio.');
+  try{
+    const num = await DB.numeroContratto();
+    let ente={}; try{ ente = (await DB.datiEnte())||{}; }catch(e){}
+    const testo = testoContratto(num, a, d, ente);
+    await DB.saveContratto({ numero:num, anagId:a.id, tipo:d.tipo, oggetto:d.oggetto, desc:d.desc,
+      compenso:d.compenso, inizio:d.inizio, fine:d.fine, stato:'bozza', testo, note:d.note });
+    await loadCatalog(); closeModal(); setPresTab('contenuti'); toast('Contratto '+num+' generato.');
+  }catch(e){ toast('Errore: '+(e.message||'')); }
+}
+function leggiContratto(id){
+  const c=CONTRATTI.find(x=>String(x.id)===String(id)); if(!c) return;
+  openModal(`<h3 style="font-size:23px">${esc(c.numero)}</h3>`,
+    `<pre style="white-space:pre-wrap;font:13.5px/1.65 Georgia,serif;background:var(--avorio);border:1px solid var(--linea);border-radius:10px;padding:16px;max-height:56vh;overflow:auto">${esc(c.testo||'(testo non disponibile)')}</pre>
+     <div class="lp-cta" style="margin-top:14px"><button class="btn oro" onclick="stampaContratto('${c.id}')">Stampa</button>
+       <button class="lp-btn2" onclick="closeModal()">Chiudi</button></div>`);
+}
+function stampaContratto(id){
+  const c=CONTRATTI.find(x=>String(x.id)===String(id)); if(!c) return;
+  let w=null; try{ w=window.open('','_blank','width=820,height=940'); }catch(e){}
+  if(!w){ toast('Consenti le finestre pop-up per stampare.'); return; }
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(c.numero)}</title>
+    <style>body{font:14px/1.7 Georgia,'Times New Roman',serif;color:#1a1a1a;max-width:700px;margin:48px auto;padding:0 24px}
+    pre{white-space:pre-wrap;font:inherit;margin:0}@media print{body{margin:12mm auto}}</style></head>
+    <body><pre>${esc(c.testo)}</pre><script>window.onload=function(){window.print()}<\/script></body></html>`);
+  w.document.close();
+}
+async function firmaContratto(id){
+  try{ await DB.statoContratto(id,'firmato', new Date().toISOString().slice(0,10)); await loadCatalog(); setPresTab('contenuti'); toast('Contratto segnato come firmato.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+async function archiviaContratto(id){
+  const c=CONTRATTI.find(x=>String(x.id)===String(id));
+  try{ await DB.statoContratto(id,'archiviato', c&&c.firmatoIl||null); await loadCatalog(); setPresTab('contenuti'); toast('Contratto archiviato.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+
+/* =====================================================================
+   AREA FORMATORE — i propri corsi e i propri contratti
+   ===================================================================== */
+function renderFormatore(){
+  const miei = (CORSI||[]).filter(c=>c.formatoreId===io.id);
+  const corsi = miei.length ? miei.map(c=>`<div class="lesson" style="cursor:default">
+      <span class="t">${esc(c.tit)}${c.pubblicato===false?' <span class="badge grigio">bozza</span>':''}<br>
+        <span class="d" style="margin:0">${esc(c.desc||'')}</span></span>
+      <button class="btn small ghost" style="margin-left:auto" onclick="editCorsoDocente('${c.id}')">Modifica</button></div>`).join('')
+    : '<div class="empty">Nessun corso ti \u00e8 ancora stato assegnato dalla Presidenza.</div>';
+  const contr = (CONTRATTI||[]).length ? CONTRATTI.map(c=>`<div class="lesson" style="cursor:default">
+      <span class="t"><b>${esc(c.numero)}</b> \u00b7 ${esc(c.oggetto)}<br>
+        <span class="d" style="margin:0">${esc(c.stato)}${c.compenso?' \u00b7 '+euro(c.compenso):''}${c.firmatoIl?' \u00b7 firmato il '+esc(fmtGiorno(c.firmatoIl)):''}</span></span>
+      <span style="margin-left:auto;display:flex;gap:6px"><button class="btn small ghost" onclick="leggiContratto('${c.id}')">Leggi</button>
+        <button class="btn small ghost" onclick="stampaContratto('${c.id}')">Stampa</button></span></div>`).join('')
+    : '<div class="empty">Nessun contratto a tuo nome.</div>';
+  return `<div class="page-head"><div class="eyebrow">Area formatore</div><h1>Benvenuto, ${esc(io.nome||'')}</h1>
+      <p class="lead">Da qui gestisci i corsi che ti sono stati affidati e consulti i tuoi contratti.</p></div>
+    <div class="card" style="padding:18px;margin-bottom:16px"><div class="eyebrow">I miei corsi</div><div style="margin-top:10px">${corsi}</div></div>
+    <div class="card" style="padding:18px"><div class="eyebrow">I miei contratti</div><div style="margin-top:10px">${contr}</div></div>`;
+}
+function editCorsoDocente(id){
+  const c=(CORSI||[]).find(x=>x.id===id); if(!c||c.formatoreId!==io.id) return;
+  openModal(`<h3 style="font-size:23px">Modifica \u2014 ${esc(c.tit)}</h3>`,
+    `<div class="field"><label>Titolo</label><input id="fd-tit" value="${esc(c.tit)}"></div>
+     <div class="field"><label>Descrizione</label><textarea id="fd-desc" rows="4">${esc(c.desc||'')}</textarea></div>
+     <p class="muted small" style="margin:2px 0 12px">Prezzo, pubblicazione e assegnazione restano alla Presidenza.</p>
+     <button class="btn full" onclick="salvaCorsoDocente('${c.id}')">Salva</button>`);
+}
+async function salvaCorsoDocente(id){
+  const o={ tit:$('fd-tit').value.trim(), desc:$('fd-desc').value.trim() };
+  if(o.tit.length<2) return toast('Il titolo \u00e8 obbligatorio.');
+  try{ await DB.saveCorsoDocente(id,o); await loadCatalog(); closeModal(); go('formatore'); toast('Corso aggiornato.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+
 /* RASSEGNA */
 function editFonte(id){
   const f = id?FONTI.find(x=>x.id===id):{};
@@ -2286,7 +2534,7 @@ async function salvaPrezzi(){
 }
 /* ELIMINA (con conferma) */
 function delCont(tipo,id){
-  const nomi={fonte:'la fonte',eventopace:'l\u2019evento',formula:'la formula',livello:'il livello',corso:'il corso',video:'il video',audio:'l’audiolibro',testo:'il testo',pacchetto:'il pacchetto',campus:'il campus',evento:'l’evento'};
+  const nomi={anagrafica:'l\u2019anagrafica',contratto:'il contratto',fonte:'la fonte',eventopace:'l\u2019evento',formula:'la formula',livello:'il livello',corso:'il corso',video:'il video',audio:'l’audiolibro',testo:'il testo',pacchetto:'il pacchetto',campus:'il campus',evento:'l’evento'};
   openModal(`<h3 style="font-size:22px">Elimina contenuto</h3>`,
     `<p>Vuoi eliminare definitivamente ${nomi[tipo]} <b>${esc(id)}</b>?</p>
      <div style="display:flex;gap:10px;margin-top:18px">
@@ -2295,6 +2543,8 @@ function delCont(tipo,id){
 }
 async function confermaDel(tipo,id){
   try{
+    if(tipo==='anagrafica') await DB.deleteAnagrafica(id);
+    if(tipo==='contratto') await DB.deleteContratto(id);
     if(tipo==='fonte') await DB.deleteFonte(id);
     if(tipo==='eventopace') await DB.deleteEventoPace(id);
     if(tipo==='formula'){

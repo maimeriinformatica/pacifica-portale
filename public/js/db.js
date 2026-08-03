@@ -126,7 +126,7 @@ const DB = {
 
   /* ---------- CONTENUTI (catalogo gestibile dalla Presidenza) ---------- */
   async loadCatalog(){
-    const [c,v,a,p,cm,tx,ev,s,lv,tm,ds,fo,nz,ep] = await Promise.all([
+    const [c,v,a,p,cm,tx,ev,s,lv,tm,ds,fo,nz,ep,ag,ct] = await Promise.all([
       sb.from('courses').select('*').order('ordine'),
       sb.from('videos').select('*').order('ordine'),
       sb.from('audiobooks').select('*').order('ordine'),
@@ -140,17 +140,26 @@ const DB = {
       sb.from('dossier').select('*').order('data_evento',{ascending:false}),
       sb.from('fonti').select('*'),
       sb.from('notizie').select('*').order('pubblicata_il',{ascending:false}).limit(30),
-      sb.from('eventi_pace').select('*').order('inizio')
+      sb.from('eventi_pace').select('*').order('inizio'),
+      sb.from('anagrafiche').select('*').order('cognome'),
+      sb.from('contratti').select('*').order('id',{ascending:false})
     ]);
     const set = {}; (s.data||[]).forEach(r=>set[r.key]=r.value);
     const prezzoCorso = parseInt(set.prezzo_corso||'69',10);
     const prezzoPercorso = parseInt(set.prezzo_percorso||'440',10);
     return {
       CORSI: (c.data||[]).map(r=>({ id:r.id, tit:r.titolo, form:r.formatore, comm:r.commissione,
-        pacc:r.pacchetto, desc:r.descrizione, prezzo:r.prezzo, ordine:r.ordine, pubblicato:r.pubblicato, creato:r.updated_at })),
+        pacc:r.pacchetto, desc:r.descrizione, prezzo:r.prezzo, ordine:r.ordine, pubblicato:r.pubblicato, creato:r.updated_at, formatoreId:r.formatore_id })),
       VOD: (v.data||[]).map(r=>({ id:r.id, tit:r.titolo, tipo:r.tipo, durata:r.durata, livello:r.livello,
         comm:r.commissione, desc:r.descrizione, ordine:r.ordine, pubblicato:r.pubblicato, creato:r.updated_at })),
       TEMI: (tm.data||[]).map(r=>({commissione:r.commissione, prefisso:r.prefisso, nota:r.nota})),
+      ANAGRAFICHE: (ag.data||[]).map(r=>({ id:r.id, tipo:r.tipo, nome:r.nome, cognome:r.cognome,
+        cf:r.codice_fiscale, piva:r.partita_iva, email:r.email, tel:r.telefono, indirizzo:r.indirizzo,
+        citta:r.citta, cap:r.cap, prov:r.provincia, qualifica:r.qualifica, note:r.note,
+        userId:r.user_id, attivo:r.attivo, creato:r.updated_at })),
+      CONTRATTI: (ct.data||[]).map(r=>({ id:r.id, numero:r.numero, anagId:r.anagrafica_id, tipo:r.tipo,
+        oggetto:r.oggetto, desc:r.descrizione, compenso:r.compenso, inizio:r.data_inizio, fine:r.data_fine,
+        stato:r.stato, testo:r.testo, note:r.note, firmatoIl:r.firmato_il, creato:r.updated_at })),
       FONTI: (fo.data||[]).map(r=>({id:r.id, nome:r.nome, url:r.url, editore:r.editore, attiva:r.attiva, ultimoSync:r.ultimo_sync, ultimoEsito:r.ultimo_esito})),
       NOTIZIE: (nz.data||[]).map(r=>({id:r.id, fonte:r.fonte_id, tit:r.titolo, sommario:r.sommario, url:r.url, img:r.immagine, data:r.pubblicata_il, nascosta:r.nascosta})),
       EVENTIPACE: (ep.data||[]).map(r=>({id:r.id, tit:r.titolo, desc:r.descrizione, luogo:r.luogo, url:r.url, inizio:r.inizio, fine:r.fine, pubblicato:r.pubblicato})),
@@ -176,7 +185,7 @@ const DB = {
     };
   },
   async saveCourse(o){ const { error } = await sb.from('courses').upsert({
-      id:o.id, titolo:o.tit, formatore:o.form, commissione:o.comm, pacchetto:o.pacc,
+      id:o.id, titolo:o.tit, formatore:o.form, formatore_id:o.formatoreId||null, commissione:o.comm, pacchetto:o.pacc,
       descrizione:o.desc, prezzo:o.prezzo, ordine:o.ordine, pubblicato:o.pubblicato, updated_at:new Date().toISOString()
     }, { onConflict:'id' }); if (error) throw error; },
   async deleteCourse(id){ const { error } = await sb.from('courses').delete().eq('id',id); if (error) throw error; },
@@ -202,6 +211,29 @@ const DB = {
   async segnaPagato(id){ const { data, error } = await sb.rpc('segna_impegno_pagato',{p_id:id}); if(error) throw error; return data||[]; },
   async saveSetting(k,v){ const { error } = await sb.from('settings').upsert({key:k,value:v},{onConflict:'key'}); if(error) throw error; },
   async redeemVoucher(c){ const { data, error } = await sb.rpc('redeem_voucher',{p_code:c}); if(error) throw error; return data; },
+  async saveAnagrafica(o){ const { error } = await sb.from('anagrafiche').upsert({ id:o.id||undefined,
+      tipo:o.tipo||'formatore', nome:o.nome, cognome:o.cognome||'', codice_fiscale:o.cf||'', partita_iva:o.piva||'',
+      email:o.email||'', telefono:o.tel||'', indirizzo:o.indirizzo||'', citta:o.citta||'', cap:o.cap||'',
+      provincia:o.prov||'', qualifica:o.qualifica||'', note:o.note||'', user_id:o.userId||null,
+      attivo:o.attivo!==false, updated_at:new Date().toISOString() }, { onConflict:'id' }); if(error) throw error; },
+  async deleteAnagrafica(id){ const { error } = await sb.from('anagrafiche').delete().eq('id',id); if(error) throw error; },
+  async listContatti(anagId){ const { data, error } = await sb.from('contatti').select('*')
+      .eq('anagrafica_id',anagId).order('data',{ascending:false}); if(error) throw error;
+      return (data||[]).map(r=>({id:r.id, data:r.data, canale:r.canale, oggetto:r.oggetto, note:r.note})); },
+  async saveContatto(o){ const { error } = await sb.from('contatti').insert({ anagrafica_id:o.anagId,
+      data:o.data||undefined, canale:o.canale||'email', oggetto:o.oggetto, note:o.note||'' }); if(error) throw error; },
+  async deleteContatto(id){ const { error } = await sb.from('contatti').delete().eq('id',id); if(error) throw error; },
+  async numeroContratto(){ const { data, error } = await sb.rpc('genera_numero_contratto'); if(error) throw error; return data; },
+  async saveContratto(o){ const { error } = await sb.from('contratti').upsert({ id:o.id||undefined, numero:o.numero,
+      anagrafica_id:o.anagId, tipo:o.tipo||'docenza', oggetto:o.oggetto, descrizione:o.desc||'',
+      compenso:o.compenso||0, data_inizio:o.inizio||null, data_fine:o.fine||null, stato:o.stato||'bozza',
+      testo:o.testo||'', note:o.note||'', firmato_il:o.firmatoIl||null,
+      updated_at:new Date().toISOString() }, { onConflict:'id' }); if(error) throw error; },
+  async statoContratto(id, stato, firmatoIl){ const { error } = await sb.from('contratti')
+      .update({ stato, firmato_il:firmatoIl||null, updated_at:new Date().toISOString() }).eq('id',id); if(error) throw error; },
+  async deleteContratto(id){ const { error } = await sb.from('contratti').delete().eq('id',id); if(error) throw error; },
+  async saveCorsoDocente(id,o){ const { error } = await sb.from('courses')
+      .update({ titolo:o.tit, descrizione:o.desc, updated_at:new Date().toISOString() }).eq('id',id); if(error) throw error; },
   async saveFonte(o){ const { error } = await sb.from('fonti').upsert({ id:o.id, nome:o.nome, url:o.url,
       editore:o.editore||'', attiva:o.attiva!==false, updated_at:new Date().toISOString() }, { onConflict:'id' }); if(error) throw error; },
   async deleteFonte(id){ const { error } = await sb.from('fonti').delete().eq('id',id); if(error) throw error; },
