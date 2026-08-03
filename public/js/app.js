@@ -139,7 +139,12 @@ const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&l
 const euro = n => n.toLocaleString('it-IT')+' €';
 const initials = n => n.trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
 const commNome = id => (COMMISSIONI.find(c=>c.id===id)||{}).nome || '';
-function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; $('toast-root').appendChild(t); setTimeout(()=>t.remove(),2600); }
+function toast(msg){
+  // errori Supabase "tabella non trovata" -> spiegazione utile in italiano
+  const m = String(msg||'').match(/Could not find the table 'public\.([A-Za-z_]+)'/);
+  if(m) msg = `La tabella \u00ab${m[1]}\u00bb non esiste ancora nel database online: vanno applicate le migrazioni di supabase/migrations (in ordine, dal SQL Editor di Supabase o con \u201csupabase db push\u201d).`;
+  const t=document.createElement('div'); t.className='toast'; t.textContent=msg; $('toast-root').appendChild(t); setTimeout(()=>t.remove(), m?7000:2600);
+}
 async function refreshMe(){ io = await DB.loadMe(); }
 async function loadCatalog(){
   try{
@@ -1661,7 +1666,7 @@ function cmsArea(){
       <p class="muted small" style="margin-top:10px">I prezzi di corsi e pacchetti singoli si modificano nelle rispettive schede.</p></div>`;
   }
   const add=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-    <div class="eyebrow">${{corsi:'Corsi',video:'Video On Demand',audio:'Audiolibri',testi:'Testi della Biblioteca',pacchetti:'Pacchetti tematici',campus:'Campus in presenza',eventi:'Eventi e mostre',livelli:'Livelli di accesso',temi:'Temi europei → commissioni'}[cmsTab]}</div>
+    <div class="eyebrow">${{corsi:'Corsi',video:'Video On Demand',audio:'Audiolibri',testi:'Testi della Biblioteca',pacchetti:'Pacchetti tematici',campus:'Campus in presenza',eventi:'Eventi e mostre',livelli:'Livelli di accesso',temi:'Temi europei → commissioni',anagrafiche:'Anagrafiche \u2014 registro persone',contratti:'Contratti dei formatori',mecenati:'Formule e impegni dei mecenati'}[cmsTab]}</div>
     <button class="btn small" onclick="nuovo('${cmsTab}')">+ Aggiungi</button></div>`;
   let rows='';
   if(cmsTab==='corsi') rows = CORSI.map(c=>cmsRow(c.tit, `${c.form||'—'} · ${commNome(c.comm)||c.comm} · ${euro(c.prezzo||PREZZO_CORSO)}`, pubBadge(c.pubblicato), `editCorso('${c.id}')`, `delCont('corso','${c.id}')`)).join('');
@@ -1672,7 +1677,7 @@ function cmsArea(){
       `<span class="badge ${a.tipo==='formatore'?'blu':'grigio'}">${esc(a.tipo)}</span>${a.userId?' <span class="badge verde">portale</span>':''}${a.attivo===false?' <span class="badge grigio">inattiva</span>':''}`,
       `editAnagrafica('${a.id}')`, `delCont('anagrafica','${a.id}')`,
       `<button class="btn small ghost" onclick="apriContatti('${a.id}')">Contatti</button>`)).join('');
-    return `<p class="muted small" style="margin-bottom:12px">Il registro di formatori, collaboratori e fornitori. I dati (codice fiscale, indirizzo) li vede solo la Presidenza; i formatori collegati a un account vedono la propria scheda.</p>
+    return add + `<p class="muted small" style="margin-bottom:12px">Il registro di formatori, collaboratori e fornitori. I dati (codice fiscale, indirizzo) li vede solo la Presidenza; i formatori collegati a un account vedono la propria scheda.</p>
       ${righe||'<div class="empty">Nessuna anagrafica. Aggiungi la prima.</div>'}`;
   }
   if(cmsTab==='contratti'){
@@ -1689,7 +1694,7 @@ function cmsArea(){
           ${c.stato!=='archiviato'?`<button class="btn small ghost" onclick="archiviaContratto('${c.id}')">Archivia</button>`:''}
           ${c.stato==='bozza'?`<button class="btn small ghost" onclick="delCont('contratto','${c.id}')">Elimina</button>`:''}
         </span></div>`).join('');
-    return `<p class="muted small" style="margin-bottom:12px">Ogni contratto \u00e8 numerato (C-anno-progressivo) e il testo generato resta <b>archiviato</b> nel database. \u26a0\ufe0f Il modello \u00e8 generico: prima dell\u2019uso reale fallo verificare a un consulente del lavoro o commercialista.</p>
+    return add + `<p class="muted small" style="margin-bottom:12px">Ogni contratto \u00e8 numerato (C-anno-progressivo) e il testo generato resta <b>archiviato</b> nel database. \u26a0\ufe0f Il modello \u00e8 generico: prima dell\u2019uso reale fallo verificare a un consulente del lavoro o commercialista.</p>
       ${righe||'<div class="empty">Nessun contratto. Genera il primo con \u201c+ Aggiungi\u201d.</div>'}`;
   }
   if(cmsTab==='rassegna'){
