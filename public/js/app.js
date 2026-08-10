@@ -2194,28 +2194,40 @@ async function eliminaAllegato(aid,tabella,id,url){
 /* =====================================================================
    VIDEO -> caricamento su destinazione S3 (URL firmato dalla funzione)
    ===================================================================== */
-async function caricaVideoS3(){
+function s3Box(accept, tabella, recId){
+  if(!S3ACC.filter(x=>x.attivo!==false).length) return `<p class="muted small">Per caricare su S3 aggiungi una destinazione in <b>Impostazioni \u2192 Video S3</b>.</p>`;
+  if(!recId) return `<p class="muted small" style="margin:4px 0 12px">Salva prima l\u2019elemento: potrai poi riaprirlo per caricare il file su S3.</p>`;
+  return `<div class="s3-box"><div class="eyebrow">Carica il file su una destinazione S3</div>
+    <div class="grid g2" style="margin-top:8px"><div class="field"><label>Destinazione</label><select id="s3-acc">${S3ACC.filter(x=>x.attivo!==false).map(x=>`<option value="${x.id}">${esc(x.nome)} (${esc(x.bucket)})</option>`).join('')}</select></div>
+    <div class="field"><label>File</label><input type="file" id="s3-file" accept="${accept}"></div></div>
+    <button type="button" class="btn small oro" onclick="caricaS3('','${tabella}','${recId}')">Carica su S3 (diventa allegato)</button>
+    <span id="s3-prog" class="muted small" style="margin-left:10px"></span></div>`;
+}
+async function caricaS3(targetId, tabella, recId){
   const accId=$('s3-acc')&&$('s3-acc').value; const f=$('s3-file')&&$('s3-file').files&&$('s3-file').files[0];
   if(!accId) return toast('Scegli una destinazione.');
-  if(!f) return toast('Scegli il file video.');
+  if(!f) return toast('Scegli il file.');
   const prog=$('s3-prog');
   try{
     prog.textContent='Preparo il caricamento\u2026';
-    const p = await DB.presignS3(accId, f.name, f.type||'video/mp4');
-    if(p.demo){ $('cf-url').value=p.public_url; prog.textContent='(demo) URL impostato \u2713'; toast('In demo il caricamento \u00e8 simulato: URL impostato.'); return; }
-    await new Promise((res,rej)=>{
-      const x=new XMLHttpRequest();
-      x.open('PUT', p.upload_url);
-      x.setRequestHeader('Content-Type', p.content_type||f.type||'application/octet-stream');
-      x.upload.onprogress=e=>{ if(e.lengthComputable) prog.textContent='Carico\u2026 '+Math.round(e.loaded/e.total*100)+'%'; };
-      x.onload=()=> (x.status>=200&&x.status<300)?res():rej(new Error('HTTP '+x.status));
-      x.onerror=()=>rej(new Error('rete/CORS: configura il CORS del bucket per questo dominio'));
-      x.send(f);
-    });
-    $('cf-url').value=p.public_url; prog.textContent='Caricato \u2713';
-    toast('File caricato. Ricorda di salvare il video.');
+    const p = await DB.presignS3(accId, f.name, f.type||'application/octet-stream');
+    if(!p.demo){
+      await new Promise((res,rej)=>{
+        const x=new XMLHttpRequest(); x.open('PUT', p.upload_url);
+        x.setRequestHeader('Content-Type', p.content_type||f.type||'application/octet-stream');
+        x.upload.onprogress=e=>{ if(e.lengthComputable) prog.textContent='Carico\u2026 '+Math.round(e.loaded/e.total*100)+'%'; };
+        x.onload=()=> (x.status>=200&&x.status<300)?res():rej(new Error('HTTP '+x.status));
+        x.onerror=()=>rej(new Error('rete/CORS: configura il CORS del bucket per questo dominio'));
+        x.send(f);
+      });
+    }
+    if(targetId && $(targetId)){ $(targetId).value=p.public_url; prog.textContent=(p.demo?'(demo) ':'')+'URL impostato \u2713'; }
+    else { await DB.saveAllegatoEsterno(tabella, recId, f.name, p.public_url, f.size||0); caricaAllegati(tabella, recId); prog.textContent=(p.demo?'(demo) ':'')+'Caricato: \u00e8 fra gli allegati \u2713'; }
+    toast(p.demo?'In demo il caricamento \u00e8 simulato.':'File caricato su S3.');
   }catch(e){ prog.textContent=''; toast('Errore: '+(e.message||'')); }
 }
+async function caricaVideoS3(){ return caricaS3('cf-url','',''); }
+
 
 /* =====================================================================
    UTENTI e PAGAMENTI (amministrazione)
@@ -2523,6 +2535,7 @@ function editAudio(id){
      <div class="grid g2"><div class="field"><label>Ordine</label><input id="cf-ord" type="number" value="${a.ordine||(AUDIO.length+1)}"></div>
        <div class="field"><label style="margin-top:30px"><input type="checkbox" id="cf-free" ${a.free?'checked':''} style="width:auto"> Gratuito</label></div></div>
      ${fPub(a.pubblicato)}
+     ${s3Box('audio/*,.mp3,.m4a','audiobooks', id)}
      ${allegatiHtml('audiobooks', id)}
      <button class="btn full" onclick="salvaAudio('${id||''}')">Salva audiolibro</button>`);
 }
@@ -2588,6 +2601,7 @@ function editTesto(id){
      <div class="grid g2"><div class="field"><label>Ordine</label><input id="cf-ord" type="number" value="${t.ordine||(TESTI.length+1)}"></div>
        <div class="field"><label style="margin-top:30px"><input type="checkbox" id="cf-free" ${t.free?'checked':''} style="width:auto"> Gratuito</label></div></div>
      ${fPub(t.pubblicato)}
+     ${s3Box('.pdf,application/pdf','texts', id)}
      ${allegatiHtml('texts', id)}
      <button class="btn full" onclick="salvaTesto('${id||''}')">Salva testo</button>`);
 }

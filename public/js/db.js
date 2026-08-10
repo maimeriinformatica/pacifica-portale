@@ -230,6 +230,9 @@ const DB = {
         nome:file.name||'file', url, dimensione:file.size||0 }); if(error) throw error; return url; },
   async deleteAllegato(id, url){ const { error } = await sb.from('allegati').delete().eq('id',id); if(error) throw error;
       try{ const p=(url||'').split('/allegati/')[1]; if(p) await sb.storage.from('allegati').remove([p]); }catch(e){} },
+  async saveAllegatoEsterno(tabella, recordId, nome, url, size){
+      const { error } = await sb.from('allegati').insert({ tabella, record_id:String(recordId),
+        nome, url, dimensione:size||0 }); if(error) throw error; },
   async saveS3(o){ const { error } = await sb.from('s3_accounts').upsert({ id:o.id||undefined, nome:o.nome,
       endpoint:o.endpoint, region:o.region||'auto', bucket:o.bucket, access_key_id:o.accessKeyId,
       secret_access_key:o.secretKey, public_base_url:o.baseUrl||'', attivo:o.attivo!==false,
