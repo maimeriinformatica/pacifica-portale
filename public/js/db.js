@@ -126,7 +126,7 @@ const DB = {
 
   /* ---------- CONTENUTI (catalogo gestibile dalla Presidenza) ---------- */
   async loadCatalog(){
-    const [c,v,a,p,cm,tx,ev,s,lv,tm,ds,fo,nz,ep,ag,ct,md] = await Promise.all([
+    const [c,v,a,p,cm,tx,ev,s,lv,tm,ds,fo,nz,ep,ag,ct,md,s3] = await Promise.all([
       sb.from('courses').select('*').order('ordine'),
       sb.from('videos').select('*').order('ordine'),
       sb.from('audiobooks').select('*').order('ordine'),
@@ -143,7 +143,8 @@ const DB = {
       sb.from('eventi_pace').select('*').order('inizio'),
       sb.from('anagrafiche').select('*').order('cognome'),
       sb.from('contratti').select('*').order('id',{ascending:false}),
-      sb.from('contratti_modelli').select('*').order('ordine')
+      sb.from('contratti_modelli').select('*').order('ordine'),
+      sb.from('s3_accounts').select('*').order('id')
     ]);
     const set = {}; (s.data||[]).forEach(r=>set[r.key]=r.value);
     const prezzoCorso = parseInt(set.prezzo_corso||'69',10);
@@ -161,6 +162,9 @@ const DB = {
       CONTRATTI: (ct.data||[]).map(r=>({ id:r.id, numero:r.numero, titolo:r.titolo||'', anagId:r.anagrafica_id, tipo:r.tipo,
         oggetto:r.oggetto, desc:r.descrizione, compenso:r.compenso, inizio:r.data_inizio, fine:r.data_fine,
         stato:r.stato, testo:r.testo, note:r.note, firmatoIl:r.firmato_il, creato:r.updated_at })),
+      S3ACC: (s3.data||[]).map(r=>({ id:r.id, nome:r.nome, endpoint:r.endpoint, region:r.region,
+        bucket:r.bucket, accessKeyId:r.access_key_id, secretKey:r.secret_access_key,
+        baseUrl:r.public_base_url, attivo:r.attivo })),
       MODELLI: (md.data||[]).map(r=>({ id:r.id, titolo:r.titolo, testo:r.testo, attivo:r.attivo, ordine:r.ordine })),
       FONTI: (fo.data||[]).map(r=>({id:r.id, nome:r.nome, url:r.url, editore:r.editore, attiva:r.attiva, ultimoSync:r.ultimo_sync, ultimoEsito:r.ultimo_esito})),
       NOTIZIE: (nz.data||[]).map(r=>({id:r.id, fonte:r.fonte_id, tit:r.titolo, sommario:r.sommario, url:r.url, img:r.immagine, data:r.pubblicata_il, nascosta:r.nascosta})),
@@ -213,6 +217,44 @@ const DB = {
   async segnaPagato(id){ const { data, error } = await sb.rpc('segna_impegno_pagato',{p_id:id}); if(error) throw error; return data||[]; },
   async saveSetting(k,v){ const { error } = await sb.from('settings').upsert({key:k,value:v},{onConflict:'key'}); if(error) throw error; },
   async redeemVoucher(c){ const { data, error } = await sb.rpc('redeem_voucher',{p_code:c}); if(error) throw error; return data; },
+  async listAllegati(tabella, recordId){ const { data, error } = await sb.from('allegati').select('*')
+      .eq('tabella',tabella).eq('record_id',String(recordId)).order('id'); if(error) throw error;
+      return (data||[]).map(r=>({id:r.id, nome:r.nome, url:r.url, dim:r.dimensione})); },
+  async uploadAllegato(tabella, recordId, file){
+      const path = `${tabella}/${recordId}/${Date.now().toString(36)}-${String(file.name||'file').replace(/[^A-Za-z0-9._-]+/g,'-')}`;
+      const up = await sb.storage.from('allegati').upload(path, file);
+      if(up.error) throw up.error;
+      const pub = sb.storage.from('allegati').getPublicUrl(path);
+      const url = (pub && pub.data && pub.data.publicUrl) || '';
+      const { error } = await sb.from('allegati').insert({ tabella, record_id:String(recordId),
+        nome:file.name||'file', url, dimensione:file.size||0 }); if(error) throw error; return url; },
+  async deleteAllegato(id, url){ const { error } = await sb.from('allegati').delete().eq('id',id); if(error) throw error;
+      try{ const p=(url||'').split('/allegati/')[1]; if(p) await sb.storage.from('allegati').remove([p]); }catch(e){} },
+  async saveS3(o){ const { error } = await sb.from('s3_accounts').upsert({ id:o.id||undefined, nome:o.nome,
+      endpoint:o.endpoint, region:o.region||'auto', bucket:o.bucket, access_key_id:o.accessKeyId,
+      secret_access_key:o.secretKey, public_base_url:o.baseUrl||'', attivo:o.attivo!==false,
+      updated_at:new Date().toISOString() }, { onConflict:'id' }); if(error) throw error; },
+  async deleteS3(id){ const { error } = await sb.from('s3_accounts').delete().eq('id',id); if(error) throw error; },
+  async presignS3(accountId, filename, contentType){
+      if(window.__DEMO) return { demo:true, upload_url:'', public_url:'https://video.demo.local/'+encodeURIComponent(filename) };
+      const base=(window.PACIFICA_CONFIG&&window.PACIFICA_CONFIG.FUNCTIONS_BASE)||'';
+      if(!base) throw new Error('FUNCTIONS_BASE non configurato');
+      const { data:{ session } } = await sb.auth.getSession();
+      const r = await fetch(base+'/s3-presign', { method:'POST',
+        headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+(session&&session.access_token||'') },
+        body: JSON.stringify({ account_id:accountId, filename, content_type:contentType }) });
+      const j = await r.json(); if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; },
+  async listUtenti(q){ let sel = sb.from('profiles').select('*').order('nome').limit(200);
+      if(q) sel = sel.ilike('nome','%'+q+'%');
+      const { data, error } = await sel; if(error) throw error;
+      return (data||[]).map(r=>({ id:r.id, nome:r.nome, ruolo:r.ruolo, membership:r.membership,
+        scadenza:r.membership_until, seggio:r.seggio, commissione:r.commissione })); },
+  async saveUtente(id, o){ const { error } = await sb.from('profiles').update({ ruolo:o.ruolo,
+      membership:o.membership, membership_until:o.scadenza||null }).eq('id',id); if(error) throw error; },
+  async listPagamenti(){ const { data, error } = await sb.from('payments').select('*')
+      .order('created_at',{ascending:false}).limit(200); if(error) throw error;
+      return (data||[]).map(r=>({ id:r.id, profileId:r.profile_id, kind:r.kind, ref:r.ref,
+        amount:r.amount, creato:r.created_at })); },
   async saveAnagrafica(o){ const { error } = await sb.from('anagrafiche').upsert({ id:o.id||undefined,
       tipo:o.tipo||'formatore', nome:o.nome, cognome:o.cognome||'', codice_fiscale:o.cf||'', partita_iva:o.piva||'',
       email:o.email||'', telefono:o.tel||'', indirizzo:o.indirizzo||'', citta:o.citta||'', cap:o.cap||'',

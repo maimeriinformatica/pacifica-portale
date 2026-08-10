@@ -55,6 +55,8 @@ let EVENTI = [
    Questi qui sotto valgono solo se il catalogo non arriva dal server. */
 let ANAGRAFICHE = [];
 let MODELLI = [];
+let S3ACC = [];
+let UTENTI_ADMIN = [];
 let CONTRATTI = [];
 let FONTI = [];
 let NOTIZIE = [];
@@ -156,6 +158,7 @@ async function loadCatalog(){
     if(cat.DOSSIER) DOSSIER = cat.DOSSIER;
     if(cat.ANAGRAFICHE) ANAGRAFICHE = cat.ANAGRAFICHE;
     if(cat.MODELLI) MODELLI = cat.MODELLI;
+    if(cat.S3ACC) S3ACC = cat.S3ACC;
     if(cat.CONTRATTI) CONTRATTI = cat.CONTRATTI;
     if(cat.FONTI) FONTI = cat.FONTI;
     if(cat.NOTIZIE) NOTIZIE = cat.NOTIZIE;
@@ -1642,10 +1645,17 @@ async function generaCodici(){
 }
 
 /* ---------- Gestione contenuti (CMS) ---------- */
-const CMS_TABS=[['anagrafiche','Anagrafiche'],['contratti','Contratti'],['corsi','Corsi'],['video','Video'],['audio','Audiolibri'],['testi','Testi'],['pacchetti','Pacchetti'],['campus','Campus'],['eventi','Eventi'],['livelli','Livelli'],['temi','Temi UE'],['mecenati','Mecenati'],['statistiche','Statistiche'],['rassegna','Rassegna'],['ente','Ente'],['prezzi','Prezzi']];
+/* Menu del gestionale, raggruppato per aree di lavoro */
+const CMS_GRUPPI=[
+  ['Persone', [['anagrafiche','Anagrafiche'],['contratti','Contratti'],['utenti','Utenti'],['pagamenti','Pagamenti']]],
+  ['Contenuti', [['corsi','Corsi'],['video','Video'],['audio','Audiolibri'],['testi','Testi'],['pacchetti','Pacchetti'],['campus','Campus'],['eventi','Eventi']]],
+  ['Comunicazione', [['rassegna','Rassegna'],['mecenati','Mecenati'],['statistiche','Statistiche']]],
+  ['Impostazioni', [['livelli','Livelli'],['temi','Temi UE'],['archiviazione','Video S3'],['ente','Ente'],['prezzi','Prezzi']]]
+];
 function renderCms(){
-  return `<div class="seg" style="max-width:560px;margin-bottom:18px">
-    ${CMS_TABS.map(([k,l])=>`<button class="${cmsTab===k?'on':''}" onclick="setCmsTab('${k}')">${l}</button>`).join('')}
+  return `<div class="cms-menu">
+    ${CMS_GRUPPI.map(([g,tabs])=>`<div class="cms-grp"><span class="cms-grp-l">${g}</span>
+      <div class="cms-grp-tabs">${tabs.map(([k,l])=>`<button class="${cmsTab===k?'on':''}" onclick="setCmsTab('${k}')">${l}</button>`).join('')}</div></div>`).join('')}
   </div>
   <div id="cms-area">${cmsArea()}</div>`;
 }
@@ -1668,10 +1678,31 @@ function cmsArea(){
       <p class="muted small" style="margin-top:10px">I prezzi di corsi e pacchetti singoli si modificano nelle rispettive schede.</p></div>`;
   }
   const add=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-    <div class="eyebrow">${{corsi:'Corsi',video:'Video On Demand',audio:'Audiolibri',testi:'Testi della Biblioteca',pacchetti:'Pacchetti tematici',campus:'Campus in presenza',eventi:'Eventi e mostre',livelli:'Livelli di accesso',temi:'Temi europei → commissioni',anagrafiche:'Anagrafiche \u2014 registro persone',contratti:'Contratti dei formatori',mecenati:'Formule e impegni dei mecenati'}[cmsTab]}</div>
+    <div class="eyebrow">${{corsi:'Corsi',video:'Video On Demand',audio:'Audiolibri',testi:'Testi della Biblioteca',pacchetti:'Pacchetti tematici',campus:'Campus in presenza',eventi:'Eventi e mostre',livelli:'Livelli di accesso',temi:'Temi europei → commissioni',anagrafiche:'Anagrafiche \u2014 registro persone',contratti:'Contratti dei formatori',mecenati:'Formule e impegni dei mecenati',archiviazione:'Destinazioni S3 per i video'}[cmsTab]}</div>
     <button class="btn small" onclick="nuovo('${cmsTab}')">+ Aggiungi</button></div>`;
   let rows='';
   if(cmsTab==='corsi') rows = CORSI.map(c=>cmsRow(c.tit, `${c.form||'—'} · ${commNome(c.comm)||c.comm} · ${euro(c.prezzo||PREZZO_CORSO)}`, pubBadge(c.pubblicato), `editCorso('${c.id}')`, `delCont('corso','${c.id}')`)).join('');
+  if(cmsTab==='utenti'){
+    setTimeout(caricaUtenti,0);
+    return `<div style="display:flex;gap:10px;align-items:center;margin-bottom:14px"><div class="eyebrow">Utenti del portale</div>
+        <input id="ut-q" placeholder="cerca per nome…" style="max-width:240px;margin-left:auto" onkeydown="if(event.key==='Enter')caricaUtenti()">
+        <button class="btn small" onclick="caricaUtenti()">Cerca</button></div>
+      <p class="muted small" style="margin-bottom:12px">Da qui aggiorni ruolo, membership e scadenza — anche per attivazioni manuali (bonifico, Carta del Docente). I pagamenti Stripe arrivano da soli via webhook.</p>
+      <div id="ut-box" class="muted small">Carico…</div>`;
+  }
+  if(cmsTab==='pagamenti'){
+    setTimeout(caricaPagamenti,0);
+    return `<div class="eyebrow" style="margin-bottom:14px">Pagamenti registrati</div>
+      <p class="muted small" style="margin-bottom:12px">L’elenco dei pagamenti (Stripe e registrazioni manuali). Per attivare una membership pagata con bonifico usa la scheda <b>Utenti</b>.</p>
+      <div id="pg-box" class="muted small">Carico…</div>`;
+  }
+  if(cmsTab==='archiviazione'){
+    const righe = S3ACC.map(a=>cmsRow(a.nome, `${a.endpoint} · bucket ${a.bucket}`,
+      a.attivo===false?'<span class="badge grigio">Spenta</span>':'<span class="badge verde">Attiva</span>',
+      `editS3('${a.id}')`, `delCont('s3','${a.id}')`)).join('');
+    return add + `<p class="muted small" style="margin-bottom:12px">Le destinazioni dove caricare i file video: puoi averne più d’una (account diversi, provider diversi) e scegliere ogni volta dove caricare. Funziona con qualunque servizio compatibile S3.</p>
+      ${righe||'<div class="empty">Nessuna destinazione. Aggiungi la prima con “+ Aggiungi”.</div>'}`;
+  }
   if(cmsTab==='anagrafiche'){
     const righe = ANAGRAFICHE.map(a=>cmsRow(
       (a.nome+' '+a.cognome).trim(),
@@ -1773,7 +1804,7 @@ function fPub(v){ return `<label style="display:flex;gap:8px;align-items:center;
 function getId(edit){ return edit || ($('cf-id').value||'').trim(); }
 
 /* CORSI */
-function nuovo(t){ if(t==='anagrafiche')editAnagrafica(); else if(t==='contratti')editContratto(); else if(t==='rassegna')editFonte(); else if(t==='mecenati')editFormula(); else if(t==='ente')return; else if(t==='temi')editTema(); else if(t==='livelli')editLivello(); else if(t==='corsi')editCorso(); else if(t==='video')editVideo(); else if(t==='audio')editAudio(); else if(t==='testi')editTesto(); else if(t==='pacchetti')editPacc(); else if(t==='campus')editCampus(); else if(t==='eventi')editEvento(); }
+function nuovo(t){ if(t==='archiviazione')editS3(); else if(t==='anagrafiche')editAnagrafica(); else if(t==='contratti')editContratto(); else if(t==='rassegna')editFonte(); else if(t==='mecenati')editFormula(); else if(t==='ente')return; else if(t==='temi')editTema(); else if(t==='livelli')editLivello(); else if(t==='corsi')editCorso(); else if(t==='video')editVideo(); else if(t==='audio')editAudio(); else if(t==='testi')editTesto(); else if(t==='pacchetti')editPacc(); else if(t==='campus')editCampus(); else if(t==='eventi')editEvento(); }
 function editCorso(id){
   const c = id?CORSI.find(x=>x.id===id):{};
   openModal(`<h3 style="font-size:23px">${id?'Modifica corso':'Nuovo corso'}</h3>`,
@@ -1785,10 +1816,11 @@ function editCorso(id){
        ${ANAGRAFICHE.filter(a=>a.tipo==='formatore'&&a.userId).map(a=>`<option value="${esc(a.userId)}" ${c.formatoreId===a.userId?'selected':''}>${esc(a.nome+' '+a.cognome)}</option>`).join('')}</select></div>
      ${fSelComm(c.comm)}
      <div class="field"><label>Pacchetto (etichetta)</label><input id="cf-pacc" value="${esc(c.pacc||'')}"></div>
-     <div class="field"><label>Descrizione</label><textarea id="cf-desc" rows="3">${esc(c.desc||'')}</textarea></div>
+     <div class="field"><label>Descrizione</label><textarea id="cf-desc" rows="7">${esc(c.desc||'')}</textarea></div>
      <div class="grid g2"><div class="field"><label>Prezzo (€)</label><input id="cf-prezzo" type="number" value="${c.prezzo||PREZZO_CORSO}"></div>
        <div class="field"><label>Ordine</label><input id="cf-ord" type="number" value="${c.ordine||(CORSI.length+1)}"></div></div>
      ${fPub(c.pubblicato)}
+     ${allegatiHtml('courses', id)}
      <button class="btn full" onclick="salvaCorso('${id||''}')">Salva corso</button>`);
 }
 async function salvaCorso(edit){
@@ -1809,11 +1841,18 @@ function editVideo(id){
      <div class="grid g2"><div class="field"><label>Tipo</label><input id="cf-tipo" value="${esc(v.tipo||'Documentario')}"></div>
        <div class="field"><label>Durata</label><input id="cf-dur" value="${esc(v.durata||'')}" placeholder="es. 24 min"></div></div>
      ${fSelComm(v.comm)}
-     <div class="field"><label>Descrizione</label><textarea id="cf-desc" rows="3">${esc(v.desc||'')}</textarea></div>
+     <div class="field"><label>Descrizione</label><textarea id="cf-desc" rows="7">${esc(v.desc||'')}</textarea></div>
      <div class="field"><label>URL del video (facoltativo)</label><input id="cf-url" value="${esc(v.url||'')}" placeholder="https://…"></div>
+     ${S3ACC.filter(x=>x.attivo!==false).length?`<div class="s3-box"><div class="eyebrow">Carica il file video su una destinazione S3</div>
+       <div class="grid g2" style="margin-top:8px"><div class="field"><label>Destinazione</label><select id="s3-acc">${S3ACC.filter(x=>x.attivo!==false).map(x=>`<option value="${x.id}">${esc(x.nome)} (${esc(x.bucket)})</option>`).join('')}</select></div>
+       <div class="field"><label>File video</label><input type="file" id="s3-file" accept="video/*"></div></div>
+       <button type="button" class="btn small oro" onclick="caricaVideoS3()">Carica e usa come URL</button>
+       <span id="s3-prog" class="muted small" style="margin-left:10px"></span>
+       <p class="muted small" style="margin:8px 0 0">Un caricamento firmato regge file fino a 5 GB. Le chiavi non passano mai dal browser.</p></div>`:`<p class="muted small">Per caricare i file video su S3, aggiungi prima una destinazione in <b>Impostazioni \u2192 Video S3</b>.</p>`}
      <div class="grid g2"><div class="field"><label>Ordine</label><input id="cf-ord" type="number" value="${v.ordine||(VOD.length+1)}"></div>
        <div class="field"><label>Livello di accesso</label><select id="cf-liv">${LIVELLI.filter(l=>l.attivo!==false).map(l=>`<option value="${l.id}" ${(v.livello||'civis')===l.id?'selected':''}>${esc(l.nome)}</option>`).join('')}</select></div></div>
      ${fPub(v.pubblicato)}
+     ${allegatiHtml('videos', id)}
      <button class="btn full" onclick="salvaVideo('${id||''}')">Salva video</button>`);
 }
 async function salvaVideo(edit){
@@ -2115,6 +2154,131 @@ async function salvaCorsoDocente(id){
   catch(e){ toast('Errore: '+(e.message||'')); }
 }
 
+/* =====================================================================
+   ALLEGATI dei contenuti (bucket Storage "allegati")
+   ===================================================================== */
+function allegatiHtml(tabella, id){
+  if(!id) return `<p class="muted small" style="margin:4px 0 12px">Salva prima l\u2019elemento: potrai poi riaprirlo per aggiungere gli allegati.</p>`;
+  setTimeout(()=>caricaAllegati(tabella,id),0);
+  return `<div class="field"><label>Allegati</label><div id="alg-box" class="muted small">Carico\u2026</div>
+    <input type="file" id="alg-file" style="margin-top:6px">
+    <button type="button" class="btn small ghost" style="margin-top:6px" onclick="aggiungiAllegato('${tabella}','${id}')">Aggiungi allegato</button></div>`;
+}
+async function caricaAllegati(tabella,id){
+  const box=$('alg-box'); if(!box) return;
+  try{
+    const rows=await DB.listAllegati(tabella,id);
+    box.innerHTML = rows.length ? rows.map(r=>`<div class="alg-item"><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.nome)}</a>
+        <span class="muted small">${r.dim?Math.round(r.dim/1024)+' KB':''}</span>
+        <button type="button" class="linkbtn" onclick="eliminaAllegato('${r.id}','${tabella}','${id}','${esc(r.url)}')">togli</button></div>`).join('')
+      : 'Nessun allegato.';
+  }catch(e){ box.textContent='Allegati non disponibili (applica la migrazione 0017).'; }
+}
+async function aggiungiAllegato(tabella,id){
+  const inp=$('alg-file'); const f=inp&&inp.files&&inp.files[0];
+  if(!f) return toast('Scegli prima un file.');
+  try{ await DB.uploadAllegato(tabella,id,f); inp.value=''; caricaAllegati(tabella,id); toast('Allegato caricato.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+async function eliminaAllegato(aid,tabella,id,url){
+  try{ await DB.deleteAllegato(aid,url); caricaAllegati(tabella,id); }catch(e){ toast('Errore: '+(e.message||'')); }
+}
+
+/* =====================================================================
+   VIDEO -> caricamento su destinazione S3 (URL firmato dalla funzione)
+   ===================================================================== */
+async function caricaVideoS3(){
+  const accId=$('s3-acc')&&$('s3-acc').value; const f=$('s3-file')&&$('s3-file').files&&$('s3-file').files[0];
+  if(!accId) return toast('Scegli una destinazione.');
+  if(!f) return toast('Scegli il file video.');
+  const prog=$('s3-prog');
+  try{
+    prog.textContent='Preparo il caricamento\u2026';
+    const p = await DB.presignS3(accId, f.name, f.type||'video/mp4');
+    if(p.demo){ $('cf-url').value=p.public_url; prog.textContent='(demo) URL impostato \u2713'; toast('In demo il caricamento \u00e8 simulato: URL impostato.'); return; }
+    await new Promise((res,rej)=>{
+      const x=new XMLHttpRequest();
+      x.open('PUT', p.upload_url);
+      x.setRequestHeader('Content-Type', p.content_type||f.type||'application/octet-stream');
+      x.upload.onprogress=e=>{ if(e.lengthComputable) prog.textContent='Carico\u2026 '+Math.round(e.loaded/e.total*100)+'%'; };
+      x.onload=()=> (x.status>=200&&x.status<300)?res():rej(new Error('HTTP '+x.status));
+      x.onerror=()=>rej(new Error('rete/CORS: configura il CORS del bucket per questo dominio'));
+      x.send(f);
+    });
+    $('cf-url').value=p.public_url; prog.textContent='Caricato \u2713';
+    toast('File caricato. Ricorda di salvare il video.');
+  }catch(e){ prog.textContent=''; toast('Errore: '+(e.message||'')); }
+}
+
+/* =====================================================================
+   UTENTI e PAGAMENTI (amministrazione)
+   ===================================================================== */
+async function caricaUtenti(){
+  const box=$('ut-box'); if(!box) return;
+  try{ UTENTI_ADMIN = await DB.listUtenti(($('ut-q')&&$('ut-q').value.trim())||''); }
+  catch(e){ box.textContent='Errore nel caricamento.'; return; }
+  const B={presidenza:'oro',formatore:'blu',delegato:'verde',iscritto:'grigio'};
+  box.innerHTML = UTENTI_ADMIN.length ? UTENTI_ADMIN.map(u=>`<div class="lesson" style="cursor:default">
+      <span class="t">${esc(u.nome||'(senza nome)')}<br><span class="d" style="margin:0">${esc(u.membership)}${u.scadenza?' fino al '+esc(fmtGiorno(u.scadenza)):''}${u.seggio?' \u00b7 seggio '+u.seggio:''}</span></span>
+      <span style="margin-left:auto;display:flex;gap:8px;align-items:center">
+        <span class="badge ${B[u.ruolo]||'grigio'}">${esc(u.ruolo)}</span>
+        <button class="btn small ghost" onclick="editUtente('${u.id}')">Modifica</button></span></div>`).join('')
+    : '<div class="empty">Nessun utente trovato.</div>';
+}
+function editUtente(id){
+  const u=UTENTI_ADMIN.find(x=>x.id===id); if(!u) return;
+  openModal(`<h3 style="font-size:23px">${esc(u.nome||'Utente')}</h3>`,
+    `<div class="grid g2">
+       <div class="field"><label>Ruolo</label><select id="ut-ruolo">${['iscritto','delegato','formatore','presidenza'].map(r=>`<option ${u.ruolo===r?'selected':''}>${r}</option>`).join('')}</select></div>
+       <div class="field"><label>Membership</label><select id="ut-mem">${['free','civis','academicus'].map(m=>`<option ${u.membership===m?'selected':''}>${m}</option>`).join('')}</select></div></div>
+     <div class="field"><label>Valida fino al (per attivazioni manuali, es. bonifico)</label><input id="ut-scad" type="date" value="${(u.scadenza||'').slice(0,10)}"></div>
+     <p class="muted small" style="margin:2px 0 12px">Usalo per attivare o prorogare una membership pagata fuori da Stripe. Il ruolo \u201cformatore\u201d attiva l\u2019Area formatore.</p>
+     <button class="btn full" onclick="salvaUtente('${u.id}')">Salva</button>`);
+}
+async function salvaUtente(id){
+  try{ await DB.saveUtente(id,{ ruolo:$('ut-ruolo').value, membership:$('ut-mem').value, scadenza:$('ut-scad').value||null });
+    closeModal(); caricaUtenti(); toast('Utente aggiornato.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+async function caricaPagamenti(){
+  const box=$('pg-box'); if(!box) return;
+  try{
+    const rows=await DB.listPagamenti();
+    let nomi={}; try{ (await DB.listUtenti('')).forEach(u=>nomi[u.id]=u.nome); }catch(e){}
+    box.innerHTML = rows.length ? rows.map(r=>`<div class="lesson" style="cursor:default">
+        <span class="t">${esc(nomi[r.profileId]||r.profileId||'?')}<br><span class="d" style="margin:0">${esc(r.kind)} \u00b7 ${esc(r.ref)} \u00b7 ${esc(fmtGiorno(r.creato))}</span></span>
+        <b style="margin-left:auto">${((r.amount||0)/100).toFixed(2).replace('.',',')} \u20ac</b></div>`).join('')
+      : '<div class="empty">Nessun pagamento registrato.</div>';
+  }catch(e){ box.textContent='Errore nel caricamento (serve la migrazione 0017).'; }
+}
+
+/* =====================================================================
+   ARCHIVIAZIONE — destinazioni S3 (piu' account)
+   ===================================================================== */
+function editS3(id){
+  const a=id?S3ACC.find(x=>String(x.id)===String(id)):{};
+  openModal(`<h3 style="font-size:23px">${id?'Modifica destinazione':'Nuova destinazione S3'}</h3>`,
+    `<div class="field"><label>Nome (per riconoscerla)</label><input id="s3-nome" value="${esc(a.nome||'')}" placeholder="es. Cloudflare R2 \\u2014 video 2026"></div>
+     <div class="field"><label>Endpoint</label><input id="s3-end" value="${esc(a.endpoint||'')}" placeholder="https://<account>.r2.cloudflarestorage.com"></div>
+     <div class="grid g2"><div class="field"><label>Region</label><input id="s3-reg" value="${esc(a.region||'auto')}"></div>
+       <div class="field"><label>Bucket</label><input id="s3-buc" value="${esc(a.bucket||'')}"></div></div>
+     <div class="grid g2"><div class="field"><label>Access Key ID</label><input id="s3-ak" value="${esc(a.accessKeyId||'')}"></div>
+       <div class="field"><label>Secret Access Key</label><input id="s3-sk" type="password" value="${esc(a.secretKey||'')}"></div></div>
+     <div class="field"><label>URL pubblico di base (CDN o bucket pubblico)</label><input id="s3-pub" value="${esc(a.baseUrl||'')}" placeholder="https://video.tuodominio.it"></div>
+     <label style="display:flex;gap:8px;align-items:center;font-size:14px;margin:4px 0 12px"><input type="checkbox" id="s3-att" ${a.attivo!==false?'checked':''} style="width:auto"> Attiva</label>
+     <p class="muted small" style="margin:0 0 12px">Compatibile con AWS S3, Cloudflare R2, Backblaze B2, Wasabi. Le chiavi restano nel database (visibili solo alla Presidenza) e la firma avviene sul server.</p>
+     <button class="btn full" onclick="salvaS3('${id||''}')">Salva destinazione</button>`);
+}
+async function salvaS3(id){
+  const o={ id:id||undefined, nome:$('s3-nome').value.trim(), endpoint:$('s3-end').value.trim(),
+    region:$('s3-reg').value.trim()||'auto', bucket:$('s3-buc').value.trim(),
+    accessKeyId:$('s3-ak').value.trim(), secretKey:$('s3-sk').value.trim(),
+    baseUrl:$('s3-pub').value.trim(), attivo:$('s3-att').checked };
+  if(!o.nome||!o.endpoint||!o.bucket||!o.accessKeyId||!o.secretKey) return toast('Compila nome, endpoint, bucket e le due chiavi.');
+  try{ await DB.saveS3(o); await loadCatalog(); closeModal(); setPresTab('contenuti'); toast('Destinazione salvata.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+
 /* RASSEGNA */
 function editFonte(id){
   const f = id?FONTI.find(x=>x.id===id):{};
@@ -2352,6 +2516,7 @@ function editAudio(id){
      <div class="grid g2"><div class="field"><label>Ordine</label><input id="cf-ord" type="number" value="${a.ordine||(AUDIO.length+1)}"></div>
        <div class="field"><label style="margin-top:30px"><input type="checkbox" id="cf-free" ${a.free?'checked':''} style="width:auto"> Gratuito</label></div></div>
      ${fPub(a.pubblicato)}
+     ${allegatiHtml('audiobooks', id)}
      <button class="btn full" onclick="salvaAudio('${id||''}')">Salva audiolibro</button>`);
 }
 async function salvaAudio(edit){
@@ -2416,6 +2581,7 @@ function editTesto(id){
      <div class="grid g2"><div class="field"><label>Ordine</label><input id="cf-ord" type="number" value="${t.ordine||(TESTI.length+1)}"></div>
        <div class="field"><label style="margin-top:30px"><input type="checkbox" id="cf-free" ${t.free?'checked':''} style="width:auto"> Gratuito</label></div></div>
      ${fPub(t.pubblicato)}
+     ${allegatiHtml('texts', id)}
      <button class="btn full" onclick="salvaTesto('${id||''}')">Salva testo</button>`);
 }
 function capRowInner(t,c){
@@ -2513,12 +2679,13 @@ function editCampus(id){
      <div class="grid g2"><div class="field"><label>Data</label><input id="cf-data" value="${esc(c.data||'')}" placeholder="es. 17–18 ottobre 2026"></div>
        <div class="field"><label>Durata</label><input id="cf-dur" value="${esc(c.durata||'')}" placeholder="es. Weekend · 2 giorni, 1 notte"></div></div>
      ${fSelComm(c.comm)}
-     <div class="field"><label>Descrizione</label><textarea id="cf-desc" rows="3">${esc(c.desc||'')}</textarea></div>
+     <div class="field"><label>Descrizione</label><textarea id="cf-desc" rows="7">${esc(c.desc||'')}</textarea></div>
      <div class="grid g2"><div class="field"><label>Prezzo partecipazione (€)</label><input id="cf-prezzo" type="number" value="${c.prezzo||120}"></div>
        <div class="field"><label>Prezzo con soggiorno (€)</label><input id="cf-sogg" type="number" value="${c.prezzoSoggiorno||190}"></div></div>
      <div class="grid g2"><div class="field"><label>Posti</label><input id="cf-posti" type="number" value="${c.posti||30}"></div>
        <div class="field"><label>Ordine</label><input id="cf-ord" type="number" value="${c.ordine||(CAMPUS.length+1)}"></div></div>
      ${fPub(c.pubblicato)}
+     ${allegatiHtml('campus', id)}
      <button class="btn full" onclick="salvaCampus('${id||''}')">Salva campus</button>`);
 }
 async function salvaCampus(edit){
@@ -2543,7 +2710,7 @@ function editEvento(id){
      <div class="grid g2"><div class="field"><label>Tipo</label><input id="cf-tipo" value="${esc(e.tipo||'Mostra')}"></div>
        <div class="field"><label>Periodo</label><input id="cf-periodo" value="${esc(e.periodo||'')}" placeholder="es. gennaio – dicembre 2027"></div></div>
      <div class="field"><label>Luogo</label><input id="cf-luogo" value="${esc(e.luogo||'')}"></div>
-     <div class="field"><label>Descrizione</label><textarea id="cf-desc" rows="3">${esc(e.desc||'')}</textarea></div>
+     <div class="field"><label>Descrizione</label><textarea id="cf-desc" rows="7">${esc(e.desc||'')}</textarea></div>
      <div class="grid g2">
        <div class="field"><label>Accesso</label><select id="cf-acc">
          ${opt('libero','Partecipazione libera')}${opt('civis','Incluso con Civis')}${opt('academicus','Incluso con Academicus')}${opt('biglietto','Biglietto a pagamento')}</select></div>
@@ -2552,6 +2719,7 @@ function editEvento(id){
      <div class="field"><label>Programma <span class="muted small">(una riga per voce/mese)</span></label><textarea id="cf-prog" rows="6">${esc(e.programma||'')}</textarea></div>
      <div class="field"><label>Ordine</label><input id="cf-ord" type="number" value="${e.ordine||(EVENTI.length+1)}"></div>
      ${fPub(e.pubblicato)}
+     ${allegatiHtml('events', id)}
      <button class="btn full" onclick="salvaEvento('${id||''}')">Salva evento</button>`);
 }
 async function salvaEvento(edit){
@@ -2574,7 +2742,7 @@ async function salvaPrezzi(){
 }
 /* ELIMINA (con conferma) */
 function delCont(tipo,id){
-  const nomi={anagrafica:'l\u2019anagrafica',contratto:'il contratto',modello:'il modello',fonte:'la fonte',eventopace:'l\u2019evento',formula:'la formula',livello:'il livello',corso:'il corso',video:'il video',audio:'l’audiolibro',testo:'il testo',pacchetto:'il pacchetto',campus:'il campus',evento:'l’evento'};
+  const nomi={s3:'la destinazione S3',anagrafica:'l\u2019anagrafica',contratto:'il contratto',modello:'il modello',fonte:'la fonte',eventopace:'l\u2019evento',formula:'la formula',livello:'il livello',corso:'il corso',video:'il video',audio:'l’audiolibro',testo:'il testo',pacchetto:'il pacchetto',campus:'il campus',evento:'l’evento'};
   openModal(`<h3 style="font-size:22px">Elimina contenuto</h3>`,
     `<p>Vuoi eliminare definitivamente ${nomi[tipo]} <b>${esc(id)}</b>?</p>
      <div style="display:flex;gap:10px;margin-top:18px">
@@ -2583,6 +2751,7 @@ function delCont(tipo,id){
 }
 async function confermaDel(tipo,id){
   try{
+    if(tipo==='s3') await DB.deleteS3(id);
     if(tipo==='anagrafica') await DB.deleteAnagrafica(id);
     if(tipo==='modello') await DB.deleteModello(id);
     if(tipo==='contratto') await DB.deleteContratto(id);
@@ -2620,6 +2789,7 @@ async function confermaDel(tipo,id){
 let onClose=null;
 function openModal(headHtml,bodyHtml,cb,cls){
   onClose=cb||null;
+  if(!cls && typeof vista!=='undefined' && (vista==='presidenza'||vista==='formatore')) cls='wide';
   $('modal-root').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()">
     <div class="modal ${cls||''}"><div class="modal-h"><div>${headHtml}</div><button class="x" onclick="closeModal()">×</button></div>
     <div class="modal-b">${bodyHtml}</div></div></div>`;

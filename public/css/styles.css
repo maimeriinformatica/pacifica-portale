@@ -545,3 +545,19 @@ input,select,textarea{font-family:inherit;font-size:15px}
 .var-legend{display:flex;flex-wrap:wrap;gap:6px}
 .var-chip{font:11.5px/1 ui-monospace,SFMono-Regular,monospace;background:var(--avorio);border:1px solid var(--linea);border-radius:6px;padding:4px 7px;cursor:pointer;color:var(--oltremare)}
 .var-chip:hover{border-color:var(--oro);background:#fff}
+
+/* ---------- Gestionale: menu raggruppato ---------- */
+.cms-menu{display:flex;flex-wrap:wrap;gap:14px 26px;margin-bottom:20px;padding:14px 16px;background:#fff;border:1px solid var(--linea);border-radius:var(--r)}
+.cms-grp-l{display:block;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--grigio-chiaro);font-weight:700;margin-bottom:6px}
+.cms-grp-tabs{display:flex;flex-wrap:wrap;gap:6px}
+.cms-grp-tabs button{border:1px solid var(--linea);background:var(--avorio);border-radius:8px;padding:6px 11px;font-size:13px;cursor:pointer;color:var(--inchiostro)}
+.cms-grp-tabs button.on{background:var(--oltremare);border-color:var(--oltremare);color:#fff;font-weight:700}
+/* ---------- Modali larghi del gestionale (schermata allargata) ---------- */
+.modal.wide{max-width:860px}
+@media(max-width:900px){ .modal.wide{max-width:96vw} }
+/* ---------- Allegati ---------- */
+.alg-item{display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--linea)}
+.alg-item a{color:var(--oltremare);font-weight:600}
+.alg-item .linkbtn{margin-left:auto;color:var(--porpora)}
+/* ---------- Blocco caricamento S3 nel video ---------- */
+.s3-box{background:var(--avorio);border:1px solid var(--linea);border-radius:12px;padding:14px 16px;margin:4px 0 14px}
