@@ -561,3 +561,6 @@ input,select,textarea{font-family:inherit;font-size:15px}
 .alg-item .linkbtn{margin-left:auto;color:var(--porpora)}
 /* ---------- Blocco caricamento S3 nel video ---------- */
 .s3-box{background:var(--avorio);border:1px solid var(--linea);border-radius:12px;padding:14px 16px;margin:4px 0 14px}
+
+/* Immagine di sfondo delle schede sezione */
+.lp-pill-bg img{width:100%;height:100%;object-fit:cover;display:block}

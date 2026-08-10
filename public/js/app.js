@@ -254,6 +254,13 @@ function pillSvg(t){
   return M[t] || S('<circle cx="20" cy="20" r="12"/>');
 }
 
+/* Affreschi di sfondo delle sei sezioni (immagini fornite, in img/pilastri) */
+function pillImg(t){
+  const M={ 'Parlamento dei Giovani':'parlamento', 'Accademia':'accademia',
+    'Video On Demand':'vod', 'Biblioteca Audio':'biblioteca', 'Campus':'campus', 'Eventi':'eventi' };
+  return 'img/pilastri/'+(M[t]||'accademia')+'.webp';
+}
+
 /* Scene illustrate di sfondo per i sei pilastri */
 function pillScene(t){
   const M={
@@ -452,7 +459,7 @@ function renderLanding(){
         <div class="lp-h"><h2>Le nostre sezioni</h2></div>
         <div class="lp-grid lp-g3">
           ${pilastri.map(p=>`<div class="lp-pill">
-            <div class="lp-pill-bg">${pillScene(p.t)}</div>
+            <div class="lp-pill-bg"><img src="${pillImg(p.t)}" alt="" loading="lazy"></div>
             <span class="lp-pn">${p.n}</span>
             <div class="lp-pill-c">
               <h3>${esc(p.t)}</h3><p>${esc(p.d)}</p>
