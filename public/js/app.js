@@ -56,6 +56,8 @@ let EVENTI = [
 let ANAGRAFICHE = [];
 let MODELLI = [];
 let S3ACC = [];
+let LEZ_CACHE = {};
+let LEZ_ADMIN = [];
 let UTENTI_ADMIN = [];
 let CONTRATTI = [];
 let FONTI = [];
@@ -1003,43 +1005,83 @@ function renderCorso(){
   const c = CORSI.find(x=>x.id===ctx.id);
   if(!c) return renderAccademia();
   if(!haAccesso('corso:'+c.id)){ go('accademia'); return ''; }
-  const sel = ctx.lez||1, done=io.progress[c.id]||[];
-  return `
-  <button class="linkbtn" onclick="go('accademia')">← Tutti i corsi</button>
-  <div class="page-head" style="margin-top:12px"><div class="eyebrow">${esc(c.form)} · ${esc(c.pacc)}</div><h1>${esc(c.tit)}</h1></div>
+  const L = LEZ_CACHE[c.id];
+  if(L===undefined){
+    LEZ_CACHE[c.id]=null;
+    DB.listLezioni(c.id).then(r=>{ LEZ_CACHE[c.id]=r.filter(l=>l.pubblicata!==false);
+      if(vista==='corso'&&ctx.id===c.id) render(); }).catch(()=>{ LEZ_CACHE[c.id]=[]; if(vista==='corso'&&ctx.id===c.id) render(); });
+  }
+  if(L && L.length){
+    const tot=L.length, sel=Math.min(ctx.lez||1, tot), lz=L[sel-1], done=io.progress[c.id]||[];
+    setTimeout(()=>{ const b=$('lz-st-alg'); if(b){ DB.listAllegati('lezioni', lz.id).then(rows=>{
+      b.innerHTML = rows.length ? rows.map(r=>`<div class="alg-item"><a href="${esc(r.url)}" target="_blank" rel="noopener" download>${esc(r.nome)}</a>${r.desc?` <span class="muted small">\u2014 ${esc(r.desc)}</span>`:''}</div>`).join('') : '<span class="muted small">Nessun materiale allegato.</span>';
+    }).catch(()=>{ b.textContent='\u2014'; }); } },0);
+    const player = lz.video
+      ? `<video controls preload="metadata" style="width:100%;border-radius:14px;background:#000;max-height:420px" src="${esc(lz.video)}"></video>`
+      : `<div class="player"><div class="play" onclick="completaLezione('${c.id}',${sel})">\u25b6</div>
+          <div style="z-index:1;text-align:center"><div class="eyebrow" style="color:var(--oro-chiaro)">Lezione ${sel} di ${tot}</div>
+          <h3 style="color:#fff;font-size:26px;margin-top:4px">${esc(lz.tit)}</h3></div></div>`;
+    const quiz = (lz.quiz||[]).length ? `<div class="card" style="padding:18px;margin-top:16px">
+        <h4 style="font-size:20px">Quiz della lezione</h4>
+        <p class="muted small" style="margin-top:4px">Alcune domande possono avere pi\u00f9 di una risposta corretta.</p>
+        ${lz.quiz.map((d,qi)=>`<div style="margin-top:14px"><b>${qi+1}. ${esc(d.q)}</b>
+          ${d.r.map((r,ri)=>`<label style="display:flex;gap:8px;align-items:center;margin-top:6px;font-size:14.5px"><input type="checkbox" class="st-q${qi}" value="${ri}" style="width:auto"> ${esc(r.t)}</label>`).join('')}</div>`).join('')}
+        <button class="btn small oro" style="margin-top:14px" onclick="verificaQuiz('${c.id}',${sel-1})">Verifica le risposte</button>
+        <div id="qz-res" class="muted small" style="margin-top:8px"></div></div>` : '';
+    return `
+  <button class="linkbtn" onclick="go('accademia')">\u2190 Tutti i corsi</button>
+  <div class="page-head" style="margin-top:12px"><div class="eyebrow">${esc(c.form)} \u00b7 ${esc(c.pacc)}</div><h1>${esc(c.tit)}</h1></div>
   <div class="grid" style="grid-template-columns:1.6fr 1fr;gap:24px">
     <div>
-      <div class="player"><div class="play" onclick="completaLezione('${c.id}',${sel})">▶</div>
+      ${player}
+      <div class="card" style="padding:18px;margin-top:16px">
+        <h4 style="font-size:20px">${esc(lz.tit)}</h4>
+        <p class="muted small" style="margin-top:6px">${esc(lz.desc||c.desc||'')}</p>
+        <div class="eyebrow" style="margin-top:14px">Materiali della lezione (scaricabili e stampabili)</div>
+        <div id="lz-st-alg" class="muted small" style="margin-top:6px">Carico\u2026</div>
+        <div style="display:flex;gap:10px;margin-top:14px">
+          ${sel>1?`<button class="btn small ghost" onclick="go('corso',{id:'${c.id}',lez:${sel-1}})">\u2190 Precedente</button>`:''}
+          ${sel<tot?`<button class="btn small" onclick="completaLezione('${c.id}',${sel},true)">Completa e prosegui \u2192</button>`
+            :`<button class="btn small oro" onclick="completaLezione('${c.id}',${tot},false,true)">Completa il corso \ud83c\udf93</button>`}
+        </div></div>
+      ${quiz}
+    </div>
+    <div class="card" style="padding:16px">
+      <div class="eyebrow" style="padding:0 6px">Programma \u00b7 ${done.length}/${tot}</div>
+      <div class="lesson-list" style="margin-top:8px">
+        ${L.map((t,i2)=>{ const nn=i2+1; return `<div class="lesson ${nn===sel?'on':''} ${done.includes(nn)?'done':''}" onclick="go('corso',{id:'${c.id}',lez:${nn}})">
+          <span class="n">${done.includes(nn)?'\u2713':nn}</span><span class="t">${esc(t.tit)}</span><span class="d">${t.video?'\u25b6':''}${(t.quiz||[]).length?' ?':''}</span></div>`;}).join('')}
+      </div></div>
+  </div>`;
+  }
+  /* Ripiego dimostrativo: il corso non ha ancora lezioni proprie */
+  const sel = ctx.lez||1, done=io.progress[c.id]||[];
+  return `
+  <button class="linkbtn" onclick="go('accademia')">\u2190 Tutti i corsi</button>
+  <div class="page-head" style="margin-top:12px"><div class="eyebrow">${esc(c.form)} \u00b7 ${esc(c.pacc)}</div><h1>${esc(c.tit)}</h1></div>
+  <div class="grid" style="grid-template-columns:1.6fr 1fr;gap:24px">
+    <div>
+      <div class="player"><div class="play" onclick="completaLezione('${c.id}',${sel})">\u25b6</div>
         <div style="z-index:1;text-align:center"><div class="eyebrow" style="color:var(--oro-chiaro)">Lezione ${sel} di 8</div>
           <h3 style="color:#fff;font-size:26px;margin-top:4px">${esc(LEZTIT[sel-1])}</h3>
-          <p style="color:#C7D0E0;font-size:13px;margin-top:4px">25 minuti · premi play per segnare come completata</p></div></div>
+          <p style="color:#C7D0E0;font-size:13px;margin-top:4px">25 minuti \u00b7 premi play per segnare come completata</p></div></div>
       <div class="card" style="padding:18px;margin-top:16px">
         <h4 style="font-size:20px">Su questa lezione</h4>
         <p class="muted small" style="margin-top:6px">${esc(c.desc)}</p>
         <div style="display:flex;gap:10px;margin-top:14px">
-          ${sel>1?`<button class="btn small ghost" onclick="go('corso',{id:'${c.id}',lez:${sel-1}})">← Precedente</button>`:''}
-          ${sel<8?`<button class="btn small" onclick="completaLezione('${c.id}',${sel},true)">Completa e prosegui →</button>`
-            :`<button class="btn small oro" onclick="completaLezione('${c.id}',8,false,true)">Completa il corso 🎓</button>`}
+          ${sel>1?`<button class="btn small ghost" onclick="go('corso',{id:'${c.id}',lez:${sel-1}})">\u2190 Precedente</button>`:''}
+          ${sel<8?`<button class="btn small" onclick="completaLezione('${c.id}',${sel},true)">Completa e prosegui \u2192</button>`
+            :`<button class="btn small oro" onclick="completaLezione('${c.id}',8,false,true)">Completa il corso \ud83c\udf93</button>`}
         </div></div>
     </div>
     <div class="card" style="padding:16px">
-      <div class="eyebrow" style="padding:0 6px">Programma · ${done.length}/8</div>
+      <div class="eyebrow" style="padding:0 6px">Programma \u00b7 ${done.length}/8</div>
       <div class="lesson-list" style="margin-top:8px">
-        ${LEZTIT.map((t,i)=>{ const n=i+1; return `<div class="lesson ${n===sel?'on':''} ${done.includes(n)?'done':''}" onclick="go('corso',{id:'${c.id}',lez:${n}})">
-          <span class="n">${done.includes(n)?'✓':n}</span><span class="t">${esc(t)}</span><span class="d">25′</span></div>`;}).join('')}
+        ${LEZTIT.map((t,i2)=>{ const nn=i2+1; return `<div class="lesson ${nn===sel?'on':''} ${done.includes(nn)?'done':''}" onclick="go('corso',{id:'${c.id}',lez:${nn}})">
+          <span class="n">${done.includes(nn)?'\u2713':nn}</span><span class="t">${esc(t)}</span><span class="d">25\u2032</span></div>`;}).join('')}
       </div></div>
   </div>`;
 }
-async function completaLezione(cid,n,avanza,fine){
-  try{ await DB.markLesson(cid,n); io.progress[cid]=io.progress[cid]||[]; if(!io.progress[cid].includes(n)) io.progress[cid].push(n); }
-  catch(e){ toast('Errore nel salvataggio.'); }
-  if(fine){ toast('Corso completato! Attestato disponibile. 🎓'); go('accademia'); return; }
-  if(avanza && n<8) go('corso',{id:cid,lez:n+1}); else { render(); toast('Lezione completata.'); }
-}
-
-/* =====================================================================
-   VIDEO ON DEMAND
-===================================================================== */
 function vaiA(cta){
   if(!cta) return;
   if(cta==='registrati'){ if(!io) apriAccesso('reg'); return; }
@@ -1827,6 +1869,7 @@ function editCorso(id){
      <div class="grid g2"><div class="field"><label>Prezzo (€)</label><input id="cf-prezzo" type="number" value="${c.prezzo||PREZZO_CORSO}"></div>
        <div class="field"><label>Ordine</label><input id="cf-ord" type="number" value="${c.ordine||(CORSI.length+1)}"></div></div>
      ${fPub(c.pubblicato)}
+     ${id?`<div class="field"><label>Lezioni del corso</label><button type="button" class="btn small oro" onclick="apriLezioni('${id}')">Gestisci le lezioni</button></div>`:`<p class="muted small">Salva il corso: potrai poi aggiungere le lezioni.</p>`}
      ${allegatiHtml('courses', id)}
      <button class="btn full" onclick="salvaCorso('${id||''}')">Salva corso</button>`);
 }
@@ -2152,6 +2195,7 @@ function editCorsoDocente(id){
     `<div class="field"><label>Titolo</label><input id="fd-tit" value="${esc(c.tit)}"></div>
      <div class="field"><label>Descrizione</label><textarea id="fd-desc" rows="4">${esc(c.desc||'')}</textarea></div>
      <p class="muted small" style="margin:2px 0 12px">Prezzo, pubblicazione e assegnazione restano alla Presidenza.</p>
+     <div class="field"><label>Lezioni del corso</label><button type="button" class="btn small oro" onclick="apriLezioni('${c.id}')">Gestisci le lezioni</button></div>
      <button class="btn full" onclick="salvaCorsoDocente('${c.id}')">Salva</button>`);
 }
 async function salvaCorsoDocente(id){
@@ -2169,13 +2213,14 @@ function allegatiHtml(tabella, id){
   setTimeout(()=>caricaAllegati(tabella,id),0);
   return `<div class="field"><label>Allegati</label><div id="alg-box" class="muted small">Carico\u2026</div>
     <input type="file" id="alg-file" style="margin-top:6px">
+    <input id="alg-desc" placeholder="descrizione dell\u2019allegato (facoltativa)" style="margin-top:6px">
     <button type="button" class="btn small ghost" style="margin-top:6px" onclick="aggiungiAllegato('${tabella}','${id}')">Aggiungi allegato</button></div>`;
 }
 async function caricaAllegati(tabella,id){
   const box=$('alg-box'); if(!box) return;
   try{
     const rows=await DB.listAllegati(tabella,id);
-    box.innerHTML = rows.length ? rows.map(r=>`<div class="alg-item"><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.nome)}</a>
+    box.innerHTML = rows.length ? rows.map(r=>`<div class="alg-item"><a href="${esc(r.url)}" target="_blank" rel="noopener" download>${esc(r.nome)}</a>${r.desc?` <span class="muted small">\u2014 ${esc(r.desc)}</span>`:''}
         <span class="muted small">${r.dim?Math.round(r.dim/1024)+' KB':''}</span>
         <button type="button" class="linkbtn" onclick="eliminaAllegato('${r.id}','${tabella}','${id}','${esc(r.url)}')">togli</button></div>`).join('')
       : 'Nessun allegato.';
@@ -2184,7 +2229,7 @@ async function caricaAllegati(tabella,id){
 async function aggiungiAllegato(tabella,id){
   const inp=$('alg-file'); const f=inp&&inp.files&&inp.files[0];
   if(!f) return toast('Scegli prima un file.');
-  try{ await DB.uploadAllegato(tabella,id,f); inp.value=''; caricaAllegati(tabella,id); toast('Allegato caricato.'); }
+  try{ const dsc=($('alg-desc')&&$('alg-desc').value.trim())||''; await DB.uploadAllegato(tabella,id,f,dsc); inp.value=''; if($('alg-desc'))$('alg-desc').value=''; caricaAllegati(tabella,id); toast('Allegato caricato.'); }
   catch(e){ toast('Errore: '+(e.message||'')); }
 }
 async function eliminaAllegato(aid,tabella,id,url){
@@ -2222,7 +2267,7 @@ async function caricaS3(targetId, tabella, recId){
       });
     }
     if(targetId && $(targetId)){ $(targetId).value=p.public_url; prog.textContent=(p.demo?'(demo) ':'')+'URL impostato \u2713'; }
-    else { await DB.saveAllegatoEsterno(tabella, recId, f.name, p.public_url, f.size||0); caricaAllegati(tabella, recId); prog.textContent=(p.demo?'(demo) ':'')+'Caricato: \u00e8 fra gli allegati \u2713'; }
+    else { await DB.saveAllegatoEsterno(tabella, recId, f.name, p.public_url, f.size||0, ($('alg-desc')&&$('alg-desc').value.trim())||''); if($('alg-desc'))$('alg-desc').value=''; caricaAllegati(tabella, recId); prog.textContent=(p.demo?'(demo) ':'')+'Caricato: \u00e8 fra gli allegati \u2713'; }
     toast(p.demo?'In demo il caricamento \u00e8 simulato.':'File caricato su S3.');
   }catch(e){ prog.textContent=''; toast('Errore: '+(e.message||'')); }
 }
@@ -2275,10 +2320,11 @@ async function caricaPagamenti(){
    ARCHIVIAZIONE — destinazioni S3 (piu' account)
    ===================================================================== */
 function editS3(id){
-  const a=id?S3ACC.find(x=>String(x.id)===String(id)):{};
+  // Nuova destinazione: precompilata per Cloudflare R2 (bucket verificato: pacifica-portale)
+  const a=id?S3ACC.find(x=>String(x.id)===String(id)):{ nome:'Cloudflare R2 \u2014 video', region:'auto', bucket:'pacifica-portale' };
   openModal(`<h3 style="font-size:23px">${id?'Modifica destinazione':'Nuova destinazione S3'}</h3>`,
     `<div class="field"><label>Nome (per riconoscerla)</label><input id="s3-nome" value="${esc(a.nome||'')}" placeholder="es. Cloudflare R2 \\u2014 video 2026"></div>
-     <div class="field"><label>Endpoint</label><input id="s3-end" value="${esc(a.endpoint||'')}" placeholder="https://<account>.r2.cloudflarestorage.com"></div>
+     <div class="field"><label>Endpoint</label><input id="s3-end" value="${esc(a.endpoint||'')}" placeholder="https://<account>.r2.cloudflarestorage.com"><small class="muted" style="display:block;margin-top:4px">Lo trovi nella STESSA schermata delle chiavi: R2 \u2192 Manage API tokens \u2192 crea il token \u2192 copia \u201cendpoint S3\u201d, Access Key ID e Secret.</small></div>
      <div class="grid g2"><div class="field"><label>Region</label><input id="s3-reg" value="${esc(a.region||'auto')}"></div>
        <div class="field"><label>Bucket</label><input id="s3-buc" value="${esc(a.bucket||'')}"></div></div>
      <div class="grid g2"><div class="field"><label>Access Key ID</label><input id="s3-ak" value="${esc(a.accessKeyId||'')}"></div>
@@ -2296,6 +2342,95 @@ async function salvaS3(id){
   if(!o.nome||!o.endpoint||!o.bucket||!o.accessKeyId||!o.secretKey) return toast('Compila nome, endpoint, bucket e le due chiavi.');
   try{ await DB.saveS3(o); await loadCatalog(); closeModal(); setPresTab('contenuti'); toast('Destinazione salvata.'); }
   catch(e){ toast('Errore: '+(e.message||'')); }
+}
+
+/* =====================================================================
+   LEZIONI DEI CORSI — gestione (presidenza e formatore del corso)
+   ===================================================================== */
+async function apriLezioni(courseId){
+  openModal(`<h3 style="font-size:23px">Lezioni del corso</h3>`,
+    `<div id="lz-list" class="muted small">Carico\u2026</div>
+     <button class="btn small" style="margin-top:12px" onclick="editLezione('${courseId}')">+ Lezione</button>`);
+  caricaLezioniAdmin(courseId);
+}
+async function caricaLezioniAdmin(courseId){
+  const box=$('lz-list'); if(!box) return;
+  try{ LEZ_ADMIN = await DB.listLezioni(courseId); }
+  catch(e){ box.textContent='Lezioni non disponibili (applica la migrazione 0018).'; return; }
+  delete LEZ_CACHE[courseId];
+  box.innerHTML = LEZ_ADMIN.length ? LEZ_ADMIN.map(l=>`<div class="lesson" style="cursor:default">
+      <span class="t">${l.ordine}. ${esc(l.tit)}${l.pubblicata===false?' <span class="badge grigio">bozza</span>':''}<br>
+        <span class="d" style="margin:0">${l.video?'\u25b6 video':''}${(l.quiz||[]).length?' \u00b7 quiz ('+l.quiz.length+' domande)':''}</span></span>
+      <span style="margin-left:auto;display:flex;gap:6px">
+        <button class="btn small ghost" onclick="editLezione('${courseId}','${l.id}')">Modifica</button>
+        <button class="btn small ghost" style="color:var(--porpora)" onclick="eliminaLezione('${courseId}','${l.id}')">Elimina</button></span></div>`).join('')
+    : 'Nessuna lezione. Aggiungi la prima.';
+}
+function qzRispostaRow(t, ok){
+  return `<div class="qz-r" style="display:flex;gap:8px;align-items:center;margin-top:6px">
+    <input class="qz-t" value="${esc(t||'')}" placeholder="testo della risposta" style="flex:1">
+    <label class="muted small" style="display:flex;gap:5px;align-items:center;white-space:nowrap"><input type="checkbox" class="qz-ok" ${ok?'checked':''} style="width:auto"> corretta</label>
+    <button type="button" class="linkbtn" onclick="this.parentNode.remove()">togli</button></div>`;
+}
+function qzDomandaBlock(q){
+  q=q||{q:'',r:[{t:'',ok:true},{t:'',ok:false}]};
+  return `<div class="qz-q" style="border:1px solid var(--linea);border-radius:10px;padding:12px;margin-top:10px;background:var(--avorio)">
+    <div style="display:flex;gap:8px;align-items:center"><input class="qz-domanda" value="${esc(q.q||'')}" placeholder="Domanda" style="flex:1;font-weight:600">
+      <button type="button" class="linkbtn" style="color:var(--porpora)" onclick="this.closest('.qz-q').remove()">elimina domanda</button></div>
+    <div class="qz-rs">${(q.r||[]).map(r=>qzRispostaRow(r.t,r.ok)).join('')}</div>
+    <button type="button" class="btn small ghost" style="margin-top:8px" onclick="this.previousElementSibling.insertAdjacentHTML('beforeend', qzRispostaRow('',false))">+ risposta</button>
+  </div>`;
+}
+function addDomanda(){ $('qz-box').insertAdjacentHTML('beforeend', qzDomandaBlock()); }
+function editLezione(courseId, id){
+  const l = id ? LEZ_ADMIN.find(x=>String(x.id)===String(id)) : {};
+  openModal(`<h3 style="font-size:23px">${id?'Modifica lezione':'Nuova lezione'}</h3>`,
+    `<div class="grid g2"><div class="field"><label>Titolo della lezione</label><input id="lz-tit" value="${esc(l.tit||'')}"></div>
+       <div class="field"><label>Ordine</label><input id="lz-ord" type="number" value="${l.ordine||LEZ_ADMIN.length+1}"></div></div>
+     <div class="field"><label>Breve descrizione</label><textarea id="lz-desc" rows="3">${esc(l.desc||'')}</textarea></div>
+     <div class="field"><label>URL del video della lezione (facoltativo)</label><input id="lz-video" value="${esc(l.video||'')}" placeholder="https://\u2026"></div>
+     ${S3ACC.filter(x=>x.attivo!==false).length?`<div class="s3-box"><div class="eyebrow">Carica il video su S3</div>
+       <div class="grid g2" style="margin-top:8px"><div class="field"><label>Destinazione</label><select id="s3-acc">${S3ACC.filter(x=>x.attivo!==false).map(x=>`<option value="${x.id}">${esc(x.nome)}</option>`).join('')}</select></div>
+       <div class="field"><label>File video</label><input type="file" id="s3-file" accept="video/*"></div></div>
+       <button type="button" class="btn small oro" onclick="caricaS3('lz-video','','')">Carica e usa come URL</button>
+       <span id="s3-prog" class="muted small" style="margin-left:10px"></span></div>`:''}
+     ${id?allegatiHtml('lezioni', id):`<p class="muted small">Salva la lezione: potrai poi allegare dispense e materiali (scaricabili e stampabili).</p>`}
+     <div class="field"><label>Quiz (una o pi\u00f9 risposte corrette per domanda \u2014 facoltativo)</label>
+       <div id="qz-box">${(l.quiz||[]).map(q=>qzDomandaBlock(q)).join('')}</div>
+       <button type="button" class="btn small ghost" style="margin-top:8px" onclick="addDomanda()">+ domanda</button></div>
+     <label style="display:flex;gap:8px;align-items:center;font-size:14px;margin:8px 0 12px"><input type="checkbox" id="lz-pub" ${l.pubblicata!==false?'checked':''} style="width:auto"> Pubblicata (visibile agli iscritti)</label>
+     <button class="btn full" onclick="salvaLezione('${courseId}','${id||''}')">Salva lezione</button>`);
+}
+async function salvaLezione(courseId, id){
+  const quiz=[];
+  document.querySelectorAll('#qz-box .qz-q').forEach(qb=>{
+    const q=(qb.querySelector('.qz-domanda')||{}).value||''; if(!q.trim()) return;
+    const r=[]; qb.querySelectorAll('.qz-r').forEach(rr=>{
+      const t=(rr.querySelector('.qz-t')||{}).value||''; if(!t.trim()) return;
+      r.push({ t:t.trim(), ok: !!(rr.querySelector('.qz-ok')||{}).checked });
+    });
+    if(r.length) quiz.push({ q:q.trim(), r });
+  });
+  for(const d of quiz){ if(!d.r.some(x=>x.ok)) return toast('Ogni domanda deve avere almeno una risposta corretta.'); }
+  const o={ id:id||undefined, courseId, tit:$('lz-tit').value.trim(), desc:$('lz-desc').value.trim(),
+    video:$('lz-video').value.trim(), ordine:parseInt($('lz-ord').value||'1',10), pubblicata:$('lz-pub').checked, quiz };
+  if(!o.tit) return toast('Il titolo della lezione \u00e8 obbligatorio.');
+  try{ await DB.saveLezione(o); apriLezioni(courseId); toast('Lezione salvata.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+async function eliminaLezione(courseId, id){
+  try{ await DB.deleteLezione(id); caricaLezioniAdmin(courseId); }catch(e){ toast('Errore: '+(e.message||'')); }
+}
+/* Verifica del quiz lato studente */
+function verificaQuiz(courseId, li){
+  const L=(LEZ_CACHE[courseId]||[])[li]; if(!L) return;
+  let giuste=0;
+  L.quiz.forEach((d,qi)=>{
+    const okSet = d.r.map((r,ri)=>r.ok?ri:-1).filter(x=>x>=0).join(',');
+    const sel = [].slice.call(document.querySelectorAll('.st-q'+qi+':checked')).map(x=>x.value).join(',');
+    if(sel===okSet) giuste++;
+  });
+  const box=$('qz-res'); if(box){ box.innerHTML = `<b>${giuste} su ${L.quiz.length} corrette</b>${giuste===L.quiz.length?' \u2014 ottimo! \ud83c\udf93':' \u2014 riprova, puoi correggere le risposte.'}`; }
 }
 
 /* RASSEGNA */
@@ -2601,7 +2736,7 @@ function editTesto(id){
      <div class="grid g2"><div class="field"><label>Ordine</label><input id="cf-ord" type="number" value="${t.ordine||(TESTI.length+1)}"></div>
        <div class="field"><label style="margin-top:30px"><input type="checkbox" id="cf-free" ${t.free?'checked':''} style="width:auto"> Gratuito</label></div></div>
      ${fPub(t.pubblicato)}
-     ${s3Box('.pdf,application/pdf','texts', id)}
+     ${s3Box('.pdf,application/pdf,.mp4,video/mp4,.mp3,.m4a,audio/*','texts', id)}
      ${allegatiHtml('texts', id)}
      <button class="btn full" onclick="salvaTesto('${id||''}')">Salva testo</button>`);
 }

@@ -219,7 +219,7 @@ const DB = {
   async redeemVoucher(c){ const { data, error } = await sb.rpc('redeem_voucher',{p_code:c}); if(error) throw error; return data; },
   async listAllegati(tabella, recordId){ const { data, error } = await sb.from('allegati').select('*')
       .eq('tabella',tabella).eq('record_id',String(recordId)).order('id'); if(error) throw error;
-      return (data||[]).map(r=>({id:r.id, nome:r.nome, url:r.url, dim:r.dimensione})); },
+      return (data||[]).map(r=>({id:r.id, nome:r.nome, url:r.url, dim:r.dimensione, desc:r.descrizione||''})); },
   async uploadAllegato(tabella, recordId, file){
       const path = `${tabella}/${recordId}/${Date.now().toString(36)}-${String(file.name||'file').replace(/[^A-Za-z0-9._-]+/g,'-')}`;
       const up = await sb.storage.from('allegati').upload(path, file);
@@ -227,12 +227,21 @@ const DB = {
       const pub = sb.storage.from('allegati').getPublicUrl(path);
       const url = (pub && pub.data && pub.data.publicUrl) || '';
       const { error } = await sb.from('allegati').insert({ tabella, record_id:String(recordId),
-        nome:file.name||'file', url, dimensione:file.size||0 }); if(error) throw error; return url; },
+        nome:file.name||'file', url, dimensione:file.size||0, descrizione:(arguments[3]||'') }); if(error) throw error; return url; },
   async deleteAllegato(id, url){ const { error } = await sb.from('allegati').delete().eq('id',id); if(error) throw error;
       try{ const p=(url||'').split('/allegati/')[1]; if(p) await sb.storage.from('allegati').remove([p]); }catch(e){} },
-  async saveAllegatoEsterno(tabella, recordId, nome, url, size){
+  async listLezioni(courseId){ const { data, error } = await sb.from('course_lessons').select('*')
+      .eq('course_id',courseId).order('ordine'); if(error) throw error;
+      return (data||[]).map(r=>({ id:r.id, courseId:r.course_id, tit:r.titolo, desc:r.descrizione,
+        video:r.video_url, quiz:r.quiz||[], ordine:r.ordine, pubblicata:r.pubblicata })); },
+  async saveLezione(o){ const { error } = await sb.from('course_lessons').upsert({ id:o.id||undefined,
+      course_id:o.courseId, titolo:o.tit, descrizione:o.desc||'', video_url:o.video||'',
+      quiz:o.quiz||[], ordine:o.ordine||1, pubblicata:o.pubblicata!==false,
+      updated_at:new Date().toISOString() }, { onConflict:'id' }); if(error) throw error; },
+  async deleteLezione(id){ const { error } = await sb.from('course_lessons').delete().eq('id',id); if(error) throw error; },
+  async saveAllegatoEsterno(tabella, recordId, nome, url, size, descrizione){
       const { error } = await sb.from('allegati').insert({ tabella, record_id:String(recordId),
-        nome, url, dimensione:size||0 }); if(error) throw error; },
+        nome, url, dimensione:size||0, descrizione:descrizione||'' }); if(error) throw error; },
   async saveS3(o){ const { error } = await sb.from('s3_accounts').upsert({ id:o.id||undefined, nome:o.nome,
       endpoint:o.endpoint, region:o.region||'auto', bucket:o.bucket, access_key_id:o.accessKeyId,
       secret_access_key:o.secretKey, public_base_url:o.baseUrl||'', attivo:o.attivo!==false,
