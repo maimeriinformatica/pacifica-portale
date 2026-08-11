@@ -25,32 +25,56 @@ const CORS = {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   try {
-    const { fonte_id } = await req.json();
-    if (!fonte_id) return json({ error: "fonte_id mancante" }, 400);
+    const body = await req.json().catch(() => ({}));
+    const fonte_id = body.fonte_id;
+    const tutte = body.tutte === true;
 
-    // client legato al token dell'utente: la RLS e la RPC restano in vigore
-    const sb = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } } },
-    );
+    // Via del CRON: chiave segreta condivisa (CRON_SECRET nei secrets della
+    // funzione). Il cron non ha un utente: con la chiave giusta usa il
+    // client di servizio; ogni altra chiamata resta legata al token utente.
+    const secret = Deno.env.get("CRON_SECRET") || "";
+    const cronOk = !!secret && (req.headers.get("x-cron-key") || "") === secret;
+    const sb = cronOk
+      ? createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!)
+      : createClient(
+          Deno.env.get("SUPABASE_URL")!,
+          Deno.env.get("SUPABASE_ANON_KEY")!,
+          { global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } } },
+        );
 
-    const { data: fonte, error: e1 } = await sb.from("fonti")
-      .select("id,url,attiva").eq("id", fonte_id).single();
-    if (e1 || !fonte) return json({ error: "Fonte inesistente" }, 404);
+    if (!fonte_id && !tutte) return json({ error: "fonte_id mancante" }, 400);
+    if (tutte && !cronOk) return json({ error: "Sincronizzazione totale riservata al cron" }, 403);
 
-    const res = await fetch(fonte.url, { headers: { "user-agent": "PacificaRassegna/1.0" } });
-    if (!res.ok) return json({ error: `Feed irraggiungibile (${res.status})` }, 502);
-    const xml = await res.text();
+    let fonti: { id: string; url: string }[] = [];
+    if (tutte) {
+      const { data } = await sb.from("fonti").select("id,url").eq("attiva", true);
+      fonti = data ?? [];
+    } else {
+      const { data: fonte, error: e1 } = await sb.from("fonti")
+        .select("id,url,attiva").eq("id", fonte_id).single();
+      if (e1 || !fonte) return json({ error: "Fonte inesistente" }, 404);
+      fonti = [fonte];
+    }
 
-    const items = parseFeed(xml).slice(0, 40);
-    if (!items.length) return json({ error: "Nessuna voce nel feed" }, 422);
-
-    const { data: n, error: e2 } = await sb.rpc("importa_notizie", {
-      p_fonte: fonte_id, p_items: items,
-    });
-    if (e2) return json({ error: e2.message }, 403);
-    return json({ importate: n, lette: items.length });
+    let importate = 0, lette = 0;
+    const errori: string[] = [];
+    for (const fonte of fonti) {
+      try {
+        const res = await fetch(fonte.url, { headers: { "user-agent": "PacificaRassegna/1.0" } });
+        if (!res.ok) throw new Error(`feed irraggiungibile (${res.status})`);
+        const items = parseFeed(await res.text()).slice(0, 40);
+        if (!items.length) throw new Error("nessuna voce nel feed");
+        const { data: n, error: e2 } = await sb.rpc("importa_notizie", {
+          p_fonte: fonte.id, p_items: items,
+        });
+        if (e2) throw new Error(e2.message);
+        importate += n ?? 0; lette += items.length;
+      } catch (e) {
+        errori.push(`${fonte.id}: ${String((e as Error)?.message ?? e)}`);
+      }
+    }
+    if (fonti.length === 1 && errori.length === 1) return json({ error: errori[0].split(": ").slice(1).join(": ") }, 502);
+    return json({ importate, lette, fonti: fonti.length, errori });
   } catch (e) {
     return json({ error: String((e as Error)?.message ?? e) }, 500);
   }
