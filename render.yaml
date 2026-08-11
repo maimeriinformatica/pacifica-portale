@@ -43,6 +43,26 @@ services:
       - path: /*
         name: Permissions-Policy
         value: geolocation=(), microphone=(), camera=()
+      # --- CACHE: pagina e codice sempre freschi dopo ogni pubblicazione ---
+      # "no-cache" NON vieta la cache: obbliga il browser a chiedere "e' cambiato?"
+      # (se no, risposta 304 leggerissima; se si', arriva subito la versione nuova)
+      - path: /index.html
+        name: Cache-Control
+        value: no-cache
+      - path: /
+        name: Cache-Control
+        value: no-cache
+      - path: /js/*
+        name: Cache-Control
+        value: no-cache
+      - path: /css/*
+        name: Cache-Control
+        value: no-cache
+      # le immagini invece possono restare in cache un giorno (sono pesanti e stabili)
+      - path: /img/*
+        name: Cache-Control
+        value: public, max-age=86400
+      # il config generato dalla build non va MAI conservato
       - path: /js/config.js
         name: Cache-Control
         value: no-store
