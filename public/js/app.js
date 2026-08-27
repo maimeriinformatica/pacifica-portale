@@ -64,7 +64,8 @@ const ELENCO_TESTI = (function(){
   const E=[['hero.occhiello','Riquadro iniziale \u2014 occhiello','La Pacifica Res Publica',0],
     ['hero.titolo','Riquadro iniziale \u2014 titolo (ammesso HTML es. <em>)','Accademia Internazionale per la&nbsp;<em>pace</em>.',0],
     ['provare.titolo','Intestazione \u201cPer Provare\u201d','Per Provare',0],
-    ['manifesto.titolo','Manifesto \u2014 titolo','Il Nostro Manifesto',0],
+    ['manifesto.titolo','Manifesto \u2014 titolo (in home)','Il Nostro Manifesto',0],
+    ['manifesto.titolo-pagina','Manifesto \u2014 titolo della pagina interna','I Sette Principi',0],
     ['manifesto.citazione','Manifesto \u2014 citazione finale','\u00abLa conoscenza senza coscienza non genera futuro.\u00bb',0],
     ['footer.motto','Pi\u00e8 di pagina \u2014 motto','\u00abCustodire per costruire.\u00bb',0]];
   const SR={'Parlamento dei Giovani':['Il Parlamento dei Giovani','Proposte, dibattiti e votazioni.','Seggi, commissioni e aula.','La democrazia si impara praticandola.'],
@@ -361,8 +362,7 @@ function renderManifestoPage(){
     ${lpHeaderPagina()}
     <section class="lp-page-hero"><div class="lp-sec-in">
       <img class="lp-manifesto-logo" src="img/logo.png" alt="La Pacifica Res Publica">
-      <h1 class="lp-page-h1">${esc(T('manifesto.titolo','Il Nostro Manifesto'))}</h1>
-      <p style="margin-top:10px"><a class="btn lp-btn" href="docs/manifesto.pdf" target="_blank" rel="noopener" style="text-decoration:none">Scarica e stampa il Manifesto (PDF)</a></p>
+      <h1 class="lp-page-h1">${esc(T('manifesto.titolo-pagina','I Sette Principi'))}</h1>
       <p class="lp-page-lead">La Pacifica nasce come Accademia Internazionale per la Pace, una <em>Res Publica universale</em> fondata sulla conoscenza, sulla coscienza e sulla dignit\u00e0 dell\u2019essere umano. La nostra iniziativa si riconosce in sette principi fondamentali, che ne costituiscono l\u2019anima e la direzione.</p>
     </div></section>
     <section class="lp-sec"><div class="lp-sec-in">
@@ -371,10 +371,6 @@ function renderManifestoPage(){
           <div class="man-b"><h3>${esc(T('principio.'+n+'.titolo',t))}</h3><p>${esc(T('principio.'+n+'.testo',d))}</p></div></article>`).join('')}
       </div>
       <div class="man-quote">${esc(T('manifesto.citazione','\u00abLa conoscenza senza coscienza non genera futuro.\u00bb'))}<span>\u2014 dal Manifesto de La Pacifica Res Publica</span></div>
-      <div class="lp-cta" style="justify-content:center;margin-top:26px">
-        <button class="btn oro lp-btn" onclick="apriAccesso('reg')">Entra e comincia</button>
-        <button class="lp-btn2" onclick="tornaHome()">\u2190 Torna alla home</button>
-      </div>
     </div></section>
     ${lpFooter()}
   </div>`;
