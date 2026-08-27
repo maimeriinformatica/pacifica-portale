@@ -45,9 +45,9 @@ let TESTI = [
   {id:'t5', tit:'Bellezza e nonviolenza', autore:'La Pacifica', comm:'arte', lettura:'5 min di lettura', free:false, testo:'Perché un’accademia per la pace si occupa di bellezza? Perché la bellezza disarma. La nonviolenza e la bellezza condividono la stessa radice: il rifiuto di distruggere.'},
 ];
 let EVENTI = [
-  {id:'ev1', tit:'Speculum 2027', sub:'Lo specchio del sapere: i fogli vinciani di Leonardo e la Scuola di Atene',
-   desc:'Una mostra lunga un anno, scandita in dodici mesi, che mette faccia a faccia i fogli manoscritti di Leonardo da Vinci e la Scuola di Atene di Raffaello. «Speculum» è lo specchio: ogni mese un foglio vinciano si riflette in una figura del pensiero antico, mostrando come l’osservazione della natura e la ricerca della verità siano lo stesso gesto.',
-   luogo:'Sede espositiva de La Pacifica — in via di definizione', periodo:'gennaio – dicembre 2027 (12 mesi)',
+  {id:'ev1', tit:'ENIGMA ET SPECULUM', sub:'L\u2019incontro con Leonardo e i suoi amici',
+   desc:'Una mostra immersiva che invita a riscoprire la Scuola di Atene come la segreta Accademia Vinciana. Un percorso tra filosofia, memoria e futuro per far rivivere il pensiero che l\u2019ha animata.',
+   luogo:'Verona', periodo:'Settembre 2027',
    tipo:'Mostra', accesso:'biglietto', prezzo:30,
    programma:'Gennaio — Il volo e l’aria: i fogli sul volo · l’aspirazione al cielo (Platone)\nFebbraio — L’acqua e i vortici · Eraclito e il divenire\nMarzo — L’anatomia e il corpo · l’uomo misura di tutte le cose (Protagora)\nAprile — Le proporzioni e l’Uomo Vitruviano · Pitagora e il numero\nMaggio — La geometria e la prospettiva · Euclide e la dimostrazione\nGiugno — La luce e l’ombra · la caverna e la conoscenza (Platone)\nLuglio — Le macchine e l’ingegno · Archimede e la tecnica\nAgosto — La botanica e la natura · Aristotele e l’osservazione\nSettembre — Gli astri e il cosmo · Tolomeo e l’ordine del cielo\nOttobre — Il volto e l’espressione · Socrate e l’etica del carattere\nNovembre — Il diluvio e il limite · Diogene e il distacco\nDicembre — Lo specchio: arte e filosofia si riflettono · la sintesi di Atene e Vinci'},
 ];
@@ -416,7 +416,7 @@ function renderLanding(){
     {n:'III',ico:'\u25B6', t:'Video On Demand', tit:'Il Video On Demand', d:'Documentari, lezioni aperte e conferenze sulla cultura di pace.', free:'Documentari e lezioni', chiuso:'Catalogo completo con Civis'},
     {n:'IV', ico:'\uD83D\uDCDA', t:'Biblioteca Audio', tit:'La Biblioteca Audio', d:'Testi e audiolibri da leggere e ascoltare, con voce e sintesi IA.', free:'Testi e audiolibri scelti + voce IA', chiuso:'Tutta la biblioteca con Civis'},
     {n:'V',  ico:'\u26EA', t:'Campus', tit:'Il Campus', d:'Fine settimana formativi all\u2019Abbazia di Maguzzano, sul Lago di Garda.', free:'Programmi e calendario', chiuso:'Posti su prenotazione'},
-    {n:'VI', ico:'\uD83C\uDFAD', t:'Eventi', tit:'Gli Eventi', d:'Mostre ed incontri de La Pacifica, aperti alla citt\u00e0.', free:'Programma di Speculum 2027', chiuso:'Ingresso con biglietto'},
+    {n:'VI', ico:'\uD83C\uDFAD', t:'Eventi', tit:'Gli Eventi', d:'Mostre ed incontri de La Pacifica, aperti alla citt\u00e0.', free:'Programma di ENIGMA ET SPECULUM', chiuso:'Ingresso con biglietto'},
   ];
 
   const clip = (s,n) => { s=String(s||'').replace(/\s+/g,' ').trim(); return s.length>n ? s.slice(0,n).trim()+'\u2026' : s; };
@@ -923,7 +923,7 @@ function renderDashboard(){
     {id:'vod', num:'III', ico:'▶', t:'Video On Demand', d:'Documentari, lezioni aperte e conferenze sulla cultura di pace.', lock:false},
     {id:'audio', num:'IV', ico:'📚', t:'Biblioteca', d:'Audiolibri e testi da leggere e ascoltare, con sintesi e percorsi su misura.', lock:false},
     {id:'campus', num:'V', ico:'⛪', t:'Campus', d:'Campus formativi in presenza all’Abbazia di Maguzzano, con possibilità di soggiorno.', lock:false},
-    {id:'eventi', num:'VI', ico:'🎭', t:'Eventi', d:'Mostre ed eventi de La Pacifica. In arrivo: Speculum 2027, la mostra dei dodici mesi.', lock:false},
+    {id:'eventi', num:'VI', ico:'🎭', t:'Eventi', d:'Mostre ed eventi de La Pacifica. In arrivo: ENIGMA ET SPECULUM.', lock:false},
   ];
   const corsoAttivo = CORSI.find(c=>haAccesso('corso:'+c.id));
   const audioFree = AUDIO.find(a=>a.free)||AUDIO[0];
