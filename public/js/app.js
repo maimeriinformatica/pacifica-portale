@@ -59,6 +59,25 @@ let S3ACC = [];
 let LEZ_CACHE = {};
 let TESTI_PAG = {};   // testi delle pagine sovrascritti dal gestionale (contenuti_sito)
 function T(k,d){ const v=TESTI_PAG[k]; return (v!==undefined && v!=='') ? v : d; }
+/* Stile facoltativo di un testo (salvato come riga 'stile:<chiave>' in contenuti_sito).
+   Valori ammessi soltanto da elenchi chiusi: mai CSS libero. */
+function stileTesto(k){
+  let o=null; try{ o=JSON.parse(TESTI_PAG['stile:'+k]||'null'); }catch(_e){ o=null; }
+  if(!o) return '';
+  const F={serif:"'Cormorant Garamond',Georgia,serif",sans:"'Karla',system-ui,sans-serif"};
+  const C={inchiostro:'#22231F',oltremare:'#1B3A6B',oro:'#A9842F',grigio:'#6E6A60',bianco:'#FFFFFF'};
+  let st='';
+  if(o.al==='left'||o.al==='center'||o.al==='right'){
+    st+='text-align:'+o.al+';align-self:'+(o.al==='left'?'flex-start':(o.al==='right'?'flex-end':'center'))+';';
+    if(o.al!=='center') st+='width:100%;';
+  }
+  if(F[o.ca]) st+='font-family:'+F[o.ca]+';';
+  const d=parseInt(o.di,10); if(d>=60 && d<=220) st+='font-size:'+(d/100)+'em;';
+  if(C[o.cl]) st+='color:'+C[o.cl]+';';
+  if(o.gr) st+='font-weight:700;';
+  if(o.cv) st+='font-style:italic;';
+  return st ? (' style="'+st+'"') : '';
+}
 /* Elenco dei testi modificabili: [chiave, etichetta, predefinito, righe-textarea] */
 const ELENCO_TESTI = (function(){
   const E=[['hero.occhiello','Riquadro iniziale \u2014 occhiello','La Pacifica Res Publica',0],
@@ -285,7 +304,7 @@ function pillRighe(t){
     'Campus': ['Fine settimana formativi.','All\u2019Abbazia di Maguzzano, sul Garda.','Lo studio come vita condivisa.'],
     'Eventi': ['Mostre, incontri e forum.','Aperti alla citt\u00e0.','La Pacifica incontra il mondo.']
   };
-  return (R[t]||[]).map((r,i)=>T('sezione.'+t+'.riga'+(i+1), r));
+  return (R[t]||[]).map((r,i)=>({ testo:T('sezione.'+t+'.riga'+(i+1), r), st:stileTesto('sezione.'+t+'.riga'+(i+1)) }));
 }
 
 /* Emblemi SVG dei sei pilastri (coerenti col tema, oro su vetro) */
@@ -326,7 +345,7 @@ function pillScene(t){
 /* Piè di pagina condiviso (home + pagine interne) */
 function lpFooter(){
   return `<footer class="lp-foot"><div class="lp-sec-in lp-foot-in">
-      <div class="lp-foot-brand"><span class="mark mark-scuro"><img class="logo-img" src="img/logo.png" alt="La Pacifica Res Publica"></span><div><b>La Pacifica Res Publica</b><span>${esc(T('footer.motto','\u00abCustodire per costruire.\u00bb'))}</span></div></div>
+      <div class="lp-foot-brand"><span class="mark mark-scuro"><img class="logo-img" src="img/logo.png" alt="La Pacifica Res Publica"></span><div><b>La Pacifica Res Publica</b><span${stileTesto('footer.motto')}>${esc(T('footer.motto','\u00abCustodire per costruire.\u00bb'))}</span></div></div>
       <div class="lp-foot-cta">
         <button class="linkbtn" onclick="apriAccesso('login')">Accedi</button>
         <button class="btn small" onclick="apriAccesso('reg')">Entra gratis</button>
@@ -362,15 +381,15 @@ function renderManifestoPage(){
     ${lpHeaderPagina()}
     <section class="lp-page-hero"><div class="lp-sec-in">
       <img class="lp-manifesto-logo" src="img/logo.png" alt="La Pacifica Res Publica">
-      <h1 class="lp-page-h1">${esc(T('manifesto.titolo-pagina','I Sette Principi'))}</h1>
+      <h1 class="lp-page-h1"${stileTesto('manifesto.titolo-pagina')}>${esc(T('manifesto.titolo-pagina','I Sette Principi'))}</h1>
       <p class="lp-page-lead">La Pacifica nasce come Accademia Internazionale per la Pace, una <em>Res Publica universale</em> fondata sulla conoscenza, sulla coscienza e sulla dignit\u00e0 dell\u2019essere umano. La nostra iniziativa si riconosce in sette principi fondamentali, che ne costituiscono l\u2019anima e la direzione.</p>
     </div></section>
     <section class="lp-sec"><div class="lp-sec-in">
       <div class="man-list">
         ${principi.map(([n,t,d])=>`<article class="man-item"><div class="man-n">${n}</div>
-          <div class="man-b"><h3>${esc(T('principio.'+n+'.titolo',t))}</h3><p>${esc(T('principio.'+n+'.testo',d))}</p></div></article>`).join('')}
+          <div class="man-b"><h3${stileTesto('principio.'+n+'.titolo')}>${esc(T('principio.'+n+'.titolo',t))}</h3><p${stileTesto('principio.'+n+'.testo')}>${esc(T('principio.'+n+'.testo',d))}</p></div></article>`).join('')}
       </div>
-      <div class="man-quote">${esc(T('manifesto.citazione','\u00abLa conoscenza senza coscienza non genera futuro.\u00bb'))}<span>\u2014 dal Manifesto de La Pacifica Res Publica</span></div>
+      <div class="man-quote"${stileTesto('manifesto.citazione')}>${esc(T('manifesto.citazione','\u00abLa conoscenza senza coscienza non genera futuro.\u00bb'))}<span>\u2014 dal Manifesto de La Pacifica Res Publica</span></div>
     </div></section>
     ${lpFooter()}
   </div>`;
@@ -476,8 +495,8 @@ function renderLanding(){
         </picture>
       </div>
       <div class="lp-hero-in"><div class="lp-hero-copy">
-        <div class="eyebrow lp-eye">${esc(T('hero.occhiello','La Pacifica Res Publica'))}</div>
-        <h1 class="lp-h1">${T('hero.titolo','Accademia Internazionale per la&nbsp;<em>pace</em>.')}</h1>
+        <div class="eyebrow lp-eye"${stileTesto('hero.occhiello')}>${esc(T('hero.occhiello','La Pacifica Res Publica'))}</div>
+        <h1 class="lp-h1"${stileTesto('hero.titolo')}>${T('hero.titolo','Accademia Internazionale per la&nbsp;<em>pace</em>.')}</h1>
       </div></div>
       <p class="lp-credit">Raffaello Sanzio, <em>La Scuola di Atene</em> (1509\u20131511) \u2014 Musei Vaticani, Stanza della Segnatura</p>
     </section>
@@ -485,7 +504,7 @@ function renderLanding(){
     <section class="lp-sec lp-frieze">
       <div class="lp-sec-in">
         <img class="lp-manifesto-logo" src="img/logo.png" alt="La Pacifica Res Publica">
-        <div class="lp-h"><h2>${esc(T('manifesto.titolo','Il Nostro Manifesto'))}</h2></div>
+        <div class="lp-h"><h2${stileTesto('manifesto.titolo')}>${esc(T('manifesto.titolo','Il Nostro Manifesto'))}</h2></div>
         <div class="lp-cta" style="justify-content:center;margin-top:4px">
           <button class="btn oro lp-btn" onclick="apriPagina('manifesto')">Scopri i Sette Principi \u2192</button>
           <a class="btn lp-btn" href="docs/manifesto.pdf" target="_blank" rel="noopener" style="text-decoration:none">Scarica il Manifesto (PDF)</a>
@@ -498,10 +517,10 @@ function renderLanding(){
         <div class="lp-h"><h2>Le nostre sezioni</h2></div>
         <div class="lp-grid lp-g3">
           ${pilastri.map(p=>`<div class="lp-pill">
-            <div class="lp-pill-bg lp-pill-txt">${pillRighe(p.t).map(r=>`<span>${r}</span>`).join('')}</div>
+            <div class="lp-pill-bg lp-pill-txt">${pillRighe(p.t).map(r=>`<span${r.st}>${r.testo}</span>`).join('')}</div>
             <span class="lp-pn">${p.n}</span>
             <div class="lp-pill-c">
-              <h3>${esc(T('sezione.'+p.t+'.titolo', p.tit||p.t))}</h3>
+              <h3${stileTesto('sezione.'+p.t+'.titolo')}>${esc(T('sezione.'+p.t+'.titolo', p.tit||p.t))}</h3>
             </div></div>`).join('')}
         </div>
       </div>
@@ -509,7 +528,7 @@ function renderLanding(){
 
     <section class="lp-sec lp-svc">
       <div class="lp-sec-in">
-        <div class="lp-h"><h2>${esc(T('provare.titolo','Per Provare'))}</h2></div>
+        <div class="lp-h"><h2${stileTesto('provare.titolo')}>${esc(T('provare.titolo','Per Provare'))}</h2></div>
         <div class="lp-grid lp-g3">
           ${liberi.map(x=>`<article class="tile lp-tile">
             <div class="cover lp-cover"><span class="k">${x.ico}</span><span class="tag">${esc(x.tp)} \u00b7 gratuito</span></div>
@@ -1763,12 +1782,22 @@ function cmsArea(){
       ultimoGrp = grp;
       const val = esc(T(k, def));
       const campo = ml ? `<textarea id="tp-${i}" rows="${ml}">${val}</textarea>` : `<input id="tp-${i}" value="${val}">`;
-      const mod = (TESTI_PAG[k]!==undefined && TESTI_PAG[k]!=='') ? ' <span class="badge blu">modificato</span>' : '';
-      return `${head}<div class="field"><label>${esc(label.split(' \u2014 ').slice(1).join(' \u2014 ')||label)}${mod}</label>${campo}</div>`;
+      let so={}; try{ so=JSON.parse(TESTI_PAG['stile:'+k]||'{}'); }catch(_e){ so={}; }
+      const sel=(id,ops,cur)=>`<select id="${id}">`+ops.map(o=>`<option value="${o[0]}"${o[0]===(cur||'')?' selected':''}>${o[1]}</option>`).join('')+`</select>`;
+      const stile = `<div class="ts-stile">
+        ${sel('tp-al-'+i,[['','Allineamento: predefinito'],['left','A sinistra'],['center','Centrato'],['right','A destra']],so.al)}
+        ${sel('tp-ca-'+i,[['','Carattere: predefinito'],['serif','Elegante (titoli)'],['sans','Pulito (testi)']],so.ca)}
+        ${sel('tp-di-'+i,[['','Dimensione: predefinita'],['85','Pi\u00f9 piccolo'],['115','Un po\u2019 pi\u00f9 grande'],['130','Grande'],['150','Molto grande'],['175','Enorme']],so.di)}
+        ${sel('tp-cl-'+i,[['','Colore: predefinito'],['inchiostro','Inchiostro'],['oltremare','Blu oltremare'],['oro','Oro'],['grigio','Grigio'],['bianco','Bianco']],so.cl)}
+        <label class="ts-ck"><input type="checkbox" id="tp-gr-${i}"${so.gr?' checked':''}> Grassetto</label>
+        <label class="ts-ck"><input type="checkbox" id="tp-cv-${i}"${so.cv?' checked':''}> Corsivo</label>
+      </div>`;
+      const mod = ((TESTI_PAG[k]!==undefined && TESTI_PAG[k]!=='') || TESTI_PAG['stile:'+k]) ? ' <span class="badge blu">modificato</span>' : '';
+      return `${head}<div class="field"><label>${esc(label.split(' \u2014 ').slice(1).join(' \u2014 ')||label)}${mod}</label>${campo}${stile}</div>`;
     }).join('');
     return `<div class="card" style="padding:22px;max-width:760px">
       <div class="eyebrow">Testi delle pagine</div>
-      <p class="muted small" style="margin-top:6px">Qui modifichi i testi del sito pubblico (riquadro iniziale, schede delle sezioni, Manifesto, motto). Se riporti un campo al testo originale, il portale torna a usare il predefinito. La grafica non cambia: solo le parole.</p>
+      <p class="muted small" style="margin-top:6px">Qui modifichi i testi del sito pubblico e, per ciascuno, allineamento, carattere, dimensione, colore, grassetto e corsivo. «Predefinito» significa: come disegnato in origine. Se riporti tutto al predefinito, il portale torna all'originale.</p>
       <div style="margin-top:12px">${campi}</div>
       <button class="btn full" style="margin-top:16px" onclick="salvaTestiPagine()">Salva i testi</button>
     </div>`;
@@ -2416,6 +2445,16 @@ async function salvaTestiPagine(){
     const v=el.value.trim();
     if(v && v!==def) upsert.push({ chiave:k, valore:v });
     else if(TESTI_PAG[k]!==undefined) cancella.push(k);
+    const o={};
+    const al=$('tp-al-'+i), ca=$('tp-ca-'+i), di=$('tp-di-'+i), cl=$('tp-cl-'+i), gr=$('tp-gr-'+i), cv=$('tp-cv-'+i);
+    if(al && al.value) o.al=al.value;
+    if(ca && ca.value) o.ca=ca.value;
+    if(di && di.value) o.di=di.value;
+    if(cl && cl.value) o.cl=cl.value;
+    if(gr && gr.checked) o.gr=1;
+    if(cv && cv.checked) o.cv=1;
+    if(Object.keys(o).length) upsert.push({ chiave:'stile:'+k, valore:JSON.stringify(o) });
+    else if(TESTI_PAG['stile:'+k]!==undefined) cancella.push('stile:'+k);
   });
   try{
     if(upsert.length) await DB.saveTesti(upsert);
