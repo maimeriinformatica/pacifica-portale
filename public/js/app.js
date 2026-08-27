@@ -237,10 +237,23 @@ async function inviaImpegno(id){
            <div class="small" style="margin-top:8px"><b>Importo</b><br>${euro(r.importo)}</div>
            <div class="small" style="margin-top:8px"><b>Causale</b><br><code>${esc(r.riferimento)}</code></div></div>`}
        <p class="muted small" style="margin-top:12px">Gli accessi vengono emessi a pagamento accreditato.</p>`);
-  }catch(e){ toast(String(e.message||e).replace(/^.*: /,'')); }
+  }catch(e){ toast(String(e.message||e)); }
 }
 function apriAccesso(tab){ authTab = (tab==='reg' ? 'reg' : 'login'); renderAuth(); }
 function tornaHome(){ paginaLanding='home'; renderLanding(); window.scrollTo(0,0); }
+
+/* Tre righe identificative per ogni sezione (schede della home) */
+function pillRighe(t){
+  const R = {
+    'Parlamento dei Giovani': ['Proposte, dibattiti e votazioni.','Seggi, commissioni e aula.','La democrazia si impara praticandola.'],
+    'Accademia': ['Corsi tenuti dai formatori.','Lezioni, materiali e quiz.','Il Percorso di Pace, passo dopo passo.'],
+    'Video On Demand': ['Lezioni e conferenze in video.','Percorsi ordinati per livelli.','La cultura di pace da guardare.'],
+    'Biblioteca Audio': ['Testi da leggere e ascoltare.','Audiolibri con voce IA.','La cultura che si ascolta.'],
+    'Campus': ['Fine settimana formativi.','All\u2019Abbazia di Maguzzano, sul Garda.','Lo studio come vita condivisa.'],
+    'Eventi': ['Mostre, incontri e forum.','Aperti alla citt\u00e0.','La Pacifica incontra il mondo.']
+  };
+  return R[t] || [];
+}
 
 /* Emblemi SVG dei sei pilastri (coerenti col tema, oro su vetro) */
 function pillSvg(t){
@@ -396,12 +409,12 @@ function renderLanding(){
   ];
 
   const pilastri = [
-    {n:'I',  ico:'\u2696\uFE0E', t:'Parlamento dei Giovani', d:'150 delegati, sette commissioni, proposte di legge e voto in aula.', free:'Il documentario sull\u2019emiciclo', chiuso:'Seggio e voto \u2014 su invito'},
-    {n:'II', ico:'\uD83D\uDCD6', t:'Accademia', d:'Il Percorso di Pace in otto corsi tenuti dai formatori.', free:'Lezioni aperte e assaggi', chiuso:'Corsi completi e attestati'},
-    {n:'III',ico:'\u25B6', t:'Video On Demand', d:'Documentari, lezioni aperte e conferenze sulla cultura di pace.', free:'Documentari e lezioni', chiuso:'Catalogo completo con Civis'},
-    {n:'IV', ico:'\uD83D\uDCDA', t:'Biblioteca Audio', d:'Testi e audiolibri da leggere e ascoltare, con voce e sintesi IA.', free:'Testi e audiolibri scelti + voce IA', chiuso:'Tutta la biblioteca con Civis'},
-    {n:'V',  ico:'\u26EA', t:'Campus', d:'Fine settimana formativi all\u2019Abbazia di Maguzzano, sul Lago di Garda.', free:'Programmi e calendario', chiuso:'Posti su prenotazione'},
-    {n:'VI', ico:'\uD83C\uDFAD', t:'Eventi', d:'Mostre ed incontri de La Pacifica, aperti alla citt\u00e0.', free:'Programma di Speculum 2027', chiuso:'Ingresso con biglietto'},
+    {n:'I',  ico:'\u2696\uFE0E', t:'Parlamento dei Giovani', tit:'Il Parlamento dei Giovani', d:'150 delegati, sette commissioni, proposte di legge e voto in aula.', free:'Il documentario sull\u2019emiciclo', chiuso:'Seggio e voto \u2014 su invito'},
+    {n:'II', ico:'\uD83D\uDCD6', t:'Accademia', tit:'L’Accademia', d:'Il Percorso di Pace in otto corsi tenuti dai formatori.', free:'Lezioni aperte e assaggi', chiuso:'Corsi completi e attestati'},
+    {n:'III',ico:'\u25B6', t:'Video On Demand', tit:'Il Video On Demand', d:'Documentari, lezioni aperte e conferenze sulla cultura di pace.', free:'Documentari e lezioni', chiuso:'Catalogo completo con Civis'},
+    {n:'IV', ico:'\uD83D\uDCDA', t:'Biblioteca Audio', tit:'La Biblioteca Audio', d:'Testi e audiolibri da leggere e ascoltare, con voce e sintesi IA.', free:'Testi e audiolibri scelti + voce IA', chiuso:'Tutta la biblioteca con Civis'},
+    {n:'V',  ico:'\u26EA', t:'Campus', tit:'Il Campus', d:'Fine settimana formativi all\u2019Abbazia di Maguzzano, sul Lago di Garda.', free:'Programmi e calendario', chiuso:'Posti su prenotazione'},
+    {n:'VI', ico:'\uD83C\uDFAD', t:'Eventi', tit:'Gli Eventi', d:'Mostre ed incontri de La Pacifica, aperti alla citt\u00e0.', free:'Programma di Speculum 2027', chiuso:'Ingresso con biglietto'},
   ];
 
   const clip = (s,n) => { s=String(s||'').replace(/\s+/g,' ').trim(); return s.length>n ? s.slice(0,n).trim()+'\u2026' : s; };
@@ -412,7 +425,7 @@ function renderLanding(){
   ];
 
   const ev = EVENTI[0] || null;
-  const evSide = ev ? ev.programma.split('\n').slice(0,6).map(r=>`<li>${esc(r)}</li>`).join('') : '';
+
 
   $('auth-root').innerHTML = `
   <div class="lp">
@@ -435,13 +448,7 @@ function renderLanding(){
       </div>
       <div class="lp-hero-in"><div class="lp-hero-copy">
         <div class="eyebrow lp-eye">La Pacifica Res Publica</div>
-        <h1 class="lp-h1">Un\u2019accademia internazionale per <em>costruire&nbsp;la&nbsp;pace</em>.</h1>
-        <p class="lp-sub">Sette principi, sei pilastri, un solo ingresso: Parlamento dei Giovani, Accademia, video, biblioteca audio con voce IA ed eventi. Molto \u00e8 gratuito \u2014 e da qui puoi gi\u00e0 leggere e ascoltare, senza account.</p>
-        <div class="lp-cta">
-          <button class="btn oro lp-btn" onclick="apriAccesso('reg')">Entra gratis</button>
-          <button class="lp-btn2" onclick="apriAccesso('login')">Ho gi\u00e0 un account</button>
-        </div>
-        <div class="lp-quote">\u00abLa conoscenza senza coscienza non genera futuro.\u00bb \u2014 dal Manifesto</div>
+        <h1 class="lp-h1">Accademia Internazionale per la&nbsp;<em>pace</em>.</h1>
       </div></div>
       <p class="lp-credit">Raffaello Sanzio, <em>La Scuola di Atene</em> (1509\u20131511) \u2014 Musei Vaticani, Stanza della Segnatura</p>
     </section>
@@ -461,14 +468,10 @@ function renderLanding(){
         <div class="lp-h"><h2>Le nostre sezioni</h2></div>
         <div class="lp-grid lp-g3">
           ${pilastri.map(p=>`<div class="lp-pill">
-            <div class="lp-pill-bg"><img src="${pillImg(p.t)}" alt="" loading="lazy"></div>
+            <div class="lp-pill-bg lp-pill-txt">${pillRighe(p.t).map(r=>`<span>${r}</span>`).join('')}</div>
             <span class="lp-pn">${p.n}</span>
             <div class="lp-pill-c">
-              <h3>${esc(p.t)}</h3><p>${esc(p.d)}</p>
-              <div class="lp-split">
-                <div class="lp-free"><span class="badge verde">Gratis</span> ${esc(p.free)}</div>
-                <div class="lp-lock"><span class="lp-key">\u2726</span> ${esc(p.chiuso)}</div>
-              </div>
+              <h3>${esc(p.tit||p.t)}</h3>
             </div></div>`).join('')}
         </div>
       </div>
@@ -476,7 +479,7 @@ function renderLanding(){
 
     <section class="lp-sec lp-svc">
       <div class="lp-sec-in">
-        <div class="lp-h"><h2>Servizi gratuiti</h2></div>
+        <div class="lp-h"><h2>Per Provare</h2></div>
         <div class="lp-grid lp-g3">
           ${liberi.map(x=>`<article class="tile lp-tile">
             <div class="cover lp-cover"><span class="k">${x.ico}</span><span class="tag">${esc(x.tp)} \u00b7 gratuito</span></div>
@@ -496,8 +499,15 @@ function renderLanding(){
         </div>
 
         ${ev?`<div class="lp-event">
+          <div class="lp-event-art">
+            <picture>
+              <source srcset="img/scuola-di-atene.webp" type="image/webp">
+              <img src="img/scuola-di-atene.jpg" loading="lazy" decoding="async"
+                   alt="La Scuola di Atene di Raffaello Sanzio">
+            </picture>
+          </div>
           <div class="lp-event-body">
-            <div class="eyebrow" style="color:var(--oro-chiaro)">Evento \u00b7 ${esc(ev.tipo)}</div>
+            <div class="eyebrow" style="color:var(--oro-chiaro)">Gli Eventi</div>
             <h3>${esc(ev.tit)}</h3>
             <p class="lp-event-sub">${esc(ev.sub||'')}</p>
             <p class="lp-event-desc">${esc(clip(ev.desc,300))}</p>
@@ -505,10 +515,6 @@ function renderLanding(){
             <div class="lp-cta" style="margin-top:20px">
               <button class="btn oro lp-btn" onclick="apriAccesso('reg')">Crea un account per prenotare</button>
             </div>
-          </div>
-          <div class="lp-event-side">
-            <div class="eyebrow" style="color:var(--oro-chiaro)">Dodici mesi, dodici specchi</div>
-            <ul class="lp-months">${evSide}<li class="lp-more">\u2026e altri sei mesi, fino a dicembre.</li></ul>
           </div>
         </div>`:''}
       </div>
@@ -562,7 +568,7 @@ function renderAuth(){
       <div>
         <div class="mk"><img class="logo-img" src="img/logo.png" alt="La Pacifica Res Publica"></div>
         <div class="eyebrow" style="color:var(--oro-chiaro)">La Pacifica Res Publica</div>
-        <h1>Un\u2019accademia internazionale per <em>costruire&nbsp;la&nbsp;pace</em>.</h1>
+        <h1>Accademia Internazionale per la&nbsp;<em>Pace</em></h1>
         <p>Un solo accesso a quattro mondi: il Parlamento dei Giovani, l’Accademia di formazione, i video on demand e la biblioteca audio con motore di intelligenza artificiale.</p>
       </div>
       <div class="four">
@@ -1708,7 +1714,8 @@ function renderCms(){
   </div>
   <div id="cms-area">${cmsArea()}</div>`;
 }
-function setCmsTab(t){ cmsTab=t; const a=$('cms-area'); if(a) a.innerHTML=cmsArea(); if(t==='temi') caricaOrfani(); if(t==='ente') caricaEnte(); if(t==='mecenati') caricaImpegni(); if(t==='rassegna'){ caricaEventiPaceCms(); caricaNotizieCms(); } if(t==='statistiche') caricaStatistiche(); }
+function setCmsTab(t){ cmsTab=t; const a=$('cms-area'); if(a) a.innerHTML=cmsArea();
+  document.querySelectorAll('.cms-menu button').forEach(b=>b.classList.toggle('on', (b.getAttribute('onclick')||'').indexOf("'"+t+"'")>=0)); if(t==='temi') caricaOrfani(); if(t==='ente') caricaEnte(); if(t==='mecenati') caricaImpegni(); if(t==='rassegna'){ caricaEventiPaceCms(); caricaNotizieCms(); } if(t==='statistiche') caricaStatistiche(); }
 function pubBadge(p){ return p===false?'<span class="badge grigio">Bozza</span>':'<span class="badge verde">Pubblicato</span>'; }
 function cmsRow(titolo, sub, badge, onEdit, onDel, extra){
   return `<div class="lesson" style="cursor:default">
@@ -1756,7 +1763,7 @@ function cmsArea(){
     const righe = ANAGRAFICHE.map(a=>cmsRow(
       (a.nome+' '+a.cognome).trim(),
       [a.qualifica, a.email, a.tel].filter(Boolean).join(' \u00b7 '),
-      `<span class="badge ${a.tipo==='formatore'?'blu':'grigio'}">${esc(a.tipo)}</span>${a.userId?' <span class="badge verde">portale</span>':''}${a.attivo===false?' <span class="badge grigio">inattiva</span>':''}`,
+      `<span class="badge ${(a.tipo||'').includes('formatore')?'blu':'grigio'}">${esc(a.tipo)}</span>${a.userId?' <span class="badge verde">portale</span>':''}${a.attivo===false?' <span class="badge grigio">inattiva</span>':''}`,
       `editAnagrafica('${a.id}')`, `delCont('anagrafica','${a.id}')`,
       `<button class="btn small ghost" onclick="apriContatti('${a.id}')">Contatti</button>`)).join('');
     return add + `<p class="muted small" style="margin-bottom:12px">Il registro di formatori, collaboratori e fornitori. I dati (codice fiscale, indirizzo) li vede solo la Presidenza; i formatori collegati a un account vedono la propria scheda.</p>
@@ -1976,9 +1983,15 @@ function editAnagrafica(id){
   openModal(`<h3 style="font-size:23px">${id?'Modifica anagrafica':'Nuova anagrafica'}</h3>`,
     `<div class="grid g2"><div class="field"><label>Nome</label><input id="an-nome" value="${esc(a.nome||'')}"></div>
        <div class="field"><label>Cognome</label><input id="an-cogn" value="${esc(a.cognome||'')}"></div></div>
-     <div class="grid g2"><div class="field"><label>Tipo</label><select id="an-tipo">
-         ${['formatore','collaboratore','fornitore','ente','altro'].map(t=>`<option ${a.tipo===t?'selected':''}>${t}</option>`).join('')}</select></div>
-       <div class="field"><label>Qualifica</label><input id="an-qual" value="${esc(a.qualifica||'')}" placeholder="es. Docente di bioetica"></div></div>
+     <div class="field"><label>Tipo (puoi sceglierne pi\u00f9 d\u2019uno)</label>
+       <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:4px">
+         ${['formatore','collaboratore','fornitore','ente','altro'].map(t=>`<label style="display:flex;gap:6px;align-items:center;font-size:14px"><input type="checkbox" class="an-tipo-cb" value="${t}" ${(a.tipo||'').split(',').map(x=>x.trim()).includes(t)?'checked':''} style="width:auto"> ${t}</label>`).join('')}
+       </div></div>
+     <div class="field"><label>Qualifiche (scelta multipla)</label>
+       <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:4px">
+         ${['docente','relatore','consulente','tecnico','artista','volontario'].map(q=>`<label style="display:flex;gap:6px;align-items:center;font-size:14px"><input type="checkbox" class="an-qual-cb" value="${q}" ${(a.qualifica||'').split(',').map(x=>x.trim().toLowerCase()).includes(q)?'checked':''} style="width:auto"> ${q}</label>`).join('')}
+       </div>
+       <input id="an-qual" value="${esc((a.qualifica||'').split(',').map(x=>x.trim()).filter(x=>!['docente','relatore','consulente','tecnico','artista','volontario'].includes(x.toLowerCase())).join(', '))}" placeholder="altre qualifiche libere, separate da virgola (es. Docente di bioetica)" style="margin-top:8px"></div>
      <div class="grid g2"><div class="field"><label>Codice fiscale</label><input id="an-cf" value="${esc(a.cf||'')}"></div>
        <div class="field"><label>Partita IVA</label><input id="an-piva" value="${esc(a.piva||'')}"></div></div>
      <div class="grid g2"><div class="field"><label>Email</label><input id="an-email" value="${esc(a.email||'')}"></div>
@@ -1994,7 +2007,8 @@ function editAnagrafica(id){
 }
 async function salvaAnagrafica(id){
   const o={ id:id||undefined, nome:$('an-nome').value.trim(), cognome:$('an-cogn').value.trim(),
-    tipo:$('an-tipo').value, qualifica:$('an-qual').value.trim(), cf:$('an-cf').value.trim().toUpperCase(),
+    tipo:[].slice.call(document.querySelectorAll('.an-tipo-cb:checked')).map(x=>x.value).join(', '),
+    qualifica:[].slice.call(document.querySelectorAll('.an-qual-cb:checked')).map(x=>x.value).concat($('an-qual').value.split(',').map(x=>x.trim()).filter(Boolean)).join(', '), cf:$('an-cf').value.trim().toUpperCase(),
     piva:$('an-piva').value.trim(), email:$('an-email').value.trim(), tel:$('an-tel').value.trim(),
     indirizzo:$('an-ind').value.trim(), citta:$('an-citta').value.trim(), cap:$('an-cap').value.trim(),
     prov:$('an-prov').value.trim().toUpperCase(), userId:$('an-uid').value.trim()||null,
@@ -2455,7 +2469,7 @@ async function sincronizza(id){
   toast('Sincronizzo\u2026');
   try{ const r = await DB.sincronizzaFonte(id); await loadCatalog(); setPresTab('contenuti');
     toast('Importate '+(r.importate||0)+' voci.'); }
-  catch(e){ toast(String(e.message||e).replace(/^.*: /,'')); }
+  catch(e){ toast(String(e.message||e)); }
 }
 async function caricaNotizieCms(){
   const box=$('nz-box'); if(!box) return;
@@ -2539,7 +2553,7 @@ function confermaPagato(id, rif){
 async function eseguiPagato(id){
   try{ const v = await DB.segnaPagato(id); closeModal(); setPresTab('contenuti');
     toast('Emessi '+v.length+' accessi.'); }
-  catch(e){ toast(String(e.message||e).replace(/^.*: /,'')); }
+  catch(e){ toast(String(e.message||e)); }
 }
 async function vediVoucher(id){
   let l=[]; try{ const { data } = await DB.rawVoucher(id); l=data||[]; }catch(e){}

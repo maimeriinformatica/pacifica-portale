@@ -4,7 +4,7 @@
 #  Supabase -> Project Settings -> General -> "Reference ID"
 #  (in CI viene comunque usato il segreto SUPABASE_PROJECT_ID)
 # =====================================================================
-project_id = "wpqdvyvapsqryxcqvpat"
+project_id = "IL-TUO-PROJECT-REF"
 
 # Le funzioni non elencate usano la verifica JWT (default, corretto: sono
 # chiamate dal sito con la sessione dell'utente).

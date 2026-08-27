@@ -1,9 +1,8 @@
 -- =====================================================================
---  LA PACIFICA RES PUBLICA - TUTTE LE MIGRAZIONI IN UN FILE (19)
+--  LA PACIFICA RES PUBLICA - TUTTE LE MIGRAZIONI IN UN FILE (20)
 --  Da incollare nel SQL Editor di Supabase (New query -> incolla -> Run).
 --  RIESEGUIBILE IN SICUREZZA anche su database parzialmente migrato.
---  Novita': aggiornamento automatico ORARIO della rassegna (pg_cron).
---  Per attivarlo davvero: vedi supabase/attiva-cron-rassegna.sql.
+--  Novita': l'evento in evidenza diventa ENIGMA ET SPECULUM.
 -- =====================================================================
 
 
@@ -2106,3 +2105,21 @@ do $$ begin
   perform cron.schedule('rassegna-ogni-ora', '12 * * * *', $c$select public.rassegna_cron()$c$);
   raise notice 'rassegna: aggiornamento automatico pianificato ogni ora (minuto 12)';
 exception when others then raise notice 'cron non pianificato (normale fuori da Supabase)'; end $$;
+
+
+-- ============ 0020_evento_enigma.sql ============
+
+-- =====================================================================
+-- 0020_evento_enigma.sql — L'evento in evidenza cambia veste
+-- "Speculum 2027" diventa "ENIGMA ET SPECULUM": l'incontro con
+-- Leonardo e i suoi amici. Aggiorna la scheda esistente (se presente)
+-- ovunque sia mostrata: banner della home e pagina Eventi.
+-- Rieseguibile: se il titolo e' gia' aggiornato non tocca nulla.
+-- =====================================================================
+update public.events set
+  titolo      = 'ENIGMA ET SPECULUM',
+  sottotitolo = 'L''incontro con Leonardo e i suoi amici',
+  descrizione = 'Una mostra immersiva che invita a riscoprire la Scuola di Atene come la segreta Accademia Vinciana. Un percorso tra filosofia, memoria e futuro per far rivivere il pensiero che l''ha animata.',
+  periodo     = 'Settembre 2027',
+  luogo       = 'Verona'
+where titolo = 'Speculum 2027';

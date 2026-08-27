@@ -252,9 +252,12 @@ const DB = {
       const base=(window.PACIFICA_CONFIG&&window.PACIFICA_CONFIG.FUNCTIONS_BASE)||'';
       if(!base) throw new Error('FUNCTIONS_BASE non configurato');
       const { data:{ session } } = await sb.auth.getSession();
-      const r = await fetch(base+'/s3-presign', { method:'POST',
-        headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+(session&&session.access_token||'') },
-        body: JSON.stringify({ account_id:accountId, filename, content_type:contentType }) });
+      let r;
+      try{
+        r = await fetch(base+'/s3-presign', { method:'POST',
+          headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+(session&&session.access_token||'') },
+          body: JSON.stringify({ account_id:accountId, filename, content_type:contentType }) });
+      }catch(_e){ throw new Error('La funzione non risponde (failed to fetch): quasi sempre significa che le Edge Function non sono ancora pubblicate su Supabase, o che FUNCTIONS_BASE \u00e8 sbagliato. Controlla: Dashboard \u2192 Edge Functions \u2192 deve esserci \u201cs3-presign\u201d; e FUNCTIONS_BASE deve essere https://TUO-PROGETTO.supabase.co/functions/v1'); }
       const j = await r.json(); if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; },
   async listUtenti(q){ let sel = sb.from('profiles').select('*').order('nome').limit(200);
       if(q) sel = sel.ilike('nome','%'+q+'%');
@@ -302,9 +305,12 @@ const DB = {
     const base = (window.PACIFICA_CONFIG&&PACIFICA_CONFIG.FUNCTIONS_BASE)||'';
     if(!base) throw new Error('FUNCTIONS_BASE non configurato');
     const { data:{ session } } = await sb.auth.getSession();
-    const r = await fetch(base.replace(/\/+$/,'')+'/rassegna', { method:'POST',
-      headers:{ 'content-type':'application/json', authorization:'Bearer '+(session&&session.access_token||'') },
-      body: JSON.stringify({ fonte_id:id }) });
+    let r;
+    try{
+      r = await fetch(base.replace(/\/+$/,'')+'/rassegna', { method:'POST',
+        headers:{ 'content-type':'application/json', authorization:'Bearer '+(session&&session.access_token||'') },
+        body: JSON.stringify({ fonte_id:id }) });
+    }catch(_e){ throw new Error('La funzione non risponde (failed to fetch): quasi sempre significa che le Edge Function non sono ancora pubblicate su Supabase, o che FUNCTIONS_BASE \u00e8 sbagliato. Controlla: Dashboard \u2192 Edge Functions \u2192 deve esserci \u201crassegna\u201d; e FUNCTIONS_BASE deve essere https://TUO-PROGETTO.supabase.co/functions/v1'); }
     const d = await r.json(); if(!r.ok) throw new Error(d.error||('HTTP '+r.status)); return d;
   },
   async saveEventoPace(o){ const { error } = await sb.from('eventi_pace').upsert({ id:o.id||undefined, titolo:o.tit,
