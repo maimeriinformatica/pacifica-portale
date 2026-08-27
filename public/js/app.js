@@ -1827,31 +1827,23 @@ function cmsRow(titolo, sub, badge, onEdit, onDel, extra){
 }
 function cmsArea(){
   if(cmsTab==='pagine'){
-    let ultimoGrp='';
-    const campi = ELENCO_TESTI.map(([k,label,def,ml],i)=>{
-      const grp = label.split(' \u2014 ')[0];
-      const head = grp!==ultimoGrp ? `<div class="eyebrow" style="margin:${i?'20px':'4px'} 0 6px">${esc(grp)}</div>` : '';
-      ultimoGrp = grp;
-      const val = esc(T(k, def));
-      const campo = ml ? `<textarea id="tp-${i}" rows="${ml}">${val}</textarea>` : `<input id="tp-${i}" value="${val}">`;
-      let so={}; try{ so=JSON.parse(TESTI_PAG['stile:'+k]||'{}'); }catch(_e){ so={}; }
-      const sel=(id,ops,cur)=>`<select id="${id}">`+ops.map(o=>`<option value="${o[0]}"${o[0]===(cur||'')?' selected':''}>${o[1]}</option>`).join('')+`</select>`;
-      const stile = `<div class="ts-stile">
-        ${sel('tp-al-'+i,[['','Allineamento: predefinito'],['left','A sinistra'],['center','Centrato'],['right','A destra']],so.al)}
-        ${sel('tp-ca-'+i,[['','Carattere: predefinito'],['serif','Elegante (titoli)'],['sans','Pulito (testi)']],so.ca)}
-        ${sel('tp-di-'+i,[['','Dimensione: predefinita'],['85','Pi\u00f9 piccolo'],['115','Un po\u2019 pi\u00f9 grande'],['130','Grande'],['150','Molto grande'],['175','Enorme']],so.di)}
-        ${sel('tp-cl-'+i,[['','Colore: predefinito'],['inchiostro','Inchiostro'],['oltremare','Blu oltremare'],['oro','Oro'],['grigio','Grigio'],['bianco','Bianco']],so.cl)}
-        <label class="ts-ck"><input type="checkbox" id="tp-gr-${i}"${so.gr?' checked':''}> Grassetto</label>
-        <label class="ts-ck"><input type="checkbox" id="tp-cv-${i}"${so.cv?' checked':''}> Corsivo</label>
-      </div>`;
-      const mod = ((TESTI_PAG[k]!==undefined && TESTI_PAG[k]!=='') || TESTI_PAG['stile:'+k]) ? ' <span class="badge blu">modificato</span>' : '';
-      return `${head}<div class="field"><label>${esc(label.split(' \u2014 ').slice(1).join(' \u2014 ')||label)}${mod}</label>${campo}${stile}</div>`;
+    if(!BLOCCHI_EDIT) blocchiCarica();
+    const gruppi=[]; let cur=null;
+    ELENCO_TESTI.forEach(([k,label,def,ml],i)=>{
+      const g=label.split(' \u2014 ')[0];
+      if(!cur || cur.nome!==g){ cur={nome:g,campi:[]}; gruppi.push(cur); }
+      cur.campi.push(i);
+    });
+    const corpo = gruppi.map(g=>{
+      const fieldsHtml = g.campi.map(i=>campoTestoHtml(i)).join('');
+      const zone = zonePerGruppo(g.nome);
+      const blocchi = zone.map(z=>blocchiEditorZona(z[0], z[1])).join('');
+      return `<div class="tp-gruppo"><div class="eyebrow">${esc(g.nome)}</div>${fieldsHtml}${blocchi}</div>`;
     }).join('');
     return `<div class="card" style="padding:22px;max-width:760px">
       <div class="eyebrow">Testi delle pagine</div>
-      <p class="muted small" style="margin-top:6px">Qui modifichi i testi del sito pubblico e, per ciascuno, allineamento, carattere, dimensione, colore, grassetto e corsivo. «Predefinito» significa: come disegnato in origine. Se riporti tutto al predefinito, il portale torna all'originale.</p>
-      <div style="margin-top:12px">${campi}</div>
-      ${blocchiEditorHtml()}
+      <p class="muted small" style="margin-top:6px">Ogni sezione raccoglie i suoi testi e, in coda, i suoi elementi aggiuntivi (righe di testo, immagini, tasti): cos\u00ec ampli la sezione restando nel suo disegno. \u00abPredefinito\u00bb significa: come disegnato in origine. Le frecce ordinano gli elementi, \u2715 rimuove. Al termine premi \u00abSalva i testi\u00bb.</p>
+      <div style="margin-top:12px">${corpo}</div>
       <button class="btn full" style="margin-top:16px" onclick="salvaTestiPagine()">Salva i testi</button>
     </div>`;
   }
@@ -2491,6 +2483,32 @@ async function salvaS3(id){
 /* =====================================================================
    LEZIONI DEI CORSI — gestione (presidenza e formatore del corso)
    ===================================================================== */
+function campoTestoHtml(i){
+  const [k,label,def,ml]=ELENCO_TESTI[i];
+  const val = esc(T(k, def));
+  const campo = ml ? `<textarea id="tp-${i}" rows="${ml}">${val}</textarea>` : `<input id="tp-${i}" value="${val}">`;
+  let so={}; try{ so=JSON.parse(TESTI_PAG['stile:'+k]||'{}'); }catch(_e){ so={}; }
+  const sel=(id,ops,cur)=>`<select id="${id}">`+ops.map(o=>`<option value="${o[0]}"${o[0]===(cur||'')?' selected':''}>${o[1]}</option>`).join('')+`</select>`;
+  const stile = `<div class="ts-stile">
+    ${sel('tp-al-'+i,[['','Allineamento: predefinito'],['left','A sinistra'],['center','Centrato'],['right','A destra']],so.al)}
+    ${sel('tp-ca-'+i,[['','Carattere: predefinito'],['serif','Elegante (titoli)'],['sans','Pulito (testi)']],so.ca)}
+    ${sel('tp-di-'+i,[['','Dimensione: predefinita'],['85','Pi\u00f9 piccolo'],['115','Un po\u2019 pi\u00f9 grande'],['130','Grande'],['150','Molto grande'],['175','Enorme']],so.di)}
+    ${sel('tp-cl-'+i,[['','Colore: predefinito'],['inchiostro','Inchiostro'],['oltremare','Blu oltremare'],['oro','Oro'],['grigio','Grigio'],['bianco','Bianco']],so.cl)}
+    <label class="ts-ck"><input type="checkbox" id="tp-gr-${i}"${so.gr?' checked':''}> Grassetto</label>
+    <label class="ts-ck"><input type="checkbox" id="tp-cv-${i}"${so.cv?' checked':''}> Corsivo</label>
+  </div>`;
+  const mod = ((TESTI_PAG[k]!==undefined && TESTI_PAG[k]!=='') || TESTI_PAG['stile:'+k]) ? ' <span class="badge blu">modificato</span>' : '';
+  return `<div class="field"><label>${esc(label.split(' \u2014 ').slice(1).join(' \u2014 ')||label)}${mod}</label>${campo}${stile}</div>`;
+}
+function zonePerGruppo(nome){
+  const zi=z=>ZONE_BLOCCHI.findIndex(x=>x[0]===z);
+  if(nome==='Riquadro iniziale') return [[zi('hero'),null]];
+  const m=nome.match(/^Scheda \u201c(.+)\u201d$/);
+  if(m){ const t=m[1].replace(/^(Il |La |L\u2019|Gli )/,''); const idx=zi('sezione.'+t); return idx>=0?[[idx,null]]:[]; }
+  if(nome.indexOf('Per Provare')>=0) return [[zi('provare'),null]];
+  if(nome==='Manifesto') return [[zi('manifesto'),'in home'],[zi('manifesto-pagina'),'nella pagina interna']];
+  return [];
+}
 let BLOCCHI_EDIT=null;
 function blocchiCarica(){
   BLOCCHI_EDIT={};
@@ -2530,35 +2548,30 @@ function spostaBlocco(zi,i,dir){
   const t=a[i]; a[i]=a[j]; a[j]=t;
   setCmsTab('pagine');
 }
-function blocchiEditorHtml(){
+function blocchiEditorZona(zi, sotto){
   if(!BLOCCHI_EDIT) blocchiCarica();
+  if(zi<0) return '';
+  const z=ZONE_BLOCCHI[zi][0];
   const selB=(id,ops,cur)=>`<select id="${id}">`+ops.map(o=>`<option value="${o[0]}"${o[0]===(cur||'')?' selected':''}>${o[1]}</option>`).join('')+`</select>`;
   const OPS_AL=[['','Posizione: centro'],['left','A sinistra'],['right','A destra']];
-  const zone = ZONE_BLOCCHI.map(([z,titolo],zi)=>{
-    const righe=(BLOCCHI_EDIT[z]||[]).map((b,i)=>{
-      const pre=`bk-${zi}-${i}-`;
-      const nav=`<span class="bk-nav"><button class="linkbtn" title="Su" onclick="spostaBlocco(${zi},${i},-1)">\u2191</button><button class="linkbtn" title="Gi\u00f9" onclick="spostaBlocco(${zi},${i},1)">\u2193</button><button class="linkbtn" title="Rimuovi" onclick="rimuoviBlocco(${zi},${i})">\u2715 rimuovi</button></span>`;
-      if(b.tipo==='immagine') return `<div class="bk-riga"><div class="bk-testa"><b>Immagine</b>${nav}</div>
-        <input id="${pre}url" placeholder="Indirizzo dell\u2019immagine (https\u2026 oppure img/\u2026)" value="${esc(b.url||'')}">
-        <div class="ts-stile">${selB(pre+'larg',[['25','Larghezza: 25%'],['40','40%'],['60','60%'],['80','80%'],['100','100%']],String(b.larg||'60'))}${selB(pre+'al',OPS_AL,b.al)}</div></div>`;
-      if(b.tipo==='tasto') return `<div class="bk-riga"><div class="bk-testa"><b>Tasto</b>${nav}</div>
-        <input id="${pre}testo" placeholder="Scritta del tasto" value="${esc(b.testo||'')}">
-        <input id="${pre}link" placeholder="Collegamento (https\u2026 oppure docs/\u2026)" value="${esc(b.link||'')}" style="margin-top:6px">
-        <div class="ts-stile">${selB(pre+'st',[['','Aspetto: blu'],['oro','Oro'],['contorno','A contorno']],b.st)}${selB(pre+'al',OPS_AL,b.al)}</div></div>`;
-      return `<div class="bk-riga"><div class="bk-testa"><b>Riga di testo</b>${nav}</div>
-        <input id="${pre}testo" placeholder="Il testo da mostrare" value="${esc(b.testo||'')}">
-        <div class="ts-stile">${selB(pre+'al',[['','Allineamento: predefinito'],['left','A sinistra'],['center','Centrato'],['right','A destra']],b.al)}${selB(pre+'di',[['','Dimensione: predefinita'],['85','Pi\u00f9 piccolo'],['115','Un po\u2019 pi\u00f9 grande'],['130','Grande'],['150','Molto grande']],b.di)}${selB(pre+'cl',[['','Colore: predefinito'],['inchiostro','Inchiostro'],['oltremare','Blu oltremare'],['oro','Oro'],['grigio','Grigio'],['bianco','Bianco']],b.cl)}
-        <label class="ts-ck"><input type="checkbox" id="${pre}gr"${b.gr?' checked':''}> Grassetto</label>
-        <label class="ts-ck"><input type="checkbox" id="${pre}cv"${b.cv?' checked':''}> Corsivo</label></div></div>`;
-    }).join('');
-    const add=`<div class="bk-add"><button class="linkbtn" onclick="aggiungiBlocco(${zi},'testo')">+ Riga di testo</button><button class="linkbtn" onclick="aggiungiBlocco(${zi},'immagine')">+ Immagine</button><button class="linkbtn" onclick="aggiungiBlocco(${zi},'tasto')">+ Tasto</button></div>`;
-    return `<div class="eyebrow" style="margin:18px 0 4px">${esc(titolo)}</div>${righe||'<div class="muted small">Nessun elemento aggiunto.</div>'}${add}`;
+  const righe=(BLOCCHI_EDIT[z]||[]).map((b,i)=>{
+    const pre=`bk-${zi}-${i}-`;
+    const nav=`<span class="bk-nav"><button class="linkbtn" title="Su" onclick="spostaBlocco(${zi},${i},-1)">\u2191</button><button class="linkbtn" title="Gi\u00f9" onclick="spostaBlocco(${zi},${i},1)">\u2193</button><button class="linkbtn" title="Rimuovi" onclick="rimuoviBlocco(${zi},${i})">\u2715 rimuovi</button></span>`;
+    if(b.tipo==='immagine') return `<div class="bk-riga"><div class="bk-testa"><b>Immagine</b>${nav}</div>
+      <input id="${pre}url" placeholder="Indirizzo dell\u2019immagine (https\u2026 oppure img/\u2026)" value="${esc(b.url||'')}">
+      <div class="ts-stile">${selB(pre+'larg',[['25','Larghezza: 25%'],['40','40%'],['60','60%'],['80','80%'],['100','100%']],String(b.larg||'60'))}${selB(pre+'al',OPS_AL,b.al)}</div></div>`;
+    if(b.tipo==='tasto') return `<div class="bk-riga"><div class="bk-testa"><b>Tasto</b>${nav}</div>
+      <input id="${pre}testo" placeholder="Scritta del tasto" value="${esc(b.testo||'')}">
+      <input id="${pre}link" placeholder="Collegamento (https\u2026 oppure docs/\u2026)" value="${esc(b.link||'')}" style="margin-top:6px">
+      <div class="ts-stile">${selB(pre+'st',[['','Aspetto: blu'],['oro','Oro'],['contorno','A contorno']],b.st)}${selB(pre+'al',OPS_AL,b.al)}</div></div>`;
+    return `<div class="bk-riga"><div class="bk-testa"><b>Riga di testo</b>${nav}</div>
+      <input id="${pre}testo" placeholder="Il testo da mostrare" value="${esc(b.testo||'')}">
+      <div class="ts-stile">${selB(pre+'al',[['','Allineamento: predefinito'],['left','A sinistra'],['center','Centrato'],['right','A destra']],b.al)}${selB(pre+'di',[['','Dimensione: predefinita'],['85','Pi\u00f9 piccolo'],['115','Un po\u2019 pi\u00f9 grande'],['130','Grande'],['150','Molto grande']],b.di)}${selB(pre+'cl',[['','Colore: predefinito'],['inchiostro','Inchiostro'],['oltremare','Blu oltremare'],['oro','Oro'],['grigio','Grigio'],['bianco','Bianco']],b.cl)}
+      <label class="ts-ck"><input type="checkbox" id="${pre}gr"${b.gr?' checked':''}> Grassetto</label>
+      <label class="ts-ck"><input type="checkbox" id="${pre}cv"${b.cv?' checked':''}> Corsivo</label></div></div>`;
   }).join('');
-  return `<div style="margin-top:26px;border-top:1px solid var(--linea);padding-top:14px">
-    <div class="eyebrow">Elementi aggiuntivi delle sezioni</div>
-    <p class="muted small" style="margin-top:6px">Qui aggiungi, in coda a ogni sezione, righe di testo, immagini (da indirizzo web o del sito) e tasti con collegamento. Le frecce ordinano, \u2715 rimuove. Ricorda di premere \u00abSalva i testi\u00bb.</p>
-    ${zone}
-  </div>`;
+  const add=`<div class="bk-add"><button class="linkbtn" onclick="aggiungiBlocco(${zi},'testo')">+ Riga di testo</button><button class="linkbtn" onclick="aggiungiBlocco(${zi},'immagine')">+ Immagine</button><button class="linkbtn" onclick="aggiungiBlocco(${zi},'tasto')">+ Tasto</button></div>`;
+  return `<div class="bk-zona"><div class="bk-cap">Elementi aggiuntivi${sotto?' \u2014 '+esc(sotto):''}</div>${righe}${add}</div>`;
 }
 async function salvaTestiPagine(){
   const upsert=[], cancella=[];
