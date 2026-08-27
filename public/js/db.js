@@ -230,6 +230,12 @@ const DB = {
         nome:file.name||'file', url, dimensione:file.size||0, descrizione:(arguments[3]||'') }); if(error) throw error; return url; },
   async deleteAllegato(id, url){ const { error } = await sb.from('allegati').delete().eq('id',id); if(error) throw error;
       try{ const p=(url||'').split('/allegati/')[1]; if(p) await sb.storage.from('allegati').remove([p]); }catch(e){} },
+  async loadTesti(){ const { data, error } = await sb.from('contenuti_sito').select('chiave,valore');
+      if(error) throw error; const m={}; (data||[]).forEach(r=>{ m[r.chiave]=r.valore; }); return m; },
+  async saveTesti(righe){ if(!righe.length) return; const { error } = await sb.from('contenuti_sito')
+      .upsert(righe.map(r=>({ chiave:r.chiave, valore:r.valore, updated_at:new Date().toISOString() })), { onConflict:'chiave' });
+      if(error) throw error; },
+  async deleteTesto(chiave){ const { error } = await sb.from('contenuti_sito').delete().eq('chiave',chiave); if(error) throw error; },
   async listLezioni(courseId){ const { data, error } = await sb.from('course_lessons').select('*')
       .eq('course_id',courseId).order('ordine'); if(error) throw error;
       return (data||[]).map(r=>({ id:r.id, courseId:r.course_id, tit:r.titolo, desc:r.descrizione,

@@ -57,6 +57,37 @@ let ANAGRAFICHE = [];
 let MODELLI = [];
 let S3ACC = [];
 let LEZ_CACHE = {};
+let TESTI_PAG = {};   // testi delle pagine sovrascritti dal gestionale (contenuti_sito)
+function T(k,d){ const v=TESTI_PAG[k]; return (v!==undefined && v!=='') ? v : d; }
+/* Elenco dei testi modificabili: [chiave, etichetta, predefinito, righe-textarea] */
+const ELENCO_TESTI = (function(){
+  const E=[['hero.occhiello','Riquadro iniziale \u2014 occhiello','La Pacifica Res Publica',0],
+    ['hero.titolo','Riquadro iniziale \u2014 titolo (ammesso HTML es. <em>)','Accademia Internazionale per la&nbsp;<em>pace</em>.',0],
+    ['provare.titolo','Intestazione \u201cPer Provare\u201d','Per Provare',0],
+    ['manifesto.titolo','Manifesto \u2014 titolo','Il Nostro Manifesto',0],
+    ['manifesto.citazione','Manifesto \u2014 citazione finale','\u00abLa conoscenza senza coscienza non genera futuro.\u00bb',0],
+    ['footer.motto','Pi\u00e8 di pagina \u2014 motto','\u00abCustodire per costruire.\u00bb',0]];
+  const SR={'Parlamento dei Giovani':['Il Parlamento dei Giovani','Proposte, dibattiti e votazioni.','Seggi, commissioni e aula.','La democrazia si impara praticandola.'],
+    'Accademia':['L\u2019Accademia','Corsi tenuti dai formatori.','Lezioni, materiali e quiz.','Il Percorso di Pace, passo dopo passo.'],
+    'Video On Demand':['Il Video On Demand','Lezioni e conferenze in video.','Percorsi ordinati per livelli.','La cultura di pace da guardare.'],
+    'Biblioteca Audio':['La Biblioteca Audio','Testi da leggere e ascoltare.','Audiolibri con voce IA.','La cultura che si ascolta.'],
+    'Campus':['Il Campus','Fine settimana formativi.','All\u2019Abbazia di Maguzzano, sul Garda.','Lo studio come vita condivisa.'],
+    'Eventi':['Gli Eventi','Mostre, incontri e forum.','Aperti alla citt\u00e0.','La Pacifica incontra il mondo.']};
+  Object.keys(SR).forEach(k=>{
+    E.push(['sezione.'+k+'.titolo','Scheda \u201c'+k+'\u201d \u2014 titolo',SR[k][0],0]);
+    for(let i=1;i<=3;i++) E.push(['sezione.'+k+'.riga'+i,'Scheda \u201c'+k+'\u201d \u2014 riga '+i,SR[k][i],0]);
+  });
+  const PR=[['I','La Pace come Stato dell\u2019Essere','La pace \u00e8 uno stato interiore di consapevolezza, che si riflette nella vita sociale e civile promuovendo la risoluzione dei conflitti.'],
+    ['II','Conoscenza e Coscienza Unite','Ogni sapere \u00e8 autentico solo quando \u00e8 accompagnato da responsabilit\u00e0 etica e profondit\u00e0 spirituale. La conoscenza senza coscienza non genera futuro.'],
+    ['III','Centralit\u00e0 della Persona Umana','L\u2019essere umano \u00e8 al centro come creatura pensante, relazionale e spirituale. Educare significa formare l\u2019intero essere umano.'],
+    ['IV','Unit\u00e0 nella Diversit\u00e0','Culture, discipline e tradizioni dialogano senza annullarsi. La pace nasce dall\u2019armonia delle differenze.'],
+    ['V','Bellezza come Via Educativa','Arte, parola e bellezza sono strumenti di elevazione, comprensione e trasformazione. La bellezza educa alla pace.'],
+    ['VI','Sapere come Servizio','La conoscenza \u00e8 chiamata a diventare servizio al bene comune, custodia della vita e responsabilit\u00e0 verso le generazioni future.'],
+    ['VII','Storia Vivente e Futuro Consapevole','Il futuro nasce da radici comprese e rinnovate. La storia \u00e8 una memoria che ritorna vivente.']];
+  PR.forEach(p=>{ E.push(['principio.'+p[0]+'.titolo','Principio '+p[0]+' \u2014 titolo',p[1],0]);
+                  E.push(['principio.'+p[0]+'.testo','Principio '+p[0]+' \u2014 testo',p[2],3]); });
+  return E;
+})();
 let LEZ_ADMIN = [];
 let UTENTI_ADMIN = [];
 let CONTRATTI = [];
@@ -154,6 +185,7 @@ async function refreshMe(){ io = await DB.loadMe(); }
 async function loadCatalog(){
   try{
     const cat = await DB.loadCatalog();
+    try{ TESTI_PAG = await DB.loadTesti(); }catch(_e){ TESTI_PAG = {}; }
     if(cat.CORSI && cat.CORSI.length) CORSI = cat.CORSI;
     if(cat.LIVELLI && cat.LIVELLI.length) LIVELLI = cat.LIVELLI;
     if(cat.TEMI) TEMI = cat.TEMI;
@@ -252,7 +284,7 @@ function pillRighe(t){
     'Campus': ['Fine settimana formativi.','All\u2019Abbazia di Maguzzano, sul Garda.','Lo studio come vita condivisa.'],
     'Eventi': ['Mostre, incontri e forum.','Aperti alla citt\u00e0.','La Pacifica incontra il mondo.']
   };
-  return R[t] || [];
+  return (R[t]||[]).map((r,i)=>T('sezione.'+t+'.riga'+(i+1), r));
 }
 
 /* Emblemi SVG dei sei pilastri (coerenti col tema, oro su vetro) */
@@ -293,7 +325,7 @@ function pillScene(t){
 /* Piè di pagina condiviso (home + pagine interne) */
 function lpFooter(){
   return `<footer class="lp-foot"><div class="lp-sec-in lp-foot-in">
-      <div class="lp-foot-brand"><span class="mark mark-scuro"><img class="logo-img" src="img/logo.png" alt="La Pacifica Res Publica"></span><div><b>La Pacifica Res Publica</b><span>\u00abCustodire per costruire.\u00bb</span></div></div>
+      <div class="lp-foot-brand"><span class="mark mark-scuro"><img class="logo-img" src="img/logo.png" alt="La Pacifica Res Publica"></span><div><b>La Pacifica Res Publica</b><span>${esc(T('footer.motto','\u00abCustodire per costruire.\u00bb'))}</span></div></div>
       <div class="lp-foot-cta">
         <button class="linkbtn" onclick="apriAccesso('login')">Accedi</button>
         <button class="btn small" onclick="apriAccesso('reg')">Entra gratis</button>
@@ -328,18 +360,17 @@ function renderManifestoPage(){
   return `<div class="lp">
     ${lpHeaderPagina()}
     <section class="lp-page-hero"><div class="lp-sec-in">
-      <div class="eyebrow" style="color:var(--oro)">Il Manifesto</div>
       <img class="lp-manifesto-logo" src="img/logo.png" alt="La Pacifica Res Publica">
-      <h1 class="lp-page-h1">I Sette Principi</h1>
-      <p style="margin-top:10px"><a class="lp-btn2" href="docs/manifesto.pdf" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">Scarica e stampa il Manifesto (PDF)</a></p>
+      <h1 class="lp-page-h1">${esc(T('manifesto.titolo','Il Nostro Manifesto'))}</h1>
+      <p style="margin-top:10px"><a class="btn lp-btn" href="docs/manifesto.pdf" target="_blank" rel="noopener" style="text-decoration:none">Scarica e stampa il Manifesto (PDF)</a></p>
       <p class="lp-page-lead">La Pacifica nasce come Accademia Internazionale per la Pace, una <em>Res Publica universale</em> fondata sulla conoscenza, sulla coscienza e sulla dignit\u00e0 dell\u2019essere umano. La nostra iniziativa si riconosce in sette principi fondamentali, che ne costituiscono l\u2019anima e la direzione.</p>
     </div></section>
     <section class="lp-sec"><div class="lp-sec-in">
       <div class="man-list">
         ${principi.map(([n,t,d])=>`<article class="man-item"><div class="man-n">${n}</div>
-          <div class="man-b"><h3>${esc(t)}</h3><p>${esc(d)}</p></div></article>`).join('')}
+          <div class="man-b"><h3>${esc(T('principio.'+n+'.titolo',t))}</h3><p>${esc(T('principio.'+n+'.testo',d))}</p></div></article>`).join('')}
       </div>
-      <div class="man-quote">\u00abLa conoscenza senza coscienza non genera futuro.\u00bb<span>\u2014 dal Manifesto de La Pacifica Res Publica</span></div>
+      <div class="man-quote">${esc(T('manifesto.citazione','\u00abLa conoscenza senza coscienza non genera futuro.\u00bb'))}<span>\u2014 dal Manifesto de La Pacifica Res Publica</span></div>
       <div class="lp-cta" style="justify-content:center;margin-top:26px">
         <button class="btn oro lp-btn" onclick="apriAccesso('reg')">Entra e comincia</button>
         <button class="lp-btn2" onclick="tornaHome()">\u2190 Torna alla home</button>
@@ -449,8 +480,8 @@ function renderLanding(){
         </picture>
       </div>
       <div class="lp-hero-in"><div class="lp-hero-copy">
-        <div class="eyebrow lp-eye">La Pacifica Res Publica</div>
-        <h1 class="lp-h1">Accademia Internazionale per la&nbsp;<em>pace</em>.</h1>
+        <div class="eyebrow lp-eye">${esc(T('hero.occhiello','La Pacifica Res Publica'))}</div>
+        <h1 class="lp-h1">${T('hero.titolo','Accademia Internazionale per la&nbsp;<em>pace</em>.')}</h1>
       </div></div>
       <p class="lp-credit">Raffaello Sanzio, <em>La Scuola di Atene</em> (1509\u20131511) \u2014 Musei Vaticani, Stanza della Segnatura</p>
     </section>
@@ -458,11 +489,10 @@ function renderLanding(){
     <section class="lp-sec lp-frieze">
       <div class="lp-sec-in">
         <img class="lp-manifesto-logo" src="img/logo.png" alt="La Pacifica Res Publica">
-        <div class="lp-h"><div class="eyebrow">Il Manifesto</div><h2>I Sette Principi</h2>
-          <p class="lp-lead">Non dogmi da recitare, ma chiavi per leggere la realt\u00e0.</p></div>
+        <div class="lp-h"><h2>${esc(T('manifesto.titolo','Il Nostro Manifesto'))}</h2></div>
         <div class="lp-cta" style="justify-content:center;margin-top:4px">
           <button class="btn oro lp-btn" onclick="apriPagina('manifesto')">Scopri i Sette Principi \u2192</button>
-          <a class="lp-btn2" href="docs/manifesto.pdf" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">Scarica il Manifesto (PDF)</a>
+          <a class="btn lp-btn" href="docs/manifesto.pdf" target="_blank" rel="noopener" style="text-decoration:none">Scarica il Manifesto (PDF)</a>
         </div>
       </div>
     </section>
@@ -475,7 +505,7 @@ function renderLanding(){
             <div class="lp-pill-bg lp-pill-txt">${pillRighe(p.t).map(r=>`<span>${r}</span>`).join('')}</div>
             <span class="lp-pn">${p.n}</span>
             <div class="lp-pill-c">
-              <h3>${esc(p.tit||p.t)}</h3>
+              <h3>${esc(T('sezione.'+p.t+'.titolo', p.tit||p.t))}</h3>
             </div></div>`).join('')}
         </div>
       </div>
@@ -483,7 +513,7 @@ function renderLanding(){
 
     <section class="lp-sec lp-svc">
       <div class="lp-sec-in">
-        <div class="lp-h"><h2>Per Provare</h2></div>
+        <div class="lp-h"><h2>${esc(T('provare.titolo','Per Provare'))}</h2></div>
         <div class="lp-grid lp-g3">
           ${liberi.map(x=>`<article class="tile lp-tile">
             <div class="cover lp-cover"><span class="k">${x.ico}</span><span class="tag">${esc(x.tp)} \u00b7 gratuito</span></div>
@@ -1707,7 +1737,7 @@ async function generaCodici(){
 /* Menu del gestionale, raggruppato per aree di lavoro */
 const CMS_GRUPPI=[
   ['Persone', [['anagrafiche','Anagrafiche'],['contratti','Contratti'],['utenti','Utenti'],['pagamenti','Pagamenti']]],
-  ['Contenuti', [['corsi','Corsi'],['video','Video'],['audio','Audiolibri'],['testi','Testi'],['pacchetti','Pacchetti'],['campus','Campus'],['eventi','Eventi']]],
+  ['Contenuti', [['corsi','Corsi'],['video','Video'],['audio','Audiolibri'],['testi','Testi'],['pagine','Testi delle pagine'],['pacchetti','Pacchetti'],['campus','Campus'],['eventi','Eventi']]],
   ['Comunicazione', [['rassegna','Rassegna'],['mecenati','Mecenati'],['statistiche','Statistiche']]],
   ['Impostazioni', [['livelli','Livelli'],['temi','Temi UE'],['archiviazione','Video S3'],['ente','Ente'],['prezzi','Prezzi']]]
 ];
@@ -1729,6 +1759,24 @@ function cmsRow(titolo, sub, badge, onEdit, onDel, extra){
       <button class="btn small ghost" style="color:var(--porpora);border-color:#ECC9C9" onclick="${onDel}">Elimina</button></span></div>`;
 }
 function cmsArea(){
+  if(cmsTab==='pagine'){
+    let ultimoGrp='';
+    const campi = ELENCO_TESTI.map(([k,label,def,ml],i)=>{
+      const grp = label.split(' \u2014 ')[0];
+      const head = grp!==ultimoGrp ? `<div class="eyebrow" style="margin:${i?'20px':'4px'} 0 6px">${esc(grp)}</div>` : '';
+      ultimoGrp = grp;
+      const val = esc(T(k, def));
+      const campo = ml ? `<textarea id="tp-${i}" rows="${ml}">${val}</textarea>` : `<input id="tp-${i}" value="${val}">`;
+      const mod = (TESTI_PAG[k]!==undefined && TESTI_PAG[k]!=='') ? ' <span class="badge blu">modificato</span>' : '';
+      return `${head}<div class="field"><label>${esc(label.split(' \u2014 ').slice(1).join(' \u2014 ')||label)}${mod}</label>${campo}</div>`;
+    }).join('');
+    return `<div class="card" style="padding:22px;max-width:760px">
+      <div class="eyebrow">Testi delle pagine</div>
+      <p class="muted small" style="margin-top:6px">Qui modifichi i testi del sito pubblico (riquadro iniziale, schede delle sezioni, Manifesto, motto). Se riporti un campo al testo originale, il portale torna a usare il predefinito. La grafica non cambia: solo le parole.</p>
+      <div style="margin-top:12px">${campi}</div>
+      <button class="btn full" style="margin-top:16px" onclick="salvaTestiPagine()">Salva i testi</button>
+    </div>`;
+  }
   if(cmsTab==='prezzi'){
     return `<div class="card" style="padding:22px;max-width:460px">
       <div class="eyebrow">Prezzi globali</div>
@@ -2365,6 +2413,23 @@ async function salvaS3(id){
 /* =====================================================================
    LEZIONI DEI CORSI — gestione (presidenza e formatore del corso)
    ===================================================================== */
+async function salvaTestiPagine(){
+  const upsert=[], cancella=[];
+  ELENCO_TESTI.forEach(([k,label,def],i)=>{
+    const el=$('tp-'+i); if(!el) return;
+    const v=el.value.trim();
+    if(v && v!==def) upsert.push({ chiave:k, valore:v });
+    else if(TESTI_PAG[k]!==undefined) cancella.push(k);
+  });
+  try{
+    if(upsert.length) await DB.saveTesti(upsert);
+    for(const k of cancella) await DB.deleteTesto(k);
+    upsert.forEach(r=>{ TESTI_PAG[r.chiave]=r.valore; });
+    cancella.forEach(k=>{ delete TESTI_PAG[k]; });
+    setCmsTab('pagine');
+    toast('Testi salvati: il sito pubblico li usa da subito.');
+  }catch(e){ toast('Errore: '+(e.message||'')); }
+}
 async function apriLezioni(courseId){
   openModal(`<h3 style="font-size:23px">Lezioni del corso</h3>`,
     `<div id="lz-list" class="muted small">Carico\u2026</div>
