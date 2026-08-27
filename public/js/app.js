@@ -69,7 +69,7 @@ function stileTesto(k){
   let st='';
   if(o.al==='left'||o.al==='center'||o.al==='right'){
     st+='text-align:'+o.al+';align-self:'+(o.al==='left'?'flex-start':(o.al==='right'?'flex-end':'center'))+';';
-    if(o.al!=='center') st+='width:100%;';
+    st+=(o.al==='left'?'margin-right:auto;':(o.al==='right'?'margin-left:auto;':'margin-left:auto;margin-right:auto;'));
   }
   if(F[o.ca]) st+='font-family:'+F[o.ca]+';';
   const d=parseInt(o.di,10); if(d>=60 && d<=220) st+='font-size:'+(d/100)+'em;';
@@ -504,7 +504,7 @@ function renderLanding(){
     <section class="lp-sec lp-frieze">
       <div class="lp-sec-in">
         <img class="lp-manifesto-logo" src="img/logo.png" alt="La Pacifica Res Publica">
-        <div class="lp-h"><h2${stileTesto('manifesto.titolo')}>${esc(T('manifesto.titolo','Il Nostro Manifesto'))}</h2></div>
+        <div class="lp-h"${stileTesto('manifesto.titolo')}><h2${stileTesto('manifesto.titolo')}>${esc(T('manifesto.titolo','Il Nostro Manifesto'))}</h2></div>
         <div class="lp-cta" style="justify-content:center;margin-top:4px">
           <button class="btn oro lp-btn" onclick="apriPagina('manifesto')">Scopri i Sette Principi \u2192</button>
           <a class="btn lp-btn" href="docs/manifesto.pdf" target="_blank" rel="noopener" style="text-decoration:none">Scarica il Manifesto (PDF)</a>
@@ -528,7 +528,7 @@ function renderLanding(){
 
     <section class="lp-sec lp-svc">
       <div class="lp-sec-in">
-        <div class="lp-h"><h2${stileTesto('provare.titolo')}>${esc(T('provare.titolo','Per Provare'))}</h2></div>
+        <div class="lp-h"${stileTesto('provare.titolo')}><h2${stileTesto('provare.titolo')}>${esc(T('provare.titolo','Per Provare'))}</h2></div>
         <div class="lp-grid lp-g3">
           ${liberi.map(x=>`<article class="tile lp-tile">
             <div class="cover lp-cover"><span class="k">${x.ico}</span><span class="tag">${esc(x.tp)} \u00b7 gratuito</span></div>
