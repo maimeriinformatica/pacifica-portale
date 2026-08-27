@@ -329,7 +329,9 @@ function renderManifestoPage(){
     ${lpHeaderPagina()}
     <section class="lp-page-hero"><div class="lp-sec-in">
       <div class="eyebrow" style="color:var(--oro)">Il Manifesto</div>
+      <img class="lp-manifesto-logo" src="img/logo.png" alt="La Pacifica Res Publica">
       <h1 class="lp-page-h1">I Sette Principi</h1>
+      <p style="margin-top:10px"><a class="lp-btn2" href="docs/manifesto.pdf" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">Scarica e stampa il Manifesto (PDF)</a></p>
       <p class="lp-page-lead">La Pacifica nasce come Accademia Internazionale per la Pace, una <em>Res Publica universale</em> fondata sulla conoscenza, sulla coscienza e sulla dignit\u00e0 dell\u2019essere umano. La nostra iniziativa si riconosce in sette principi fondamentali, che ne costituiscono l\u2019anima e la direzione.</p>
     </div></section>
     <section class="lp-sec"><div class="lp-sec-in">
@@ -455,10 +457,12 @@ function renderLanding(){
 
     <section class="lp-sec lp-frieze">
       <div class="lp-sec-in">
+        <img class="lp-manifesto-logo" src="img/logo.png" alt="La Pacifica Res Publica">
         <div class="lp-h"><div class="eyebrow">Il Manifesto</div><h2>I Sette Principi</h2>
           <p class="lp-lead">Non dogmi da recitare, ma chiavi per leggere la realt\u00e0.</p></div>
         <div class="lp-cta" style="justify-content:center;margin-top:4px">
           <button class="btn oro lp-btn" onclick="apriPagina('manifesto')">Scopri i Sette Principi \u2192</button>
+          <a class="lp-btn2" href="docs/manifesto.pdf" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">Scarica il Manifesto (PDF)</a>
         </div>
       </div>
     </section>
@@ -543,8 +547,8 @@ function renderLanding(){
             <ul><li>Video On Demand completo</li><li>Biblioteca illimitata + IA</li><li>Sconto 20% sui corsi</li></ul>
             <button class="btn oro" onclick="apriAccesso('reg')">Attiva Civis</button>
             <p class="lp-fine">oppure 120 \u20ac/anno</p></div>
-          <div class="lp-plan"><h4>Academicus</h4><div class="lp-pr">590 \u20ac<small>/anno</small></div>
-            <ul><li>Intero catalogo (8 corsi)</li><li>Live mensili con i formatori</li><li>Attestati dell\u2019Accademia</li></ul>
+          <div class="lp-plan"><h4>Academicus</h4><div class="lp-pr">2.500 \u20ac<small>/anno</small></div>
+            <ul><li>20 corsi (105 ore di videocorsi)</li><li>Live mensili con i formatori</li><li>Attestati dell\u2019Accademia</li></ul>
             <button class="lp-btn2" onclick="apriAccesso('reg')">Attiva Academicus</button></div>
         </div>
       </div>
@@ -1599,14 +1603,14 @@ function renderAbbonamenti(){
       <ul><li>Tutto il livello Gratuito</li><li><b>Video On Demand completo</b></li><li><b>Biblioteca Audio illimitata + IA</b></li><li>Lettura vocale, sintesi, percorsi su misura</li><li>Sconto 20% su tutti i corsi</li></ul>
       ${m==='civis'?'<button class="btn full" disabled>Piano attuale</button>':m==='academicus'?'<button class="btn ghost full" disabled>Incluso in Academicus</button>':'<button class="btn oro full" onclick="attiva(\'civis\')">Attiva Civis</button>'}
       <p class="small muted center" style="margin-top:8px">oppure 120 €/anno</p></div>
-    <div class="plan"><h3>Civis Academicus</h3><div class="pr">590 €<small>/anno</small></div>
-      <ul><li>Tutto il livello Civis</li><li><b>Intero catalogo corsi (8)</b></li><li>Live mensili con i formatori</li><li>Attestati dell’Accademia</li><li>Nuovi corsi inclusi</li></ul>
+    <div class="plan"><h3>Civis Academicus</h3><div class="pr">2.500 €<small>/anno</small></div>
+      <ul><li>Tutto il livello Civis</li><li><b>20 corsi (105 ore di videocorsi)</b></li><li>Live mensili con i formatori</li><li>Attestati dell’Accademia</li><li>Nuovi corsi inclusi</li></ul>
       ${m==='academicus'?'<button class="btn full" disabled>Piano attuale</button>':'<button class="btn full" onclick="attiva(\'academicus\')">Attiva Academicus</button>'}</div>
   </div>
   <div class="card" style="padding:18px 22px;margin-top:24px;display:flex;gap:14px;align-items:center;flex-wrap:wrap">
     <span style="font-size:22px">🎓</span>
     <div style="flex:1;min-width:240px"><b>Pagabile con Carta del Docente</b>
-      <p class="muted small" style="margin:0">Corsi e membership annuali (Civis 120 € e Academicus 590 €) sono acquistabili con la Carta del Docente, previo accreditamento S.O.F.I.A.</p></div></div>
+      <p class="muted small" style="margin:0">Corsi e membership annuali (Civis 120 € e Academicus 2.500 €) sono acquistabili con la Carta del Docente, previo accreditamento S.O.F.I.A.</p></div></div>
   <p class="center muted small" style="margin-top:18px">${DB.stripeAttivo()?'Pagamenti sicuri gestiti da Stripe. La membership si attiva subito dopo l’incasso.':'Attivazione dimostrativa — nessun addebito reale. Configura Stripe per gli incassi (vedi README).'}</p>`;
 }
 function attiva(piano){
@@ -1614,7 +1618,7 @@ function attiva(piano){
   openModal(`<h3 style="font-size:24px">Attiva ${piano==='civis'?'Civis':'Civis Academicus'}</h3>`,
    `<p class="muted small" style="margin-bottom:16px">${reale?'Sarai reindirizzato al pagamento sicuro gestito da Stripe.':'Attivazione dimostrativa: nessun pagamento reale.'}</p>
     <div class="card" style="padding:16px;background:var(--avorio);border:none;margin-bottom:16px">
-      <div style="display:flex;justify-content:space-between"><span>${piano==='civis'?'Civis (12,50 €/mese)':'Civis Academicus (590 €/anno)'}</span><b>${piano==='civis'?'12,50 €':'590,00 €'}</b></div></div>
+      <div style="display:flex;justify-content:space-between"><span>${piano==='civis'?'Civis (12,50 €/mese)':'Civis Academicus (2.500 €/anno)'}</span><b>${piano==='civis'?'12,50 €':'2.500,00 €'}</b></div></div>
     <button class="btn oro full" onclick="confermaAbb('${piano}')">${reale?'Vai al pagamento':'Conferma attivazione'}</button>`);
 }
 async function confermaAbb(piano){

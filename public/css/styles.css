@@ -301,6 +301,7 @@ input,select,textarea{font-family:inherit;font-size:15px}
 @media(max-width:900px){.lp-g3{grid-template-columns:1fr}}
 
 /* ---------- fregio: i Sette Principi ---------- */
+.lp-manifesto-logo{display:block;width:92px;height:auto;margin:0 auto 16px}
 .lp-frieze{background:var(--avorio-2)}
 .lp-principi{display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:1px;background:var(--linea);border:1px solid var(--linea);border-radius:var(--r);overflow:hidden}
 .lp-principio{background:var(--avorio-2);padding:24px 22px 26px;display:flex;gap:14px;align-items:flex-start;position:relative}
