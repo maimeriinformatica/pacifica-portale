@@ -61,8 +61,7 @@ let TESTI_PAG = {};   // testi delle pagine sovrascritti dal gestionale (contenu
 function T(k,d){ const v=TESTI_PAG[k]; return (v!==undefined && v!=='') ? v : d; }
 /* Stile facoltativo di un testo (salvato come riga 'stile:<chiave>' in contenuti_sito).
    Valori ammessi soltanto da elenchi chiusi: mai CSS libero. */
-function stileTesto(k){
-  let o=null; try{ o=JSON.parse(TESTI_PAG['stile:'+k]||'null'); }catch(_e){ o=null; }
+function stileDaOggetto(o){
   if(!o) return '';
   const F={serif:"'Cormorant Garamond',Georgia,serif",sans:"'Karla',system-ui,sans-serif"};
   const C={inchiostro:'#22231F',oltremare:'#1B3A6B',oro:'#A9842F',grigio:'#6E6A60',bianco:'#FFFFFF'};
@@ -76,7 +75,56 @@ function stileTesto(k){
   if(C[o.cl]) st+='color:'+C[o.cl]+';';
   if(o.gr) st+='font-weight:700;';
   if(o.cv) st+='font-style:italic;';
+  return st;
+}
+function stileTesto(k){
+  let o=null; try{ o=JSON.parse(TESTI_PAG['stile:'+k]||'null'); }catch(_e){ o=null; }
+  const st=stileDaOggetto(o);
   return st ? (' style="'+st+'"') : '';
+}
+/* Indirizzi ammessi negli elementi aggiuntivi: http(s) o percorsi interni. */
+function urlSicuro(u){
+  u=String(u||'').trim();
+  if(/^https?:\/\//i.test(u)) return u;
+  if(/^[a-zA-Z0-9_\-][a-zA-Z0-9_\-.\/]*$/.test(u)) return u;
+  return '#';
+}
+/* Zone della home in cui la Presidenza puo' aggiungere elementi. */
+const ZONE_BLOCCHI = [
+  ['hero','Riquadro iniziale'],
+  ['sezione.Parlamento dei Giovani','Scheda \u201cIl Parlamento dei Giovani\u201d'],
+  ['sezione.Accademia','Scheda \u201cL\u2019Accademia\u201d'],
+  ['sezione.Video On Demand','Scheda \u201cIl Video On Demand\u201d'],
+  ['sezione.Biblioteca Audio','Scheda \u201cLa Biblioteca Audio\u201d'],
+  ['sezione.Campus','Scheda \u201cIl Campus\u201d'],
+  ['sezione.Eventi','Scheda \u201cGli Eventi\u201d'],
+  ['provare','Sezione \u201cPer Provare\u201d'],
+  ['manifesto','Manifesto (in home)'],
+  ['manifesto-pagina','Pagina del Manifesto']
+];
+/* Resa pubblica degli elementi aggiuntivi di una zona. */
+function blocchiHtml(zona, tema){
+  let arr=[]; try{ arr=JSON.parse(TESTI_PAG['blocchi:'+zona]||'[]'); }catch(_e){ arr=[]; }
+  if(!Array.isArray(arr) || !arr.length) return '';
+  const H = arr.map(b=>{
+    if(!b || typeof b!=='object') return '';
+    if(b.tipo==='testo'){
+      const base=(tema==='scuro' && !b.cl) ? 'color:#EDE7D6;' : '';
+      return '<p class="blk-testo" style="'+base+stileDaOggetto(b)+'">'+esc(b.testo||'')+'</p>';
+    }
+    if(b.tipo==='immagine'){
+      const w=[25,40,60,80,100].indexOf(parseInt(b.larg,10))>=0 ? parseInt(b.larg,10) : 60;
+      const m=b.al==='left' ? 'margin-right:auto;' : (b.al==='right' ? 'margin-left:auto;' : 'margin-left:auto;margin-right:auto;');
+      return '<img class="blk-img" src="'+esc(urlSicuro(b.url))+'" alt="" loading="lazy" style="width:'+w+'%;'+m+'">';
+    }
+    if(b.tipo==='tasto'){
+      const cls=b.st==='oro' ? 'btn oro lp-btn' : (b.st==='contorno' ? 'lp-btn2' : 'btn lp-btn');
+      const just=b.al==='left' ? 'flex-start' : (b.al==='right' ? 'flex-end' : 'center');
+      return '<div class="blk-cta" style="justify-content:'+just+'"><a class="'+cls+'" style="text-decoration:none" target="_blank" rel="noopener" href="'+esc(urlSicuro(b.link))+'">'+esc(b.testo||'')+'</a></div>';
+    }
+    return '';
+  }).join('');
+  return '<div class="blk-zona">'+H+'</div>';
 }
 /* Elenco dei testi modificabili: [chiave, etichetta, predefinito, righe-textarea] */
 const ELENCO_TESTI = (function(){
@@ -389,6 +437,7 @@ function renderManifestoPage(){
         ${principi.map(([n,t,d])=>`<article class="man-item"><div class="man-n">${n}</div>
           <div class="man-b"><h3${stileTesto('principio.'+n+'.titolo')}>${esc(T('principio.'+n+'.titolo',t))}</h3><p${stileTesto('principio.'+n+'.testo')}>${esc(T('principio.'+n+'.testo',d))}</p></div></article>`).join('')}
       </div>
+      ${blocchiHtml('manifesto-pagina','chiaro')}
       <div class="man-quote"${stileTesto('manifesto.citazione')}>${esc(T('manifesto.citazione','\u00abLa conoscenza senza coscienza non genera futuro.\u00bb'))}<span>\u2014 dal Manifesto de La Pacifica Res Publica</span></div>
     </div></section>
     ${lpFooter()}
@@ -497,6 +546,7 @@ function renderLanding(){
       <div class="lp-hero-in"><div class="lp-hero-copy">
         <div class="eyebrow lp-eye"${stileTesto('hero.occhiello')}>${esc(T('hero.occhiello','La Pacifica Res Publica'))}</div>
         <h1 class="lp-h1"${stileTesto('hero.titolo')}>${T('hero.titolo','Accademia Internazionale per la&nbsp;<em>pace</em>.')}</h1>
+          ${blocchiHtml('hero','scuro')}
       </div></div>
       <p class="lp-credit">Raffaello Sanzio, <em>La Scuola di Atene</em> (1509\u20131511) \u2014 Musei Vaticani, Stanza della Segnatura</p>
     </section>
@@ -509,6 +559,7 @@ function renderLanding(){
           <button class="btn oro lp-btn" onclick="apriPagina('manifesto')">Scopri i Sette Principi \u2192</button>
           <a class="btn lp-btn" href="docs/manifesto.pdf" target="_blank" rel="noopener" style="text-decoration:none">Scarica il Manifesto (PDF)</a>
         </div>
+        ${blocchiHtml('manifesto','chiaro')}
       </div>
     </section>
 
@@ -517,7 +568,7 @@ function renderLanding(){
         <div class="lp-h"><h2>Le nostre sezioni</h2></div>
         <div class="lp-grid lp-g3">
           ${pilastri.map(p=>`<div class="lp-pill">
-            <div class="lp-pill-bg lp-pill-txt">${pillRighe(p.t).map(r=>`<span${r.st}>${r.testo}</span>`).join('')}</div>
+            <div class="lp-pill-bg lp-pill-txt">${pillRighe(p.t).map(r=>`<span${r.st}>${r.testo}</span>`).join('')}${blocchiHtml('sezione.'+p.t,'chiaro')}</div>
             <span class="lp-pn">${p.n}</span>
             <div class="lp-pill-c">
               <h3${stileTesto('sezione.'+p.t+'.titolo')}>${esc(T('sezione.'+p.t+'.titolo', p.tit||p.t))}</h3>
@@ -529,6 +580,7 @@ function renderLanding(){
     <section class="lp-sec lp-svc">
       <div class="lp-sec-in">
         <div class="lp-h"${stileTesto('provare.titolo')}><h2${stileTesto('provare.titolo')}>${esc(T('provare.titolo','Per Provare'))}</h2></div>
+        ${blocchiHtml('provare','chiaro')}
         <div class="lp-grid lp-g3">
           ${liberi.map(x=>`<article class="tile lp-tile">
             <div class="cover lp-cover"><span class="k">${x.ico}</span><span class="tag">${esc(x.tp)} \u00b7 gratuito</span></div>
@@ -1799,6 +1851,7 @@ function cmsArea(){
       <div class="eyebrow">Testi delle pagine</div>
       <p class="muted small" style="margin-top:6px">Qui modifichi i testi del sito pubblico e, per ciascuno, allineamento, carattere, dimensione, colore, grassetto e corsivo. «Predefinito» significa: come disegnato in origine. Se riporti tutto al predefinito, il portale torna all'originale.</p>
       <div style="margin-top:12px">${campi}</div>
+      ${blocchiEditorHtml()}
       <button class="btn full" style="margin-top:16px" onclick="salvaTestiPagine()">Salva i testi</button>
     </div>`;
   }
@@ -2438,6 +2491,75 @@ async function salvaS3(id){
 /* =====================================================================
    LEZIONI DEI CORSI — gestione (presidenza e formatore del corso)
    ===================================================================== */
+let BLOCCHI_EDIT=null;
+function blocchiCarica(){
+  BLOCCHI_EDIT={};
+  ZONE_BLOCCHI.forEach(([z])=>{ let a=[]; try{ a=JSON.parse(TESTI_PAG['blocchi:'+z]||'[]'); }catch(_e){ a=[]; }
+    BLOCCHI_EDIT[z]=Array.isArray(a)?a:[]; });
+}
+function leggiBlocchiDalDom(){
+  if(!BLOCCHI_EDIT) return;
+  ZONE_BLOCCHI.forEach(([z],zi)=>{
+    (BLOCCHI_EDIT[z]||[]).forEach((b,i)=>{
+      const g=c=>{ const el=$('bk-'+zi+'-'+i+'-'+c); return el ? (el.type==='checkbox'?el.checked:el.value) : undefined; };
+      if(b.tipo==='testo'){ b.testo=g('testo')||''; b.al=g('al')||''; b.di=g('di')||''; b.cl=g('cl')||''; b.gr=!!g('gr'); b.cv=!!g('cv'); }
+      if(b.tipo==='immagine'){ b.url=g('url')||''; b.larg=g('larg')||''; b.al=g('al')||''; }
+      if(b.tipo==='tasto'){ b.testo=g('testo')||''; b.link=g('link')||''; b.st=g('st')||''; b.al=g('al')||''; }
+    });
+  });
+}
+function aggiungiBlocco(zi,tipo){
+  leggiBlocchiDalDom();
+  const z=ZONE_BLOCCHI[zi][0];
+  const b= tipo==='immagine' ? {tipo:'immagine',url:'',larg:'60',al:''} :
+           tipo==='tasto' ? {tipo:'tasto',testo:'',link:'',st:'',al:''} :
+           {tipo:'testo',testo:'',al:'',di:'',cl:'',gr:false,cv:false};
+  (BLOCCHI_EDIT[z]=BLOCCHI_EDIT[z]||[]).push(b);
+  setCmsTab('pagine');
+}
+function rimuoviBlocco(zi,i){
+  leggiBlocchiDalDom();
+  const z=ZONE_BLOCCHI[zi][0];
+  BLOCCHI_EDIT[z].splice(i,1);
+  setCmsTab('pagine');
+}
+function spostaBlocco(zi,i,dir){
+  leggiBlocchiDalDom();
+  const z=ZONE_BLOCCHI[zi][0], a=BLOCCHI_EDIT[z], j=i+dir;
+  if(j<0||j>=a.length) return;
+  const t=a[i]; a[i]=a[j]; a[j]=t;
+  setCmsTab('pagine');
+}
+function blocchiEditorHtml(){
+  if(!BLOCCHI_EDIT) blocchiCarica();
+  const selB=(id,ops,cur)=>`<select id="${id}">`+ops.map(o=>`<option value="${o[0]}"${o[0]===(cur||'')?' selected':''}>${o[1]}</option>`).join('')+`</select>`;
+  const OPS_AL=[['','Posizione: centro'],['left','A sinistra'],['right','A destra']];
+  const zone = ZONE_BLOCCHI.map(([z,titolo],zi)=>{
+    const righe=(BLOCCHI_EDIT[z]||[]).map((b,i)=>{
+      const pre=`bk-${zi}-${i}-`;
+      const nav=`<span class="bk-nav"><button class="linkbtn" title="Su" onclick="spostaBlocco(${zi},${i},-1)">\u2191</button><button class="linkbtn" title="Gi\u00f9" onclick="spostaBlocco(${zi},${i},1)">\u2193</button><button class="linkbtn" title="Rimuovi" onclick="rimuoviBlocco(${zi},${i})">\u2715 rimuovi</button></span>`;
+      if(b.tipo==='immagine') return `<div class="bk-riga"><div class="bk-testa"><b>Immagine</b>${nav}</div>
+        <input id="${pre}url" placeholder="Indirizzo dell\u2019immagine (https\u2026 oppure img/\u2026)" value="${esc(b.url||'')}">
+        <div class="ts-stile">${selB(pre+'larg',[['25','Larghezza: 25%'],['40','40%'],['60','60%'],['80','80%'],['100','100%']],String(b.larg||'60'))}${selB(pre+'al',OPS_AL,b.al)}</div></div>`;
+      if(b.tipo==='tasto') return `<div class="bk-riga"><div class="bk-testa"><b>Tasto</b>${nav}</div>
+        <input id="${pre}testo" placeholder="Scritta del tasto" value="${esc(b.testo||'')}">
+        <input id="${pre}link" placeholder="Collegamento (https\u2026 oppure docs/\u2026)" value="${esc(b.link||'')}" style="margin-top:6px">
+        <div class="ts-stile">${selB(pre+'st',[['','Aspetto: blu'],['oro','Oro'],['contorno','A contorno']],b.st)}${selB(pre+'al',OPS_AL,b.al)}</div></div>`;
+      return `<div class="bk-riga"><div class="bk-testa"><b>Riga di testo</b>${nav}</div>
+        <input id="${pre}testo" placeholder="Il testo da mostrare" value="${esc(b.testo||'')}">
+        <div class="ts-stile">${selB(pre+'al',[['','Allineamento: predefinito'],['left','A sinistra'],['center','Centrato'],['right','A destra']],b.al)}${selB(pre+'di',[['','Dimensione: predefinita'],['85','Pi\u00f9 piccolo'],['115','Un po\u2019 pi\u00f9 grande'],['130','Grande'],['150','Molto grande']],b.di)}${selB(pre+'cl',[['','Colore: predefinito'],['inchiostro','Inchiostro'],['oltremare','Blu oltremare'],['oro','Oro'],['grigio','Grigio'],['bianco','Bianco']],b.cl)}
+        <label class="ts-ck"><input type="checkbox" id="${pre}gr"${b.gr?' checked':''}> Grassetto</label>
+        <label class="ts-ck"><input type="checkbox" id="${pre}cv"${b.cv?' checked':''}> Corsivo</label></div></div>`;
+    }).join('');
+    const add=`<div class="bk-add"><button class="linkbtn" onclick="aggiungiBlocco(${zi},'testo')">+ Riga di testo</button><button class="linkbtn" onclick="aggiungiBlocco(${zi},'immagine')">+ Immagine</button><button class="linkbtn" onclick="aggiungiBlocco(${zi},'tasto')">+ Tasto</button></div>`;
+    return `<div class="eyebrow" style="margin:18px 0 4px">${esc(titolo)}</div>${righe||'<div class="muted small">Nessun elemento aggiunto.</div>'}${add}`;
+  }).join('');
+  return `<div style="margin-top:26px;border-top:1px solid var(--linea);padding-top:14px">
+    <div class="eyebrow">Elementi aggiuntivi delle sezioni</div>
+    <p class="muted small" style="margin-top:6px">Qui aggiungi, in coda a ogni sezione, righe di testo, immagini (da indirizzo web o del sito) e tasti con collegamento. Le frecce ordinano, \u2715 rimuove. Ricorda di premere \u00abSalva i testi\u00bb.</p>
+    ${zone}
+  </div>`;
+}
 async function salvaTestiPagine(){
   const upsert=[], cancella=[];
   ELENCO_TESTI.forEach(([k,label,def],i)=>{
@@ -2456,11 +2578,24 @@ async function salvaTestiPagine(){
     if(Object.keys(o).length) upsert.push({ chiave:'stile:'+k, valore:JSON.stringify(o) });
     else if(TESTI_PAG['stile:'+k]!==undefined) cancella.push('stile:'+k);
   });
+  leggiBlocchiDalDom();
+  ZONE_BLOCCHI.forEach(([z])=>{
+    const validi=((BLOCCHI_EDIT&&BLOCCHI_EDIT[z])||[]).filter(b=>{
+      if(!b) return false;
+      if(b.tipo==='testo') return (b.testo||'').trim()!=='';
+      if(b.tipo==='immagine') return (b.url||'').trim()!=='';
+      if(b.tipo==='tasto') return (b.testo||'').trim()!=='' && (b.link||'').trim()!=='';
+      return false;
+    });
+    if(validi.length) upsert.push({ chiave:'blocchi:'+z, valore:JSON.stringify(validi) });
+    else if(TESTI_PAG['blocchi:'+z]!==undefined) cancella.push('blocchi:'+z);
+  });
   try{
     if(upsert.length) await DB.saveTesti(upsert);
     for(const k of cancella) await DB.deleteTesto(k);
     upsert.forEach(r=>{ TESTI_PAG[r.chiave]=r.valore; });
     cancella.forEach(k=>{ delete TESTI_PAG[k]; });
+    BLOCCHI_EDIT=null;
     setCmsTab('pagine');
     toast('Testi salvati: il sito pubblico li usa da subito.');
   }catch(e){ toast('Errore: '+(e.message||'')); }
