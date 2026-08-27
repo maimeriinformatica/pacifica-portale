@@ -82,6 +82,9 @@ function stileTesto(k){
   const st=stileDaOggetto(o);
   return st ? (' style="'+st+'"') : '';
 }
+function testoNascosto(k){
+  try{ const o=JSON.parse(TESTI_PAG['stile:'+k]||'null'); return !!(o && o.na); }catch(_e){ return false; }
+}
 /* Indirizzi ammessi negli elementi aggiuntivi: http(s) o percorsi interni. */
 function urlSicuro(u){
   u=String(u||'').trim();
@@ -103,9 +106,11 @@ const ZONE_BLOCCHI = [
   ['manifesto-pagina','Pagina del Manifesto']
 ];
 /* Resa pubblica degli elementi aggiuntivi di una zona. */
-function blocchiHtml(zona, tema){
+function blocchiHtml(zona, tema, pos){
   let arr=[]; try{ arr=JSON.parse(TESTI_PAG['blocchi:'+zona]||'[]'); }catch(_e){ arr=[]; }
-  if(!Array.isArray(arr) || !arr.length) return '';
+  if(!Array.isArray(arr)) arr=[];
+  arr=arr.filter(b=>b && ((b.pos==='sopra')===(pos==='sopra')));
+  if(!arr.length) return '';
   const H = arr.map(b=>{
     if(!b || typeof b!=='object') return '';
     if(b.tipo==='testo'){
@@ -352,7 +357,7 @@ function pillRighe(t){
     'Campus': ['Fine settimana formativi.','All\u2019Abbazia di Maguzzano, sul Garda.','Lo studio come vita condivisa.'],
     'Eventi': ['Mostre, incontri e forum.','Aperti alla citt\u00e0.','La Pacifica incontra il mondo.']
   };
-  return (R[t]||[]).map((r,i)=>({ testo:T('sezione.'+t+'.riga'+(i+1), r), st:stileTesto('sezione.'+t+'.riga'+(i+1)) }));
+  return (R[t]||[]).map((r,i)=>{ const kk='sezione.'+t+'.riga'+(i+1); return { kk, testo:T(kk, r), st:stileTesto(kk) }; }).filter(o=>!testoNascosto(o.kk));
 }
 
 /* Emblemi SVG dei sei pilastri (coerenti col tema, oro su vetro) */
@@ -393,7 +398,7 @@ function pillScene(t){
 /* Piè di pagina condiviso (home + pagine interne) */
 function lpFooter(){
   return `<footer class="lp-foot"><div class="lp-sec-in lp-foot-in">
-      <div class="lp-foot-brand"><span class="mark mark-scuro"><img class="logo-img" src="img/logo.png" alt="La Pacifica Res Publica"></span><div><b>La Pacifica Res Publica</b><span${stileTesto('footer.motto')}>${esc(T('footer.motto','\u00abCustodire per costruire.\u00bb'))}</span></div></div>
+      <div class="lp-foot-brand"><span class="mark mark-scuro"><img class="logo-img" src="img/logo.png" alt="La Pacifica Res Publica"></span><div><b>La Pacifica Res Publica</b>${testoNascosto('footer.motto')?'':`<span${stileTesto('footer.motto')}>${esc(T('footer.motto','\u00abCustodire per costruire.\u00bb'))}</span>`}</div></div>
       <div class="lp-foot-cta">
         <button class="linkbtn" onclick="apriAccesso('login')">Accedi</button>
         <button class="btn small" onclick="apriAccesso('reg')">Entra gratis</button>
@@ -429,16 +434,17 @@ function renderManifestoPage(){
     ${lpHeaderPagina()}
     <section class="lp-page-hero"><div class="lp-sec-in">
       <img class="lp-manifesto-logo" src="img/logo.png" alt="La Pacifica Res Publica">
-      <h1 class="lp-page-h1"${stileTesto('manifesto.titolo-pagina')}>${esc(T('manifesto.titolo-pagina','I Sette Principi'))}</h1>
+      ${testoNascosto('manifesto.titolo-pagina')?'':`<h1 class="lp-page-h1"${stileTesto('manifesto.titolo-pagina')}>${esc(T('manifesto.titolo-pagina','I Sette Principi'))}</h1>`}
       <p class="lp-page-lead">La Pacifica nasce come Accademia Internazionale per la Pace, una <em>Res Publica universale</em> fondata sulla conoscenza, sulla coscienza e sulla dignit\u00e0 dell\u2019essere umano. La nostra iniziativa si riconosce in sette principi fondamentali, che ne costituiscono l\u2019anima e la direzione.</p>
+      ${blocchiHtml('manifesto-pagina','chiaro','sopra')}
     </div></section>
     <section class="lp-sec"><div class="lp-sec-in">
       <div class="man-list">
         ${principi.map(([n,t,d])=>`<article class="man-item"><div class="man-n">${n}</div>
-          <div class="man-b"><h3${stileTesto('principio.'+n+'.titolo')}>${esc(T('principio.'+n+'.titolo',t))}</h3><p${stileTesto('principio.'+n+'.testo')}>${esc(T('principio.'+n+'.testo',d))}</p></div></article>`).join('')}
+          <div class="man-b">${testoNascosto('principio.'+n+'.titolo')?'':`<h3${stileTesto('principio.'+n+'.titolo')}>${esc(T('principio.'+n+'.titolo',t))}</h3>`}${testoNascosto('principio.'+n+'.testo')?'':`<p${stileTesto('principio.'+n+'.testo')}>${esc(T('principio.'+n+'.testo',d))}</p>`}</div></article>`).join('')}
       </div>
+      ${testoNascosto('manifesto.citazione')?'':`<div class="man-quote"${stileTesto('manifesto.citazione')}>${esc(T('manifesto.citazione','\u00abLa conoscenza senza coscienza non genera futuro.\u00bb'))}<span>\u2014 dal Manifesto de La Pacifica Res Publica</span></div>`}
       ${blocchiHtml('manifesto-pagina','chiaro')}
-      <div class="man-quote"${stileTesto('manifesto.citazione')}>${esc(T('manifesto.citazione','\u00abLa conoscenza senza coscienza non genera futuro.\u00bb'))}<span>\u2014 dal Manifesto de La Pacifica Res Publica</span></div>
     </div></section>
     ${lpFooter()}
   </div>`;
@@ -544,8 +550,9 @@ function renderLanding(){
         </picture>
       </div>
       <div class="lp-hero-in"><div class="lp-hero-copy">
-        <div class="eyebrow lp-eye"${stileTesto('hero.occhiello')}>${esc(T('hero.occhiello','La Pacifica Res Publica'))}</div>
-        <h1 class="lp-h1"${stileTesto('hero.titolo')}>${T('hero.titolo','Accademia Internazionale per la&nbsp;<em>pace</em>.')}</h1>
+        ${blocchiHtml('hero','scuro','sopra')}
+        ${testoNascosto('hero.occhiello')?'':`<div class="eyebrow lp-eye"${stileTesto('hero.occhiello')}>${esc(T('hero.occhiello','La Pacifica Res Publica'))}</div>`}
+        ${testoNascosto('hero.titolo')?'':`<h1 class="lp-h1"${stileTesto('hero.titolo')}>${T('hero.titolo','Accademia Internazionale per la&nbsp;<em>pace</em>.')}</h1>`}
           ${blocchiHtml('hero','scuro')}
       </div></div>
       <p class="lp-credit">Raffaello Sanzio, <em>La Scuola di Atene</em> (1509\u20131511) \u2014 Musei Vaticani, Stanza della Segnatura</p>
@@ -553,8 +560,9 @@ function renderLanding(){
 
     <section class="lp-sec lp-frieze">
       <div class="lp-sec-in">
+        ${blocchiHtml('manifesto','chiaro','sopra')}
         <img class="lp-manifesto-logo" src="img/logo.png" alt="La Pacifica Res Publica">
-        <div class="lp-h"${stileTesto('manifesto.titolo')}><h2${stileTesto('manifesto.titolo')}>${esc(T('manifesto.titolo','Il Nostro Manifesto'))}</h2></div>
+        ${testoNascosto('manifesto.titolo')?'':`<div class="lp-h"${stileTesto('manifesto.titolo')}><h2${stileTesto('manifesto.titolo')}>${esc(T('manifesto.titolo','Il Nostro Manifesto'))}</h2></div>`}
         <div class="lp-cta" style="justify-content:center;margin-top:4px">
           <button class="btn oro lp-btn" onclick="apriPagina('manifesto')">Scopri i Sette Principi \u2192</button>
           <a class="btn lp-btn" href="docs/manifesto.pdf" target="_blank" rel="noopener" style="text-decoration:none">Scarica il Manifesto (PDF)</a>
@@ -568,10 +576,10 @@ function renderLanding(){
         <div class="lp-h"><h2>Le nostre sezioni</h2></div>
         <div class="lp-grid lp-g3">
           ${pilastri.map(p=>`<div class="lp-pill">
-            <div class="lp-pill-bg lp-pill-txt">${pillRighe(p.t).map(r=>`<span${r.st}>${r.testo}</span>`).join('')}${blocchiHtml('sezione.'+p.t,'chiaro')}</div>
+            <div class="lp-pill-bg lp-pill-txt">${blocchiHtml('sezione.'+p.t,'chiaro','sopra')}${pillRighe(p.t).map(r=>`<span${r.st}>${r.testo}</span>`).join('')}${blocchiHtml('sezione.'+p.t,'chiaro')}</div>
             <span class="lp-pn">${p.n}</span>
             <div class="lp-pill-c">
-              <h3${stileTesto('sezione.'+p.t+'.titolo')}>${esc(T('sezione.'+p.t+'.titolo', p.tit||p.t))}</h3>
+              ${testoNascosto('sezione.'+p.t+'.titolo')?'':`<h3${stileTesto('sezione.'+p.t+'.titolo')}>${esc(T('sezione.'+p.t+'.titolo', p.tit||p.t))}</h3>`}
             </div></div>`).join('')}
         </div>
       </div>
@@ -579,8 +587,8 @@ function renderLanding(){
 
     <section class="lp-sec lp-svc">
       <div class="lp-sec-in">
-        <div class="lp-h"${stileTesto('provare.titolo')}><h2${stileTesto('provare.titolo')}>${esc(T('provare.titolo','Per Provare'))}</h2></div>
-        ${blocchiHtml('provare','chiaro')}
+        ${blocchiHtml('provare','chiaro','sopra')}
+        ${testoNascosto('provare.titolo')?'':`<div class="lp-h"${stileTesto('provare.titolo')}><h2${stileTesto('provare.titolo')}>${esc(T('provare.titolo','Per Provare'))}</h2></div>`}
         <div class="lp-grid lp-g3">
           ${liberi.map(x=>`<article class="tile lp-tile">
             <div class="cover lp-cover"><span class="k">${x.ico}</span><span class="tag">${esc(x.tp)} \u00b7 gratuito</span></div>
@@ -598,6 +606,7 @@ function renderLanding(){
                 <button class="btn small ghost" onclick="apriAccesso('reg')">Diventa Civis \u2192</button></div>
             </div></article>
         </div>
+        ${blocchiHtml('provare','chiaro')}
 
         ${ev?`<div class="lp-event">
           <div class="lp-event-art">
@@ -2485,9 +2494,11 @@ async function salvaS3(id){
    ===================================================================== */
 function campoTestoHtml(i){
   const [k,label,def,ml]=ELENCO_TESTI[i];
-  const val = esc(T(k, def));
+  const tmp = CAMPI_TMP && CAMPI_TMP[i];
+  const val = esc(tmp ? tmp.v : T(k, def));
   const campo = ml ? `<textarea id="tp-${i}" rows="${ml}">${val}</textarea>` : `<input id="tp-${i}" value="${val}">`;
   let so={}; try{ so=JSON.parse(TESTI_PAG['stile:'+k]||'{}'); }catch(_e){ so={}; }
+  if(tmp) so={ al:tmp.al, ca:tmp.ca, di:tmp.di, cl:tmp.cl, gr:tmp.gr, cv:tmp.cv, na:tmp.na };
   const sel=(id,ops,cur)=>`<select id="${id}">`+ops.map(o=>`<option value="${o[0]}"${o[0]===(cur||'')?' selected':''}>${o[1]}</option>`).join('')+`</select>`;
   const stile = `<div class="ts-stile">
     ${sel('tp-al-'+i,[['','Allineamento: predefinito'],['left','A sinistra'],['center','Centrato'],['right','A destra']],so.al)}
@@ -2496,6 +2507,7 @@ function campoTestoHtml(i){
     ${sel('tp-cl-'+i,[['','Colore: predefinito'],['inchiostro','Inchiostro'],['oltremare','Blu oltremare'],['oro','Oro'],['grigio','Grigio'],['bianco','Bianco']],so.cl)}
     <label class="ts-ck"><input type="checkbox" id="tp-gr-${i}"${so.gr?' checked':''}> Grassetto</label>
     <label class="ts-ck"><input type="checkbox" id="tp-cv-${i}"${so.cv?' checked':''}> Corsivo</label>
+    <label class="ts-ck ts-na"><input type="checkbox" id="tp-na-${i}"${so.na?' checked':''}> Nascondi dal sito</label>
   </div>`;
   const mod = ((TESTI_PAG[k]!==undefined && TESTI_PAG[k]!=='') || TESTI_PAG['stile:'+k]) ? ' <span class="badge blu">modificato</span>' : '';
   return `<div class="field"><label>${esc(label.split(' \u2014 ').slice(1).join(' \u2014 ')||label)}${mod}</label>${campo}${stile}</div>`;
@@ -2510,7 +2522,19 @@ function zonePerGruppo(nome){
   return [];
 }
 let BLOCCHI_EDIT=null;
+let CAMPI_TMP=null;
+function leggiCampiDalDom(){
+  CAMPI_TMP={};
+  ELENCO_TESTI.forEach((e,i)=>{
+    const el=$('tp-'+i); if(!el) return;
+    const g=id=>{ const x=$(id); return x?x.value:''; };
+    const gc=id=>{ const x=$(id); return !!(x&&x.checked); };
+    CAMPI_TMP[i]={ v:el.value, al:g('tp-al-'+i), ca:g('tp-ca-'+i), di:g('tp-di-'+i), cl:g('tp-cl-'+i),
+                   gr:gc('tp-gr-'+i), cv:gc('tp-cv-'+i), na:gc('tp-na-'+i) };
+  });
+}
 function blocchiCarica(){
+  CAMPI_TMP=null;
   BLOCCHI_EDIT={};
   ZONE_BLOCCHI.forEach(([z])=>{ let a=[]; try{ a=JSON.parse(TESTI_PAG['blocchi:'+z]||'[]'); }catch(_e){ a=[]; }
     BLOCCHI_EDIT[z]=Array.isArray(a)?a:[]; });
@@ -2521,13 +2545,14 @@ function leggiBlocchiDalDom(){
     (BLOCCHI_EDIT[z]||[]).forEach((b,i)=>{
       const g=c=>{ const el=$('bk-'+zi+'-'+i+'-'+c); return el ? (el.type==='checkbox'?el.checked:el.value) : undefined; };
       if(b.tipo==='testo'){ b.testo=g('testo')||''; b.al=g('al')||''; b.di=g('di')||''; b.cl=g('cl')||''; b.gr=!!g('gr'); b.cv=!!g('cv'); }
+      b.pos=g('pos')||'';
       if(b.tipo==='immagine'){ b.url=g('url')||''; b.larg=g('larg')||''; b.al=g('al')||''; }
       if(b.tipo==='tasto'){ b.testo=g('testo')||''; b.link=g('link')||''; b.st=g('st')||''; b.al=g('al')||''; }
     });
   });
 }
 function aggiungiBlocco(zi,tipo){
-  leggiBlocchiDalDom();
+  leggiBlocchiDalDom(); leggiCampiDalDom();
   const z=ZONE_BLOCCHI[zi][0];
   const b= tipo==='immagine' ? {tipo:'immagine',url:'',larg:'60',al:''} :
            tipo==='tasto' ? {tipo:'tasto',testo:'',link:'',st:'',al:''} :
@@ -2536,13 +2561,13 @@ function aggiungiBlocco(zi,tipo){
   setCmsTab('pagine');
 }
 function rimuoviBlocco(zi,i){
-  leggiBlocchiDalDom();
+  leggiBlocchiDalDom(); leggiCampiDalDom();
   const z=ZONE_BLOCCHI[zi][0];
   BLOCCHI_EDIT[z].splice(i,1);
   setCmsTab('pagine');
 }
 function spostaBlocco(zi,i,dir){
-  leggiBlocchiDalDom();
+  leggiBlocchiDalDom(); leggiCampiDalDom();
   const z=ZONE_BLOCCHI[zi][0], a=BLOCCHI_EDIT[z], j=i+dir;
   if(j<0||j>=a.length) return;
   const t=a[i]; a[i]=a[j]; a[j]=t;
@@ -2554,19 +2579,20 @@ function blocchiEditorZona(zi, sotto){
   const z=ZONE_BLOCCHI[zi][0];
   const selB=(id,ops,cur)=>`<select id="${id}">`+ops.map(o=>`<option value="${o[0]}"${o[0]===(cur||'')?' selected':''}>${o[1]}</option>`).join('')+`</select>`;
   const OPS_AL=[['','Posizione: centro'],['left','A sinistra'],['right','A destra']];
+  const OPS_POS=[['','Dove: sotto gli elementi'],['sopra','Sopra gli elementi']];
   const righe=(BLOCCHI_EDIT[z]||[]).map((b,i)=>{
     const pre=`bk-${zi}-${i}-`;
     const nav=`<span class="bk-nav"><button class="linkbtn" title="Su" onclick="spostaBlocco(${zi},${i},-1)">\u2191</button><button class="linkbtn" title="Gi\u00f9" onclick="spostaBlocco(${zi},${i},1)">\u2193</button><button class="linkbtn" title="Rimuovi" onclick="rimuoviBlocco(${zi},${i})">\u2715 rimuovi</button></span>`;
     if(b.tipo==='immagine') return `<div class="bk-riga"><div class="bk-testa"><b>Immagine</b>${nav}</div>
       <input id="${pre}url" placeholder="Indirizzo dell\u2019immagine (https\u2026 oppure img/\u2026)" value="${esc(b.url||'')}">
-      <div class="ts-stile">${selB(pre+'larg',[['25','Larghezza: 25%'],['40','40%'],['60','60%'],['80','80%'],['100','100%']],String(b.larg||'60'))}${selB(pre+'al',OPS_AL,b.al)}</div></div>`;
+      <div class="ts-stile">${selB(pre+'pos',OPS_POS,b.pos)}${selB(pre+'larg',[['25','Larghezza: 25%'],['40','40%'],['60','60%'],['80','80%'],['100','100%']],String(b.larg||'60'))}${selB(pre+'al',OPS_AL,b.al)}</div></div>`;
     if(b.tipo==='tasto') return `<div class="bk-riga"><div class="bk-testa"><b>Tasto</b>${nav}</div>
       <input id="${pre}testo" placeholder="Scritta del tasto" value="${esc(b.testo||'')}">
       <input id="${pre}link" placeholder="Collegamento (https\u2026 oppure docs/\u2026)" value="${esc(b.link||'')}" style="margin-top:6px">
-      <div class="ts-stile">${selB(pre+'st',[['','Aspetto: blu'],['oro','Oro'],['contorno','A contorno']],b.st)}${selB(pre+'al',OPS_AL,b.al)}</div></div>`;
+      <div class="ts-stile">${selB(pre+'pos',OPS_POS,b.pos)}${selB(pre+'st',[['','Aspetto: blu'],['oro','Oro'],['contorno','A contorno']],b.st)}${selB(pre+'al',OPS_AL,b.al)}</div></div>`;
     return `<div class="bk-riga"><div class="bk-testa"><b>Riga di testo</b>${nav}</div>
       <input id="${pre}testo" placeholder="Il testo da mostrare" value="${esc(b.testo||'')}">
-      <div class="ts-stile">${selB(pre+'al',[['','Allineamento: predefinito'],['left','A sinistra'],['center','Centrato'],['right','A destra']],b.al)}${selB(pre+'di',[['','Dimensione: predefinita'],['85','Pi\u00f9 piccolo'],['115','Un po\u2019 pi\u00f9 grande'],['130','Grande'],['150','Molto grande']],b.di)}${selB(pre+'cl',[['','Colore: predefinito'],['inchiostro','Inchiostro'],['oltremare','Blu oltremare'],['oro','Oro'],['grigio','Grigio'],['bianco','Bianco']],b.cl)}
+      <div class="ts-stile">${selB(pre+'pos',OPS_POS,b.pos)}${selB(pre+'al',[['','Allineamento: predefinito'],['left','A sinistra'],['center','Centrato'],['right','A destra']],b.al)}${selB(pre+'di',[['','Dimensione: predefinita'],['85','Pi\u00f9 piccolo'],['115','Un po\u2019 pi\u00f9 grande'],['130','Grande'],['150','Molto grande']],b.di)}${selB(pre+'cl',[['','Colore: predefinito'],['inchiostro','Inchiostro'],['oltremare','Blu oltremare'],['oro','Oro'],['grigio','Grigio'],['bianco','Bianco']],b.cl)}
       <label class="ts-ck"><input type="checkbox" id="${pre}gr"${b.gr?' checked':''}> Grassetto</label>
       <label class="ts-ck"><input type="checkbox" id="${pre}cv"${b.cv?' checked':''}> Corsivo</label></div></div>`;
   }).join('');
@@ -2588,6 +2614,7 @@ async function salvaTestiPagine(){
     if(cl && cl.value) o.cl=cl.value;
     if(gr && gr.checked) o.gr=1;
     if(cv && cv.checked) o.cv=1;
+    const na=$('tp-na-'+i); if(na && na.checked) o.na=1;
     if(Object.keys(o).length) upsert.push({ chiave:'stile:'+k, valore:JSON.stringify(o) });
     else if(TESTI_PAG['stile:'+k]!==undefined) cancella.push('stile:'+k);
   });
@@ -2608,7 +2635,7 @@ async function salvaTestiPagine(){
     for(const k of cancella) await DB.deleteTesto(k);
     upsert.forEach(r=>{ TESTI_PAG[r.chiave]=r.valore; });
     cancella.forEach(k=>{ delete TESTI_PAG[k]; });
-    BLOCCHI_EDIT=null;
+    BLOCCHI_EDIT=null; CAMPI_TMP=null;
     setCmsTab('pagine');
     toast('Testi salvati: il sito pubblico li usa da subito.');
   }catch(e){ toast('Errore: '+(e.message||'')); }
