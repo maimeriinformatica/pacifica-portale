@@ -457,13 +457,11 @@ function renderMecenatiPage(){
   return `<div class="lp">
     ${lpHeaderPagina()}
     <section class="lp-page-hero"><div class="lp-sec-in">
-      <div class="eyebrow" style="color:var(--oro)">Mecenati</div>
       <h1 class="lp-page-h1">Costruttori accademici di pace</h1>
       <p class="lp-page-lead">Chi sostiene La Pacifica non fa una donazione astratta: acquista <b>pacchetti di accessi</b> alla formazione e li destina a studenti e docenti che altrimenti non potrebbero permetterseli. \u00c8 un mecenatismo concreto, che si misura in ragazzi che studiano.</p>
     </div></section>
 
     <section class="lp-sec"><div class="lp-sec-in">
-      <div class="lp-h"><div class="eyebrow">Come funziona</div><h2>Tre passaggi</h2></div>
       <div class="lp-grid lp-g3">
         <div class="mec-step"><span class="mec-sn">1</span><h4>Scegli una formula</h4><p>Ogni formula \u00e8 \u201ctot euro \u2192 tot accessi\u201d. Dal singolo accesso annuale fino a decine, per la misura di una scuola o di un istituto.</p></div>
         <div class="mec-step"><span class="mec-sn">2</span><h4>Sottoscrivi l\u2019impegno</h4><p>Compili i dati e ricevi un riferimento con le coordinate per il bonifico. Nessun addebito automatico: paghi con i tuoi tempi.</p></div>
@@ -472,7 +470,7 @@ function renderMecenatiPage(){
     </div></section>
 
     <section class="lp-sec lp-mec-formule"><div class="lp-sec-in">
-      <div class="lp-h"><div class="eyebrow">Le formule</div><h2>Scegli la tua misura</h2>
+      <div class="lp-h center"><h2>Scegli la tua misura</h2>
         <p class="lp-lead">Pi\u00f9 la formula \u00e8 ampia, pi\u00f9 il costo per accesso scende. Ogni accesso \u00e8 un percorso in mano a un ragazzo.</p></div>
       <div id="mec-box" class="lp-plans"></div>
     </div></section>
@@ -642,20 +640,19 @@ function renderLanding(){
     </div></section>
     <section class="lp-sec lp-civis">
       <div class="lp-sec-in">
-        <div class="lp-h center"><div class="eyebrow" style="color:var(--oro-chiaro)">Civis Pacificae</div>
-          <h2 style="color:#fff">Un solo abbonamento, tutto l\u2019ecosistema</h2>
-          <p class="lp-lead" style="color:#C7D0E0;margin-left:auto;margin-right:auto">Ogni iscrizione sostiene il Parlamento dei Giovani e le progettualit\u00e0 dell\u2019associazione.</p></div>
+        <div class="lp-h center">
+          <h2 style="color:#fff">Un solo abbonamento, l\u2019intero accesso all\u2019accademia</h2></div>
         <div class="lp-plans">
           <div class="lp-plan"><h4>Gratuito</h4><div class="lp-pr">0 \u20ac</div>
             <ul><li>Dashboard personale</li><li>1\u00aa lezione di ogni corso</li><li>Video e audiolibri gratuiti</li></ul>
             <button class="lp-btn2" onclick="apriAccesso('reg')">Entra gratis</button></div>
-          <div class="lp-plan feat"><span class="lp-tagline">Consigliato</span><h4>Civis</h4><div class="lp-pr">12,50 \u20ac<small>/mese</small></div>
+          <div class="lp-plan feat"><h4>Gold</h4><div class="lp-pr">12,50 \u20ac<small>/mese</small></div>
             <ul><li>Video On Demand completo</li><li>Biblioteca illimitata + IA</li><li>Sconto 20% sui corsi</li></ul>
-            <button class="btn oro" onclick="apriAccesso('reg')">Attiva Civis</button>
+            <button class="btn oro" onclick="apriAccesso('reg')">Attiva Gold</button>
             <p class="lp-fine">oppure 120 \u20ac/anno</p></div>
-          <div class="lp-plan"><h4>Academicus</h4><div class="lp-pr">2.500 \u20ac<small>/anno</small></div>
+          <div class="lp-plan"><h4>Platinum</h4><div class="lp-pr">2.500 \u20ac<small>/anno</small></div>
             <ul><li>20 corsi (105 ore di videocorsi)</li><li>Live mensili con i formatori</li><li>Attestati dell\u2019Accademia</li></ul>
-            <button class="lp-btn2" onclick="apriAccesso('reg')">Attiva Academicus</button></div>
+            <button class="lp-btn2" onclick="apriAccesso('reg')">Attiva Platinum</button></div>
         </div>
       </div>
     </section>
