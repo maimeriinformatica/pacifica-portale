@@ -230,6 +230,21 @@ const DB = {
         nome:file.name||'file', url, dimensione:file.size||0, descrizione:(arguments[3]||'') }); if(error) throw error; return url; },
   async deleteAllegato(id, url){ const { error } = await sb.from('allegati').delete().eq('id',id); if(error) throw error;
       try{ const p=(url||'').split('/allegati/')[1]; if(p) await sb.storage.from('allegati').remove([p]); }catch(e){} },
+  /* ---------- I DIAMANTI (libri) ---------- */
+  async loadLibri(){ const { data, error } = await sb.from('libri').select('*').order('ordine'); if(error) throw error; return data||[]; },
+  async saveLibro(row){ const { error } = await sb.from('libri').upsert(row, { onConflict:'id' }); if(error) throw error; },
+  async deleteLibro(id){ const { error } = await sb.from('libri').delete().eq('id', id); if(error) throw error; },
+  async uploadLibroPdf(id, file){
+    if(!sb.storage) throw new Error('Il caricamento dei PDF funziona solo sul portale online.');
+    const nome = (file.name||'libro.pdf').replace(/[^a-zA-Z0-9._-]/g,'_');
+    const path = id + '/' + Date.now() + '-' + nome;
+    const { error } = await sb.storage.from('diamanti').upload(path, file, { upsert:true, contentType:'application/pdf' });
+    if(error) throw error; return path; },
+  async signedPdfUrl(path){
+    if(!sb.storage || !path) return null;
+    const b = sb.storage.from('diamanti'); if(!b || typeof b.createSignedUrl!=='function') return null;
+    const { data, error } = await b.createSignedUrl(path, 120);
+    if(error) throw error; return data && data.signedUrl; },
   async loadTesti(){ const { data, error } = await sb.from('contenuti_sito').select('chiave,valore');
       if(error) throw error; const m={}; (data||[]).forEach(r=>{ m[r.chiave]=r.valore; }); return m; },
   async saveTesti(righe){ if(!righe.length) return; const { error } = await sb.from('contenuti_sito')

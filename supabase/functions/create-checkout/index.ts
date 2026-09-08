@@ -73,6 +73,10 @@ Deno.serve(async (req) => {
         const { data: e2 } = await admin.from("events").select("titolo,prezzo").eq("id", ref.slice(7)).single();
         if (!e2) return json({ error: "Evento non trovato" }, 404);
         nome = "Biglietto — " + e2.titolo; amount = (e2.prezzo ?? 0) * 100;
+      } else if (ref.startsWith("libro:")) {
+        const { data: lb } = await admin.from("libri").select("titolo,prezzo").eq("id", ref.slice(6)).single();
+        if (!lb) return json({ error: "Libro non trovato" }, 404);
+        nome = "Libro — " + lb.titolo; amount = Math.round((Number(lb.prezzo) || 0) * 100);
       } else if (ref.startsWith("pacc:")) {
         const { data: p } = await admin.from("packages").select("nome,prezzo").eq("id", ref.slice(5)).single();
         if (!p) return json({ error: "Pacchetto non trovato" }, 404);

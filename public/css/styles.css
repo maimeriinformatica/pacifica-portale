@@ -83,9 +83,27 @@ input,select,textarea{font-family:inherit;font-size:15px}
 .view{animation:fade .35s ease}
 @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-.page-head{margin-bottom:26px}
-.page-head h1{font-size:40px;margin-bottom:4px}
-.page-head .lead{color:var(--grigio);font-size:16px;max-width:680px}
+.page-head{margin-bottom:26px;background:linear-gradient(135deg,var(--oltremare-scuro),#0c1d3b);color:#fff;padding:30px 30px 28px;border-radius:18px;box-shadow:var(--ombra-g)}
+.page-head .eyebrow{color:var(--oro-chiaro)}
+.page-head h1{font-size:40px;margin-bottom:4px;color:#fff}
+.page-head .lead{color:#C7D0E0;font-size:16px;max-width:680px}
+.page-head .lead .linkbtn,.page-head .linkbtn{color:var(--oro-chiaro)}
+.page-head .badge{background:rgba(255,255,255,.12);color:#fff}
+@media(max-width:600px){.page-head{padding:22px 18px}.page-head h1{font-size:32px}}
+/* sezioni della dashboard: stesse schede della home */
+.app-sezioni{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:900px){.app-sezioni{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.app-sezioni{grid-template-columns:1fr}}
+.app-sezioni .lp-pill{cursor:pointer}
+.app-sezioni .lp-pill:hover{transform:translateY(-3px);box-shadow:var(--ombra-g)}
+.app-entra{margin-top:6px;font-size:13px;font-weight:700;color:var(--oltremare)}
+.app-lock{margin-left:auto;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--oro-chiaro);border:1px solid rgba(217,196,138,.5);border-radius:999px;padding:3px 9px;white-space:nowrap}
+/* filtri dei corsi */
+.corsi-filtri{padding:16px 20px 18px;margin-bottom:22px}
+.filtri-row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-top:8px}
+.filtri-row label{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:700;color:var(--grigio);min-width:190px;flex:1}
+.filtri-row select{width:100%;padding:9px 10px;border-radius:9px;border:1px solid var(--linea);background:#fff;color:var(--inchiostro);font-size:14px}
+.filtri-row .linkbtn{align-self:center;padding-bottom:8px}
 .divider{height:1px;background:var(--linea);margin:26px 0}
 
 /* ---------- cards ---------- */
@@ -315,6 +333,19 @@ input,select,textarea{font-family:inherit;font-size:15px}
 .bk-nav .linkbtn{font-size:12px}
 .bk-add{display:flex;gap:12px;margin-top:8px;flex-wrap:wrap}
 .bk-add .linkbtn{font-size:13px;font-weight:700}
+/* I Diamanti della Pacifica */
+.lb-intro{padding:18px 22px;margin-bottom:18px;border-left:4px solid var(--oro)}
+.lb-cover{aspect-ratio:3/2;background:linear-gradient(135deg,var(--oltremare-scuro),#0c1d3b);display:grid;place-items:center;overflow:hidden}
+.lb-cover img{width:100%;height:100%;object-fit:cover;display:block}
+.lb-gem{font-size:54px;color:var(--oro-chiaro);text-shadow:0 2px 18px rgba(217,196,138,.45)}
+.lb-carta{display:inline-block;margin-top:10px;font-size:13px;font-weight:700;color:var(--oltremare);text-decoration:none}
+.lb-carta:hover{text-decoration:underline}
+.lettore-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.lettore-bar .lp-btn2{color:var(--oltremare);border-color:var(--oltremare)}
+.lettore-nav{display:flex;align-items:center;gap:10px}
+.lettore{background:#fff;border:1px solid var(--linea);border-radius:14px;padding:12px;display:grid;place-items:center;min-height:320px;box-shadow:var(--ombra-s);user-select:none;-webkit-user-select:none}
+.lettore canvas{max-width:100%;border-radius:6px;box-shadow:0 6px 24px rgba(14,29,56,.15);pointer-events:none}
+@media print{.lettore,.lettore *{display:none !important}}
 .ts-stile{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;align-items:center}
 .ts-stile select{flex:0 1 auto;min-width:0;width:auto;padding:6px 8px;font-size:12px;border-radius:8px;border:1px solid var(--linea);background:#fff;color:var(--inchiostro)}
 .ts-ck{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--grigio);white-space:nowrap}

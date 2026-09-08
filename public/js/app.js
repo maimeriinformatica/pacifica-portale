@@ -57,7 +57,8 @@ let ANAGRAFICHE = [];
 let MODELLI = [];
 let S3ACC = [];
 let LEZ_CACHE = {};
-let TESTI_PAG = {};   // testi delle pagine sovrascritti dal gestionale (contenuti_sito)
+let TESTI_PAG = {};
+let LIBRI = [];   // I Diamanti della Pacifica   // testi delle pagine sovrascritti dal gestionale (contenuti_sito)
 function T(k,d){ const v=TESTI_PAG[k]; return (v!==undefined && v!=='') ? v : d; }
 /* Stile facoltativo di un testo (salvato come riga 'stile:<chiave>' in contenuti_sito).
    Valori ammessi soltanto da elenchi chiusi: mai CSS libero. */
@@ -140,15 +141,15 @@ const ELENCO_TESTI = (function(){
     ['manifesto.titolo-pagina','Manifesto \u2014 titolo della pagina interna','I Sette Principi',0],
     ['manifesto.citazione','Manifesto \u2014 citazione finale','\u00abLa conoscenza senza coscienza non genera futuro.\u00bb',0],
     ['footer.motto','Pi\u00e8 di pagina \u2014 motto','\u00abCustodire per costruire.\u00bb',0]];
-  const SR={'Parlamento dei Giovani':['Il Parlamento dei Giovani','Proposte, dibattiti e votazioni.','Seggi, commissioni e aula.','La democrazia si impara praticandola.'],
-    'Accademia':['L\u2019Accademia','Corsi tenuti dai formatori.','Lezioni, materiali e quiz.','Il Percorso di Pace, passo dopo passo.'],
-    'Video On Demand':['Il Video On Demand','Lezioni e conferenze in video.','Percorsi ordinati per livelli.','La cultura di pace da guardare.'],
-    'Biblioteca Audio':['La Biblioteca Audio','Testi da leggere e ascoltare.','Audiolibri con voce IA.','La cultura che si ascolta.'],
-    'Campus':['Il Campus','Fine settimana formativi.','All\u2019Abbazia di Maguzzano, sul Garda.','Lo studio come vita condivisa.'],
-    'Eventi':['Gli Eventi','Mostre, incontri e forum.','Aperti alla citt\u00e0.','La Pacifica incontra il mondo.']};
+  const SR={'Parlamento dei Giovani':['Il Parlamento dei Giovani','La politica ripensata attraverso la partecipazione attiva dei giovani'],
+    'Accademia':['L\u2019Accademia','Uno spazio per sviluppare il pensiero critico e trasformare le idee in proposte e azioni concrete.'],
+    'Video On Demand':['Il Video On Demand','Uno spazio dedicato alla conoscenza e all\u2019approfondimento, dove incontrare idee, esperienze e protagonisti attraverso contenuti video sempre disponibili.','Un patrimonio di formazione, informazione e cultura per continuare a conoscere, riflettere e partecipare.'],
+    'Biblioteca Audio':['La Biblioteca Audio','Un luogo per ascoltare, conoscere e approfondire, attraverso podcast, interventi, testimonianze e contenuti dedicati ai grandi temi della societ\u00e0 e della cultura.','Una biblioteca da vivere con le orecchie, la mente e la curiosit\u00e0.'],
+    'Campus':['Il Campus','Uno spazio di incontro, formazione e partecipazione, dove giovani, idee e competenze si intrecciano per costruire esperienze, progetti e nuove visioni.','Un luogo per imparare, confrontarsi e fare insieme.'],
+    'Eventi':['Gli Eventi','Luoghi e momenti di incontro, confronto e partecipazione, per condividere idee, esperienze e visioni sui grandi temi del presente e del futuro.','Un calendario di appuntamenti per conoscere, dialogare e costruire insieme.']};
   Object.keys(SR).forEach(k=>{
     E.push(['sezione.'+k+'.titolo','Scheda \u201c'+k+'\u201d \u2014 titolo',SR[k][0],0]);
-    for(let i=1;i<=3;i++) E.push(['sezione.'+k+'.riga'+i,'Scheda \u201c'+k+'\u201d \u2014 riga '+i,SR[k][i],0]);
+    for(let i=1;i<SR[k].length;i++) E.push(['sezione.'+k+'.riga'+i,'Scheda \u201c'+k+'\u201d \u2014 riga '+i,SR[k][i],0]);
   });
   const PR=[['I','La Pace come Stato dell\u2019Essere','La pace \u00e8 uno stato interiore di consapevolezza, che si riflette nella vita sociale e civile promuovendo la risoluzione dei conflitti.'],
     ['II','Conoscenza e Coscienza Unite','Ogni sapere \u00e8 autentico solo quando \u00e8 accompagnato da responsabilit\u00e0 etica e profondit\u00e0 spirituale. La conoscenza senza coscienza non genera futuro.'],
@@ -238,6 +239,7 @@ function haAccesso(area){
       || a.some(x=>x.startsWith('pacc:') && (PACCHETTI.find(p=>p.id===x.split(':')[1])||{corsi:[]}).corsi.includes(cid))
       || a.includes('percorso');
   }
+  if(area.startsWith('libro:')) return (io.acquisti||[]).includes(area);
   return false;
 }
 
@@ -259,6 +261,7 @@ async function loadCatalog(){
   try{
     const cat = await DB.loadCatalog();
     try{ TESTI_PAG = await DB.loadTesti(); }catch(_e){ TESTI_PAG = {}; }
+    try{ LIBRI = await DB.loadLibri(); }catch(_e){ LIBRI = []; }
     if(cat.CORSI && cat.CORSI.length) CORSI = cat.CORSI;
     if(cat.LIVELLI && cat.LIVELLI.length) LIVELLI = cat.LIVELLI;
     if(cat.TEMI) TEMI = cat.TEMI;
@@ -350,12 +353,12 @@ function tornaHome(){ paginaLanding='home'; renderLanding(); window.scrollTo(0,0
 /* Tre righe identificative per ogni sezione (schede della home) */
 function pillRighe(t){
   const R = {
-    'Parlamento dei Giovani': ['Proposte, dibattiti e votazioni.','Seggi, commissioni e aula.','La democrazia si impara praticandola.'],
-    'Accademia': ['Corsi tenuti dai formatori.','Lezioni, materiali e quiz.','Il Percorso di Pace, passo dopo passo.'],
-    'Video On Demand': ['Lezioni e conferenze in video.','Percorsi ordinati per livelli.','La cultura di pace da guardare.'],
-    'Biblioteca Audio': ['Testi da leggere e ascoltare.','Audiolibri con voce IA.','La cultura che si ascolta.'],
-    'Campus': ['Fine settimana formativi.','All\u2019Abbazia di Maguzzano, sul Garda.','Lo studio come vita condivisa.'],
-    'Eventi': ['Mostre, incontri e forum.','Aperti alla citt\u00e0.','La Pacifica incontra il mondo.']
+    'Parlamento dei Giovani': ['La politica ripensata attraverso la partecipazione attiva dei giovani'],
+    'Accademia': ['Uno spazio per sviluppare il pensiero critico e trasformare le idee in proposte e azioni concrete.'],
+    'Video On Demand': ['Uno spazio dedicato alla conoscenza e all\u2019approfondimento, dove incontrare idee, esperienze e protagonisti attraverso contenuti video sempre disponibili.','Un patrimonio di formazione, informazione e cultura per continuare a conoscere, riflettere e partecipare.'],
+    'Biblioteca Audio': ['Un luogo per ascoltare, conoscere e approfondire, attraverso podcast, interventi, testimonianze e contenuti dedicati ai grandi temi della societ\u00e0 e della cultura.','Una biblioteca da vivere con le orecchie, la mente e la curiosit\u00e0.'],
+    'Campus': ['Uno spazio di incontro, formazione e partecipazione, dove giovani, idee e competenze si intrecciano per costruire esperienze, progetti e nuove visioni.','Un luogo per imparare, confrontarsi e fare insieme.'],
+    'Eventi': ['Luoghi e momenti di incontro, confronto e partecipazione, per condividere idee, esperienze e visioni sui grandi temi del presente e del futuro.','Un calendario di appuntamenti per conoscere, dialogare e costruire insieme.']
   };
   return (R[t]||[]).map((r,i)=>{ const kk='sezione.'+t+'.riga'+(i+1); return { kk, testo:T(kk, r), st:stileTesto(kk) }; }).filter(o=>!testoNascosto(o.kk));
 }
@@ -852,7 +855,7 @@ function render(){
     <div class="chip"><span class="av">${initials(io.nome)}</span>${esc(io.nome.split(' ')[0])}
       <button class="x" style="font-size:16px;width:auto;height:auto;margin-left:2px" title="Esci" onclick="logout()">⏻</button></div>`;
   const R = { dashboard:renderDashboard, parlamento:renderParlamento, accademia:renderAccademia,
-    vod:renderVod, audio:renderAudio, rassegna:renderRassegna, novita:renderNovita, formatore:renderFormatore, campus:renderCampus, eventi:renderEventi, abbonamenti:renderAbbonamenti, presidenza:renderPresidenza, corso:renderCorso };
+    vod:renderVod, audio:renderAudio, lettore:renderLettore, rassegna:renderRassegna, novita:renderNovita, formatore:renderFormatore, campus:renderCampus, eventi:renderEventi, abbonamenti:renderAbbonamenti, presidenza:renderPresidenza, corso:renderCorso };
   $('main').innerHTML = `<div class="view">${(R[vista]||renderDashboard)()}</div>`;
   osservaReveal();
 }
@@ -1036,11 +1039,15 @@ function renderDashboard(){
     <h1>Benvenuto, ${esc(io.nome.split(' ')[0])}.</h1>
     <p class="lead">${statoAbb}. ${mb==='free'?'<button class="linkbtn" onclick="go(\'abbonamenti\')">Vedi i piani →</button>':''}</p>
   </div>
-  <div class="temple" style="margin-bottom:26px">
-    ${pillars.map(p=>`<button class="pillar" onclick="go('${p.id}')">
-      ${p.lock?'<span class="lock">su invito</span>':''}
-      <span class="num">${p.num}</span><span class="ico">${p.ico}</span>
-      <h3>${p.t}</h3><p>${p.d}</p><span class="go">Entra →</span></button>`).join('')}
+  <div class="app-sezioni" style="margin-bottom:26px">
+    ${pillars.map(p=>{
+      const K={parlamento:'Parlamento dei Giovani',accademia:'Accademia',vod:'Video On Demand',audio:'Biblioteca Audio',campus:'Campus',eventi:'Eventi'}[p.id];
+      const TIT={parlamento:'Il Parlamento dei Giovani',accademia:'L\u2019Accademia',vod:'Il Video On Demand',audio:'La Biblioteca Audio',campus:'Il Campus',eventi:'Gli Eventi'}[p.id];
+      return `<div class="lp-pill" role="button" tabindex="0" onclick="go('${p.id}')" onkeydown="if(event.key==='Enter')go('${p.id}')">
+        <div class="lp-pill-bg lp-pill-txt">${pillRighe(K).map(r=>`<span${r.st}>${r.testo}</span>`).join('')}<span class="app-entra">Entra \u2192</span></div>
+        <span class="lp-pn">${p.num}</span>
+        <div class="lp-pill-c"><h3${stileTesto('sezione.'+K+'.titolo')}>${esc(T('sezione.'+K+'.titolo',TIT))}</h3>${p.lock?'<span class="app-lock">su invito</span>':''}</div>
+      </div>`;}).join('')}
   </div>
   <div class="stats" style="margin-bottom:26px">
     <div class="stat"><div class="n">${nCorsi}/8</div><div class="l">Corsi a tua disposizione</div></div>
@@ -1074,6 +1081,30 @@ function renderDashboard(){
 /* =====================================================================
    ACCADEMIA + PLAYER
 ===================================================================== */
+let FILTRO_CORSI={ form:'', comm:'', pacc:'' };
+function setFiltroCorsi(k,v){ FILTRO_CORSI[k]=v; render(); }
+function azzeraFiltriCorsi(){ FILTRO_CORSI={ form:'', comm:'', pacc:'' }; render(); }
+function passaFiltroCorsi(c){
+  return (!FILTRO_CORSI.form || c.form===FILTRO_CORSI.form)
+      && (!FILTRO_CORSI.comm || c.comm===FILTRO_CORSI.comm)
+      && (!FILTRO_CORSI.pacc || c.pacc===FILTRO_CORSI.pacc);
+}
+function barraFiltriCorsi(){
+  const uniq=a=>Array.from(new Set(a.filter(Boolean)));
+  const forms=uniq(CORSI.map(c=>c.form)), comms=uniq(CORSI.map(c=>c.comm)), paccs=uniq(CORSI.map(c=>c.pacc));
+  const nomeComm=id=>(COMMISSIONI.find(x=>x.id===id)||{nome:id}).nome;
+  const opt=(v,l,cur)=>`<option value="${esc(v)}"${v===cur?' selected':''}>${esc(l)}</option>`;
+  const attivi=[FILTRO_CORSI.form,FILTRO_CORSI.comm,FILTRO_CORSI.pacc].filter(Boolean).length;
+  return `<div class="card corsi-filtri">
+    <div class="eyebrow">Mostra i corsi per</div>
+    <div class="filtri-row">
+      <label>Formatore<select onchange="setFiltroCorsi('form',this.value)">${opt('','Tutti i formatori',FILTRO_CORSI.form)}${forms.map(f=>opt(f,f,FILTRO_CORSI.form)).join('')}</select></label>
+      <label>Materia<select onchange="setFiltroCorsi('comm',this.value)">${opt('','Tutte le materie',FILTRO_CORSI.comm)}${comms.map(c=>opt(c,nomeComm(c),FILTRO_CORSI.comm)).join('')}</select></label>
+      <label>Pacchetto<select onchange="setFiltroCorsi('pacc',this.value)">${opt('','Tutti i pacchetti',FILTRO_CORSI.pacc)}${paccs.map(p=>opt(p,p,FILTRO_CORSI.pacc)).join('')}</select></label>
+      ${attivi?`<button class="linkbtn" onclick="azzeraFiltriCorsi()">Azzera i filtri</button>`:''}
+    </div>
+  </div>`;
+}
 function renderAccademia(){
   const tutto = io.membership==='academicus';
   return `
@@ -1086,8 +1117,10 @@ function renderAccademia(){
       <p class="muted small">Il modo più conveniente per affrontare l’intero Percorso di Pace.</p></div>
     <div style="text-align:right"><div class="price" style="font-size:34px">${euro(PREZZO_PERCORSO)}</div>
       <button class="btn oro" onclick="compra('percorso')">Acquista il Percorso</button></div></div>`:''}
+  ${barraFiltriCorsi()}
+  ${CORSI.filter(passaFiltroCorsi).length?'':'<p class="muted" style="margin:8px 0 18px">Nessun corso corrisponde a questa selezione. <button class="linkbtn" onclick="azzeraFiltriCorsi()">Mostra tutti i corsi</button></p>'}
   <div class="grid g3">
-    ${CORSI.map(c=>{
+    ${CORSI.filter(passaFiltroCorsi).map(c=>{
       const ok = haAccesso('corso:'+c.id), done=(io.progress[c.id]||[]).length;
       return `<div class="tile">
         <div class="cover"><span class="k">${c.id.slice(1)}</span><span class="tag">${esc(c.pacc)}</span></div>
@@ -1284,6 +1317,59 @@ async function playVideo(id){
 let ttsUtter=null, bibTab='audio';
 let readText='', readTitle='', readerCaps=[];
 function findMedia(id){ return AUDIO.find(x=>x.id===id) || TESTI.find(x=>x.id===id); }
+/* ---------- Lettore protetto dei Diamanti ---------- */
+let LETTORE = null;
+function renderLettore(){
+  const l = LIBRI.find(x=>x.id===ctx.id);
+  if(!l) return `<div class="page-head"><h1>Libro non trovato</h1></div><button class="lp-btn2" onclick="go('audio')">\u2190 Biblioteca</button>`;
+  if(!haAccesso('libro:'+l.id)){ setTimeout(()=>{ toast('Questo Diamante non \u00e8 nel tuo scrigno: acquistalo per leggerlo.'); go('audio'); }, 10); return ''; }
+  setTimeout(()=>avviaLettore(l), 30);
+  return `<div class="page-head"><div class="eyebrow">I Diamanti della Pacifica</div>
+    <h1>${esc(l.titolo)}</h1><p class="lead">${esc(l.autore||'')}</p></div>
+  <div class="lettore-bar">
+    <button class="lp-btn2" onclick="go('audio')">\u2190 Biblioteca</button>
+    <div class="lettore-nav">
+      <button class="btn small" id="lt-prev" onclick="vaiPagina(-1)">\u2039 Precedente</button>
+      <span id="lt-pag" class="muted small">\u2026</span>
+      <button class="btn small" id="lt-next" onclick="vaiPagina(1)">Successiva \u203a</button>
+    </div>
+    ${l.link_cartaceo?`<a class="lb-carta" href="${esc(urlSicuro(l.link_cartaceo))}" target="_blank" rel="noopener">Edizione cartacea \u2192</a>`:''}
+  </div>
+  <div id="lettore-box" class="lettore" oncontextmenu="return false" ondragstart="return false">
+    <div class="muted small" id="lt-stato" style="padding:26px;text-align:center">Apertura del libro\u2026</div>
+    <canvas id="lt-canvas" hidden></canvas>
+  </div>
+  <p class="muted small" style="margin-top:10px">Edizione digitale riservata a chi l\u2019ha acquistata: si legge qui e non si scarica. Buona lettura.</p>`;
+}
+async function avviaLettore(l){
+  const st=$('lt-stato'); if(!st) return;
+  try{
+    const url = await DB.signedPdfUrl(l.pdf_path);
+    if(!url){ st.innerHTML = window.__DEMO ? 'Anteprima dimostrativa: nella demo il PDF non \u00e8 caricato. Sul portale online il libro si apre qui, pagina per pagina.' : 'Il file di questo libro non \u00e8 ancora stato caricato dalla Presidenza.'; return; }
+    if(!window.pdfjsLib){ st.textContent='Libreria PDF non caricata: serve la connessione a internet.'; return; }
+    pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const pdf = await pdfjsLib.getDocument({ url, withCredentials:false }).promise;
+    LETTORE = { pdf, pag:1, tot:pdf.numPages };
+    st.hidden = true; $('lt-canvas').hidden = false;
+    await mostraPagina(1);
+  }catch(e){ st.textContent='Impossibile aprire il libro: '+(e.message||'errore'); }
+}
+async function mostraPagina(n){
+  if(!LETTORE) return;
+  n = Math.max(1, Math.min(LETTORE.tot, n)); LETTORE.pag = n;
+  const page = await LETTORE.pdf.getPage(n);
+  const box=$('lettore-box'), canvas=$('lt-canvas'); if(!box||!canvas) return;
+  const larg = Math.min(box.clientWidth-2, 920);
+  const vp0 = page.getViewport({ scale:1 }); const scala = larg / vp0.width;
+  const dpr = window.devicePixelRatio||1; const vp = page.getViewport({ scale: scala*dpr });
+  canvas.width = vp.width; canvas.height = vp.height;
+  canvas.style.width = Math.round(vp.width/dpr)+'px'; canvas.style.height = Math.round(vp.height/dpr)+'px';
+  await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+  const p=$('lt-pag'); if(p) p.textContent = 'Pagina '+n+' di '+LETTORE.tot;
+  const a=$('lt-prev'), b=$('lt-next'); if(a) a.disabled = n<=1; if(b) b.disabled = n>=LETTORE.tot;
+}
+function vaiPagina(d){ if(LETTORE) mostraPagina(LETTORE.pag+d); }
+
 function renderAudio(){
   const premium = haAccesso('audio-premium');
   if(ctx.open){ const a=AUDIO.find(x=>x.id===ctx.open); const o=ctx.open; ctx.open=null; setTimeout(()=>{ if(a&&(a.free||premium)) apriAudio(o); },50); }
@@ -1294,11 +1380,40 @@ function renderAudio(){
   <div class="seg" style="max-width:360px;margin-bottom:20px">
     <button class="${bibTab==='audio'?'on':''}" onclick="setBibTab('audio')">Audiolibri</button>
     <button class="${bibTab==='testi'?'on':''}" onclick="setBibTab('testi')">Testi</button>
+    <button class="${bibTab==='diamanti'?'on':''}" onclick="setBibTab('diamanti')">I Diamanti</button>
   </div>
   <div id="bib-area">${bibArea(premium)}</div>`;
 }
 function setBibTab(t){ bibTab=t; const a=$('bib-area'); if(a) a.innerHTML=bibArea(haAccesso('audio-premium')); }
+function copertinaLibro(l){
+  return l.copertina_url ? `<img src="${esc(urlSicuro(l.copertina_url))}" alt="" loading="lazy">`
+    : `<span class="lb-gem">\u25c6</span>`;
+}
+function areaDiamanti(){
+  const libri = LIBRI.filter(l=>l.pubblicato!==false);
+  return `<div class="card lb-intro">
+      <div class="eyebrow" style="color:var(--oro)">I Diamanti della Pacifica</div>
+      <h3 style="font-size:24px;margin:4px 0 6px">I libri dell\u2019Accademia, da leggere online</h3>
+      <p class="muted small">Opere scelte, in edizione digitale riservata: dopo l\u2019acquisto il libro si legge qui, nel lettore del portale. Per chi ama la carta, ogni titolo indica dove trovare l\u2019edizione stampata.</p>
+    </div>
+    ${libri.length ? `<div class="grid g3 lb-grid">${libri.map(l=>{
+      const mio = haAccesso('libro:'+l.id);
+      return `<div class="tile lb-tile">
+        <div class="lb-cover">${copertinaLibro(l)}</div>
+        <div class="body">
+          <h4>${esc(l.titolo)}</h4>
+          <div class="meta">${esc(l.autore||'')}</div>
+          <p class="small muted" style="flex:1">${esc(l.descrizione||'')}</p>
+          <div class="foot">
+            ${mio ? `<span class="badge verde">Tuo</span><button class="btn small" onclick="go('lettore',{id:'${l.id}'})">Leggi</button>`
+                  : `<span class="price">${euro(Number(l.prezzo)||0)}</span><button class="btn oro small" onclick="compra('libro:${l.id}')">Acquista</button>`}
+          </div>
+          ${l.link_cartaceo ? `<a class="lb-carta" href="${esc(urlSicuro(l.link_cartaceo))}" target="_blank" rel="noopener">Edizione cartacea \u2192</a>` : ''}
+        </div></div>`; }).join('')}</div>`
+    : `<p class="muted">Nessun Diamante pubblicato al momento.</p>`}`;
+}
 function bibArea(premium){
+  if(bibTab==='diamanti') return areaDiamanti();
   if(bibTab==='testi'){
     return `<div class="grid g3">
       ${TESTI.map(t=>{ const ok=t.free||premium; return `<div class="tile">
@@ -1735,8 +1850,9 @@ function compra(what){
   let lab,prezzo;
   if(what==='percorso'){ lab='Percorso di Pace completo (8 corsi)'; prezzo=PREZZO_PERCORSO; }
   else if(what.startsWith('pacc:')){ const p=PACCHETTI.find(x=>x.id===what.split(':')[1]); lab='Pacchetto '+p.nome; prezzo=p.prezzo; }
+  else if(what.startsWith('libro:')){ const l=LIBRI.find(x=>x.id===what.split(':')[1]); lab='Diamante \u2014 '+l.titolo; prezzo=Number(l.prezzo)||0; }
   else { const c=CORSI.find(x=>x.id===what.split(':')[1]); lab=c.tit; prezzo=PREZZO_CORSO; }
-  const sconto=io.membership==='civis', finale=sconto?Math.round(prezzo*0.8):prezzo;
+  const sconto=io.membership==='civis' && !what.startsWith('libro:'), finale=sconto?Math.round(prezzo*0.8):prezzo;
   const reale=DB.stripeAttivo();
   openModal(`<h3 style="font-size:24px">${esc(lab)}</h3>`,
    `<p class="muted small" style="margin-bottom:16px">${reale?'Sarai reindirizzato al pagamento sicuro gestito da Stripe.':'Acquisto dimostrativo: nessun addebito reale.'}</p>
@@ -1810,7 +1926,7 @@ async function generaCodici(){
 /* Menu del gestionale, raggruppato per aree di lavoro */
 const CMS_GRUPPI=[
   ['Persone', [['anagrafiche','Anagrafiche'],['contratti','Contratti'],['utenti','Utenti'],['pagamenti','Pagamenti']]],
-  ['Contenuti', [['corsi','Corsi'],['video','Video'],['audio','Audiolibri'],['testi','Testi'],['pagine','Testi delle pagine'],['pacchetti','Pacchetti'],['campus','Campus'],['eventi','Eventi']]],
+  ['Contenuti', [['corsi','Corsi'],['video','Video'],['audio','Audiolibri'],['testi','Testi'],['pagine','Testi delle pagine'],['diamanti','I Diamanti (libri)'],['pacchetti','Pacchetti'],['campus','Campus'],['eventi','Eventi']]],
   ['Comunicazione', [['rassegna','Rassegna'],['mecenati','Mecenati'],['statistiche','Statistiche']]],
   ['Impostazioni', [['livelli','Livelli'],['temi','Temi UE'],['archiviazione','Video S3'],['ente','Ente'],['prezzi','Prezzi']]]
 ];
@@ -1832,6 +1948,21 @@ function cmsRow(titolo, sub, badge, onEdit, onDel, extra){
       <button class="btn small ghost" style="color:var(--porpora);border-color:#ECC9C9" onclick="${onDel}">Elimina</button></span></div>`;
 }
 function cmsArea(){
+  if(cmsTab==='diamanti'){
+    return `<div class="card" style="padding:22px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div><div class="eyebrow" style="color:var(--oro)">I Diamanti della Pacifica</div>
+          <p class="muted small" style="margin-top:4px">Libri in PDF venduti singolarmente e leggibili solo online, dopo l\u2019acquisto. Il file resta in un deposito privato: nessun collegamento pubblico.</p></div>
+        <button class="btn" onclick="editLibro('')">+ Nuovo libro</button>
+      </div>
+      ${LIBRI.length ? `<table class="tbl" style="margin-top:14px"><thead><tr><th>Titolo</th><th>Autore</th><th>Prezzo</th><th>PDF</th><th>Stato</th><th></th></tr></thead><tbody>
+        ${LIBRI.map(l=>`<tr><td><b>${esc(l.titolo)}</b></td><td>${esc(l.autore||'')}</td><td>${euro(Number(l.prezzo)||0)}</td>
+          <td>${l.pdf_path?'<span class="badge verde">caricato</span>':'<span class="badge">manca</span>'}</td>
+          <td>${l.pubblicato!==false?'pubblicato':'<span class="muted">bozza</span>'}</td>
+          <td style="white-space:nowrap"><button class="linkbtn" onclick="editLibro('${l.id}')">Modifica</button> <button class="linkbtn" style="color:var(--porpora)" onclick="eliminaLibro('${l.id}')">Elimina</button></td></tr>`).join('')}
+      </tbody></table>` : '<p class="muted small" style="margin-top:14px">Nessun libro ancora. Premi \u00ab+ Nuovo libro\u00bb.</p>'}
+    </div>`;
+  }
   if(cmsTab==='pagine'){
     if(!BLOCCHI_EDIT) blocchiCarica();
     const gruppi=[]; let cur=null;
@@ -2595,6 +2726,43 @@ function blocchiEditorZona(zi, sotto){
   }).join('');
   const add=`<div class="bk-add"><button class="linkbtn" onclick="aggiungiBlocco(${zi},'testo')">+ Riga di testo</button><button class="linkbtn" onclick="aggiungiBlocco(${zi},'immagine')">+ Immagine</button><button class="linkbtn" onclick="aggiungiBlocco(${zi},'tasto')">+ Tasto</button></div>`;
   return `<div class="bk-zona"><div class="bk-cap">Elementi aggiuntivi${sotto?' \u2014 '+esc(sotto):''}</div>${righe}${add}</div>`;
+}
+function editLibro(id){
+  const l = LIBRI.find(x=>x.id===id) || { id:'', titolo:'', autore:'', descrizione:'', prezzo:'', copertina_url:'', link_cartaceo:'', pubblicato:true, pdf_path:'' };
+  openModal(`<h3 style="font-size:22px">${id?'Modifica libro':'Nuovo Diamante'}</h3>`,
+   `<div class="field"><label>Titolo</label><input id="lb-titolo" value="${esc(l.titolo)}"></div>
+    <div class="field"><label>Autore</label><input id="lb-autore" value="${esc(l.autore||'')}"></div>
+    <div class="field"><label>Descrizione</label><textarea id="lb-desc" rows="3">${esc(l.descrizione||'')}</textarea></div>
+    <div class="grid g2">
+      <div class="field"><label>Prezzo (\u20ac)</label><input id="lb-prezzo" type="number" step="0.01" min="0" value="${esc(String(l.prezzo||''))}"></div>
+      <div class="field"><label>Pubblicato</label><select id="lb-pub"><option value="1"${l.pubblicato!==false?' selected':''}>S\u00ec</option><option value="0"${l.pubblicato===false?' selected':''}>No (bozza)</option></select></div>
+    </div>
+    <div class="field"><label>Copertina (indirizzo immagine, facoltativo)</label><input id="lb-cover" value="${esc(l.copertina_url||'')}" placeholder="https\u2026 oppure img/\u2026"></div>
+    <div class="field"><label>Edizione cartacea (collegamento per l\u2019acquisto, facoltativo)</label><input id="lb-link" value="${esc(l.link_cartaceo||'')}" placeholder="https\u2026"></div>
+    <div class="field"><label>File PDF del libro ${l.pdf_path?'<span class="badge verde">gi\u00e0 caricato \u2014 scegli un file solo per sostituirlo</span>':''}</label><input id="lb-pdf" type="file" accept="application/pdf"></div>
+    <p class="muted small">Il PDF va nel deposito privato: chi non ha acquistato il libro non pu\u00f2 aprirlo n\u00e9 scaricarlo.</p>
+    <button class="btn full" onclick="salvaLibro('${l.id}')">Salva il libro</button>`);
+}
+async function salvaLibro(id){
+  const tit=($('lb-titolo').value||'').trim(); if(!tit){ toast('Serve un titolo.'); return; }
+  const nuovo = !id; id = id || ('lb'+Date.now().toString(36));
+  const row = { id, titolo:tit, autore:($('lb-autore').value||'').trim(), descrizione:($('lb-desc').value||'').trim(),
+    prezzo: Number($('lb-prezzo').value)||0, copertina_url:($('lb-cover').value||'').trim(),
+    link_cartaceo:($('lb-link').value||'').trim(), pubblicato: $('lb-pub').value==='1' };
+  const prev = LIBRI.find(x=>x.id===id); if(prev) row.pdf_path = prev.pdf_path||''; if(nuovo) row.pdf_path='';
+  try{
+    const f = $('lb-pdf').files && $('lb-pdf').files[0];
+    if(f){ toast('Caricamento del PDF\u2026'); row.pdf_path = await DB.uploadLibroPdf(id, f); }
+    await DB.saveLibro(row);
+    LIBRI = await DB.loadLibri();
+    closeModal(); setCmsTab('diamanti'); toast(nuovo?'Diamante creato.':'Libro aggiornato.');
+  }catch(e){ toast('Errore: '+(e.message||'salvataggio non riuscito')); }
+}
+async function eliminaLibro(id){
+  const l=LIBRI.find(x=>x.id===id); if(!l) return;
+  if(!confirm('Eliminare \u00ab'+l.titolo+'\u00bb? Chi lo ha acquistato non potr\u00e0 pi\u00f9 leggerlo.')) return;
+  try{ await DB.deleteLibro(id); LIBRI = await DB.loadLibri(); setCmsTab('diamanti'); toast('Libro eliminato.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
 }
 async function salvaTestiPagine(){
   const upsert=[], cancella=[];
