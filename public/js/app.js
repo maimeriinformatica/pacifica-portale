@@ -141,10 +141,10 @@ const ELENCO_TESTI = (function(){
     ['manifesto.titolo-pagina','Manifesto \u2014 titolo della pagina interna','I Sette Principi',0],
     ['manifesto.citazione','Manifesto \u2014 citazione finale','\u00abLa conoscenza senza coscienza non genera futuro.\u00bb',0],
     ['footer.motto','Pi\u00e8 di pagina \u2014 motto','\u00abCustodire per costruire.\u00bb',0]];
-  const SR={'Parlamento dei Giovani':['Il Parlamento dei Giovani','La politica ripensata attraverso la partecipazione attiva dei giovani','Informazione, formazione e azione per trasformare idee e proposte in iniziative politiche, sociali e legislative.','Un laboratorio di idee e progetti concreti, organizzato in commissioni, discussi e sottoposti al voto.','Un dialogo con le istituzioni e le agende dei Parlamenti per portare la voce dei giovani nei processi decisionali.'],
+  const SR={'Parlamento dei Giovani':['Il Parlamento dei Giovani','La politica ripensata attraverso la partecipazione attiva dei giovani'],
     'Accademia':['L\u2019Accademia','L\u2019Accademia \u00e8 il luogo della formazione, del confronto e della crescita dei giovani: uno spazio in cui acquisire strumenti e competenze per comprendere la realt\u00e0, sviluppare il pensiero critico e trasformare le idee in proposte e azioni concrete.','Un percorso per formare cittadini consapevoli e protagonisti della Res Publica.'],
-    'Video On Demand':['Il Video On Demand','Uno spazio dedicato alla conoscenza e all\u2019approfondimento, dove incontrare idee, esperienze e protagonisti attraverso contenuti video sempre disponibili.','Un patrimonio di formazione, informazione e cultura per continuare a conoscere, riflettere e partecipare.'],
-    'Biblioteca Audio':['La Biblioteca Audio','Un luogo per ascoltare, conoscere e approfondire, attraverso podcast, interventi, testimonianze e contenuti dedicati ai grandi temi della societ\u00e0 e della cultura.','Una biblioteca da vivere con le orecchie, la mente e la curiosit\u00e0.'],
+    'Video On Demand':['Video On Demand','Video e serie autoprodotte da La Pacifica su tutti i temi dell\u2019Accademia: storie, lezioni e approfondimenti da guardare liberamente, quando e dove vuoi.'],
+    'Biblioteca Audio':['La Biblioteca','Una vera e propria biblioteca: testi da leggere online, libri cartacei da ordinare e audiobook da ascoltare \u2014 il sapere della Pacifica in tutte le sue forme.'],
     'Campus':['Il Campus','Uno spazio di incontro, formazione e partecipazione, dove giovani, idee e competenze si intrecciano per costruire esperienze, progetti e nuove visioni.','Un luogo per imparare, confrontarsi e fare insieme.'],
     'Eventi':['Gli Eventi','Luoghi e momenti di incontro, confronto e partecipazione, per condividere idee, esperienze e visioni sui grandi temi del presente e del futuro.','Un calendario di appuntamenti per conoscere, dialogare e costruire insieme.']};
   Object.keys(SR).forEach(k=>{
@@ -353,10 +353,10 @@ function tornaHome(){ paginaLanding='home'; renderLanding(); window.scrollTo(0,0
 /* Tre righe identificative per ogni sezione (schede della home) */
 function pillRighe(t){
   const R = {
-    'Parlamento dei Giovani': ['La politica ripensata attraverso la partecipazione attiva dei giovani','Informazione, formazione e azione per trasformare idee e proposte in iniziative politiche, sociali e legislative.','Un laboratorio di idee e progetti concreti, organizzato in commissioni, discussi e sottoposti al voto.','Un dialogo con le istituzioni e le agende dei Parlamenti per portare la voce dei giovani nei processi decisionali.'],
+    'Parlamento dei Giovani': ['La politica ripensata attraverso la partecipazione attiva dei giovani'],
     'Accademia': ['L\u2019Accademia \u00e8 il luogo della formazione, del confronto e della crescita dei giovani: uno spazio in cui acquisire strumenti e competenze per comprendere la realt\u00e0, sviluppare il pensiero critico e trasformare le idee in proposte e azioni concrete.','Un percorso per formare cittadini consapevoli e protagonisti della Res Publica.'],
-    'Video On Demand': ['Uno spazio dedicato alla conoscenza e all\u2019approfondimento, dove incontrare idee, esperienze e protagonisti attraverso contenuti video sempre disponibili.','Un patrimonio di formazione, informazione e cultura per continuare a conoscere, riflettere e partecipare.'],
-    'Biblioteca Audio': ['Un luogo per ascoltare, conoscere e approfondire, attraverso podcast, interventi, testimonianze e contenuti dedicati ai grandi temi della societ\u00e0 e della cultura.','Una biblioteca da vivere con le orecchie, la mente e la curiosit\u00e0.'],
+    'Video On Demand': ['Video e serie autoprodotte da La Pacifica su tutti i temi dell\u2019Accademia: storie, lezioni e approfondimenti da guardare liberamente, quando e dove vuoi.'],
+    'Biblioteca Audio': ['Una vera e propria biblioteca: testi da leggere online, libri cartacei da ordinare e audiobook da ascoltare \u2014 il sapere della Pacifica in tutte le sue forme.'],
     'Campus': ['Uno spazio di incontro, formazione e partecipazione, dove giovani, idee e competenze si intrecciano per costruire esperienze, progetti e nuove visioni.','Un luogo per imparare, confrontarsi e fare insieme.'],
     'Eventi': ['Luoghi e momenti di incontro, confronto e partecipazione, per condividere idee, esperienze e visioni sui grandi temi del presente e del futuro.','Un calendario di appuntamenti per conoscere, dialogare e costruire insieme.']
   };
@@ -515,10 +515,10 @@ function renderLanding(){
   const pilastri = [
     {n:'I',  ico:'\u2696\uFE0E', t:'Parlamento dei Giovani', tit:'Il Parlamento dei Giovani', d:'150 delegati, sette commissioni, proposte di legge e voto in aula.', free:'Il documentario sull\u2019emiciclo', chiuso:'Seggio e voto \u2014 su invito'},
     {n:'II', ico:'\uD83D\uDCD6', t:'Accademia', tit:'L’Accademia', d:'Il Percorso di Pace in otto corsi tenuti dai formatori.', free:'Lezioni aperte e assaggi', chiuso:'Corsi completi e attestati'},
-    {n:'III',ico:'\u25B6', t:'Video On Demand', tit:'Il Video On Demand', d:'Documentari, lezioni aperte e conferenze sulla cultura di pace.', free:'Documentari e lezioni', chiuso:'Catalogo completo con Civis'},
-    {n:'IV', ico:'\uD83D\uDCDA', t:'Biblioteca Audio', tit:'La Biblioteca Audio', d:'Testi e audiolibri da leggere e ascoltare, con voce e sintesi IA.', free:'Testi e audiolibri scelti + voce IA', chiuso:'Tutta la biblioteca con Civis'},
-    {n:'V',  ico:'\u26EA', t:'Campus', tit:'Il Campus', d:'Fine settimana formativi all\u2019Abbazia di Maguzzano, sul Lago di Garda.', free:'Programmi e calendario', chiuso:'Posti su prenotazione'},
-    {n:'VI', ico:'\uD83C\uDFAD', t:'Eventi', tit:'Gli Eventi', d:'Mostre ed incontri de La Pacifica, aperti alla citt\u00e0.', free:'Programma di ENIGMA ET SPECULUM', chiuso:'Ingresso con biglietto'},
+    {n:'III',ico:'\u25B6', t:'Video On Demand', tit:'Video On Demand', d:'Video e serie autoprodotte da La Pacifica, da guardare quando e dove vuoi.', free:'Documentari e lezioni', chiuso:'Catalogo completo con Civis'},
+    {n:'IV', ico:'\uD83D\uDCDA', t:'Biblioteca Audio', tit:'La Biblioteca', d:'Testi online, libri cartacei e audiobook: il sapere in tutte le sue forme.', free:'Testi e audiolibri scelti + voce IA', chiuso:'Tutta la biblioteca con Civis'},
+    {n:'V',  ico:'\u26EA', t:'Campus', tit:'Il Campus', d:'Fine settimana formativi in luoghi dedicati allo studio e alla quiete.', free:'Programmi e calendario', chiuso:'Posti su prenotazione'},
+    {n:'VI', ico:'\uD83C\uDFAD', t:'Eventi', tit:'Gli Eventi', d:'Mostre e incontri de La Pacifica.', free:'Programma di ENIGMA ET SPECULUM', chiuso:'Ingresso con biglietto'},
   ];
 
   const clip = (s,n) => { s=String(s||'').replace(/\s+/g,' ').trim(); return s.length>n ? s.slice(0,n).trim()+'\u2026' : s; };
@@ -1026,7 +1026,7 @@ function renderDashboard(){
   const pillars = [
     {id:'parlamento', num:'I', ico:'⚖︎', t:'Parlamento', d:'Simula un parlamento con commissioni, proposte di legge e votazioni.', lock:!(io.ruolo==='delegato'||io.ruolo==='presidenza')},
     {id:'accademia', num:'II', ico:'📖', t:'Accademia', d:'Il Percorso di Pace in otto corsi tenuti dai formatori.', lock:false},
-    {id:'vod', num:'III', ico:'▶', t:'Video On Demand', d:'Documentari, lezioni aperte e conferenze sulla cultura di pace.', lock:false},
+    {id:'vod', num:'III', ico:'▶', t:'Video On Demand', d:'Video e serie autoprodotte da La Pacifica, da guardare quando e dove vuoi.', lock:false},
     {id:'audio', num:'IV', ico:'📚', t:'Biblioteca', d:'Audiolibri e testi da leggere e ascoltare, con sintesi e percorsi su misura.', lock:false},
     {id:'campus', num:'V', ico:'⛪', t:'Campus', d:'Campus formativi in presenza all’Abbazia di Maguzzano, con possibilità di soggiorno.', lock:false},
     {id:'eventi', num:'VI', ico:'🎭', t:'Eventi', d:'Mostre ed eventi de La Pacifica. In arrivo: ENIGMA ET SPECULUM.', lock:false},
