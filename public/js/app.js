@@ -1,3 +1,4 @@
+const VERSIONE_PORTALE = '1.64';  // aggiornata a ogni modifica consegnata
 /* =====================================================================
    LA PACIFICA RES PUBLICA — Applicazione (frontend)
    Catalogo statico + viste. I dati dinamici arrivano da Supabase (DB.*).
@@ -45,7 +46,7 @@ let TESTI = [
   {id:'t5', tit:'Bellezza e nonviolenza', autore:'La Pacifica', comm:'arte', lettura:'5 min di lettura', free:false, testo:'Perché un’accademia per la pace si occupa di bellezza? Perché la bellezza disarma. La nonviolenza e la bellezza condividono la stessa radice: il rifiuto di distruggere.'},
 ];
 let EVENTI = [
-  {id:'ev1', tit:'ENIGMA ET SPECULUM', sub:'L\u2019incontro con Leonardo e i suoi amici',
+  {id:'ev1', tit:'AENIGMA ET SPECULUM', sub:'L\u2019incontro con Leonardo e i suoi amici',
    desc:'Una mostra immersiva che invita a riscoprire la Scuola di Atene come la segreta Accademia Vinciana. Un percorso tra filosofia, memoria e futuro per far rivivere il pensiero che l\u2019ha animata.',
    luogo:'Verona', periodo:'Settembre 2027',
    tipo:'Mostra', accesso:'biglietto', prezzo:30,
@@ -518,7 +519,7 @@ function renderLanding(){
     {n:'III',ico:'\u25B6', t:'Video On Demand', tit:'Video On Demand', d:'Video e serie autoprodotte da La Pacifica, da guardare quando e dove vuoi.', free:'Documentari e lezioni', chiuso:'Catalogo completo con Civis'},
     {n:'IV', ico:'\uD83D\uDCDA', t:'Biblioteca Audio', tit:'La Biblioteca', d:'Testi online, libri cartacei e audiobook: il sapere in tutte le sue forme.', free:'Testi e audiolibri scelti + voce IA', chiuso:'Tutta la biblioteca con Civis'},
     {n:'V',  ico:'\u26EA', t:'Campus', tit:'Il Campus', d:'Fine settimana formativi in luoghi dedicati allo studio e alla quiete.', free:'Programmi e calendario', chiuso:'Posti su prenotazione'},
-    {n:'VI', ico:'\uD83C\uDFAD', t:'Eventi', tit:'Gli Eventi', d:'Mostre e incontri de La Pacifica.', free:'Programma di ENIGMA ET SPECULUM', chiuso:'Ingresso con biglietto'},
+    {n:'VI', ico:'\uD83C\uDFAD', t:'Eventi', tit:'Gli Eventi', d:'Mostre e incontri de La Pacifica.', free:'Programma di AENIGMA ET SPECULUM', chiuso:'Ingresso con biglietto'},
   ];
 
   const clip = (s,n) => { s=String(s||'').replace(/\s+/g,' ').trim(); return s.length>n ? s.slice(0,n).trim()+'\u2026' : s; };
@@ -638,7 +639,7 @@ function renderLanding(){
       <div id="lp-rass"></div>
     </div></section>
     <section class="lp-sec"><div class="lp-sec-in">
-      <h2 style="font-size:34px;margin:6px 0 8px">Costruttori accademici di pace</h2>
+      <h2 style="font-size:34px;margin:6px 0 8px;text-align:center">Costruttori accademici di pace</h2>
       <div class="lp-cta" style="justify-content:center;margin-top:4px"><button class="btn oro lp-btn" onclick="apriPagina('mecenati')">Scopri come sostenere \u2192</button></div>
     </div></section>
     <section class="lp-sec lp-civis">
@@ -1029,7 +1030,7 @@ function renderDashboard(){
     {id:'vod', num:'III', ico:'▶', t:'Video On Demand', d:'Video e serie autoprodotte da La Pacifica, da guardare quando e dove vuoi.', lock:false},
     {id:'audio', num:'IV', ico:'📚', t:'Biblioteca', d:'Audiolibri e testi da leggere e ascoltare, con sintesi e percorsi su misura.', lock:false},
     {id:'campus', num:'V', ico:'⛪', t:'Campus', d:'Campus formativi in presenza all’Abbazia di Maguzzano, con possibilità di soggiorno.', lock:false},
-    {id:'eventi', num:'VI', ico:'🎭', t:'Eventi', d:'Mostre ed eventi de La Pacifica. In arrivo: ENIGMA ET SPECULUM.', lock:false},
+    {id:'eventi', num:'VI', ico:'🎭', t:'Eventi', d:'Mostre ed eventi de La Pacifica. In arrivo: AENIGMA ET SPECULUM.', lock:false},
   ];
   const corsoAttivo = CORSI.find(c=>haAccesso('corso:'+c.id));
   const audioFree = AUDIO.find(a=>a.free)||AUDIO[0];
@@ -1879,7 +1880,8 @@ let presTab='delegati', cmsTab='corsi';
 function renderPresidenza(){
   return `<div class="page-head"><div class="eyebrow">Riservato alla Presidenza</div>
     <h1>Presidenza dell’Assemblea</h1>
-    <p class="lead">Gestisci i delegati e tutti i contenuti dell’ecosistema: corsi, video, audiolibri, pacchetti e prezzi.</p></div>
+    <p class="lead">Gestisci i delegati e tutti i contenuti dell’ecosistema: corsi, video, audiolibri, pacchetti e prezzi.</p>
+    <p style="font-size:12.5px;color:var(--grigio);margin-top:6px">Versione del portale: <b>${VERSIONE_PORTALE}</b></p></div>
   <div class="seg" style="max-width:420px;margin-bottom:22px">
     <button class="${presTab==='delegati'?'on':''}" onclick="setPresTab('delegati')">Delegati</button>
     <button class="${presTab==='contenuti'?'on':''}" onclick="setPresTab('contenuti')">Contenuti</button>
