@@ -1,4 +1,4 @@
-const VERSIONE_PORTALE = '1.64';  // aggiornata a ogni modifica consegnata
+const VERSIONE_PORTALE = '1.65';  // aggiornata a ogni modifica consegnata
 /* =====================================================================
    LA PACIFICA RES PUBLICA — Applicazione (frontend)
    Catalogo statico + viste. I dati dinamici arrivano da Supabase (DB.*).
@@ -258,9 +258,11 @@ function toast(msg){
   const t=document.createElement('div'); t.className='toast'; t.textContent=msg; $('toast-root').appendChild(t); setTimeout(()=>t.remove(), m?7000:2600);
 }
 async function refreshMe(){ io = await DB.loadMe(); }
+let CAT_DB = null;   // catalogo come arriva dal database (per le vetrine pubbliche)
 async function loadCatalog(){
   try{
     const cat = await DB.loadCatalog();
+    CAT_DB = cat;
     try{ TESTI_PAG = await DB.loadTesti(); }catch(_e){ TESTI_PAG = {}; }
     try{ LIBRI = await DB.loadLibri(); }catch(_e){ LIBRI = []; }
     if(cat.CORSI && cat.CORSI.length) CORSI = cat.CORSI;
@@ -292,11 +294,11 @@ async function loadCatalog(){
    PORTA D'INGRESSO PUBBLICA — landing per chi non ha effettuato l'accesso.
    Vetrina ispirata alla Scuola di Atene: architettura originale in SVG,
    i Sette Principi, i sei pilastri e i servizi realmente gratuiti
-   (lettura dei testi e ascolto con voce IA, senza account).
+   (lettura dei testi, senza account).
    ===================================================================== */
 async function caricaRassegnaLanding(){
   const box=$('lp-rass'); if(!box) return;
-  try{ if(!NOTIZIE.length && !EVENTIPACE.length) await loadCatalog(); }catch(e){}
+  try{ if(!CAT_DB) await loadCatalog(); }catch(e){}
   box.innerHTML = rassegnaHTML();
   osservaReveal();
 }
@@ -517,16 +519,17 @@ function renderLanding(){
     {n:'I',  ico:'\u2696\uFE0E', t:'Parlamento dei Giovani', tit:'Il Parlamento dei Giovani', d:'150 delegati, sette commissioni, proposte di legge e voto in aula.', free:'Il documentario sull\u2019emiciclo', chiuso:'Seggio e voto \u2014 su invito'},
     {n:'II', ico:'\uD83D\uDCD6', t:'Accademia', tit:'L’Accademia', d:'Il Percorso di Pace in otto corsi tenuti dai formatori.', free:'Lezioni aperte e assaggi', chiuso:'Corsi completi e attestati'},
     {n:'III',ico:'\u25B6', t:'Video On Demand', tit:'Video On Demand', d:'Video e serie autoprodotte da La Pacifica, da guardare quando e dove vuoi.', free:'Documentari e lezioni', chiuso:'Catalogo completo con Civis'},
-    {n:'IV', ico:'\uD83D\uDCDA', t:'Biblioteca Audio', tit:'La Biblioteca', d:'Testi online, libri cartacei e audiobook: il sapere in tutte le sue forme.', free:'Testi e audiolibri scelti + voce IA', chiuso:'Tutta la biblioteca con Civis'},
+    {n:'IV', ico:'\uD83D\uDCDA', t:'Biblioteca Audio', tit:'La Biblioteca', d:'Testi online, libri cartacei e audiobook: il sapere in tutte le sue forme.', free:'Testi e audiolibri scelti', chiuso:'Tutta la biblioteca con Civis'},
     {n:'V',  ico:'\u26EA', t:'Campus', tit:'Il Campus', d:'Fine settimana formativi in luoghi dedicati allo studio e alla quiete.', free:'Programmi e calendario', chiuso:'Posti su prenotazione'},
     {n:'VI', ico:'\uD83C\uDFAD', t:'Eventi', tit:'Gli Eventi', d:'Mostre e incontri de La Pacifica.', free:'Programma di AENIGMA ET SPECULUM', chiuso:'Ingresso con biglietto'},
   ];
 
   const clip = (s,n) => { s=String(s||'').replace(/\s+/g,' ').trim(); return s.length>n ? s.slice(0,n).trim()+'\u2026' : s; };
+  const _T=(CAT_DB&&CAT_DB.TESTI)||[], _A=(CAT_DB&&CAT_DB.AUDIO)||[], _V=(CAT_DB&&CAT_DB.VOD)||[];
   const liberi = [
-    ...TESTI.filter(t=>t.free).map(t=>({tp:'Testo', ico:'\u270E', tit:t.tit, meta:(t.autore+' \u00b7 '+(t.lettura||'')), desc:clip((t.testo||'').split('\n')[0],130), cta:'Leggi e ascolta', fn:"apriTesto('"+t.id+"')"})),
-    ...AUDIO.filter(a=>a.free).map(a=>({tp:'Audiolibro', ico:'\u266A', tit:a.tit, meta:(a.autore+' \u00b7 '+a.durata), desc:clip(a.testo,130), cta:'Ascolta', fn:"apriAudio('"+a.id+"')"})),
-    ...VOD.filter(v=>livelloConsentito(v.livello)).map(v=>({tp:v.tipo, ico:'\u25B6', tit:v.tit, meta:(v.durata+' \u00b7 '+commNome(v.comm)), desc:clip(v.desc,130), cta:'Guarda', fn:"playVideo('"+v.id+"')"})),
+    ..._T.filter(t=>t.free).map(t=>({tp:'Testo', ico:'\u270E', tit:t.tit, meta:(t.autore+' \u00b7 '+(t.lettura||'')), desc:clip((t.testo||'').split('\n')[0],130), cta:'Leggi e ascolta', fn:"apriTesto('"+t.id+"')"})),
+    ..._A.filter(a=>a.free).map(a=>({tp:'Audiolibro', ico:'\u266A', tit:a.tit, meta:(a.autore+' \u00b7 '+a.durata), desc:clip(a.testo,130), cta:'Ascolta', fn:"apriAudio('"+a.id+"')"})),
+    ..._V.filter(v=>livelloConsentito(v.livello)).map(v=>({tp:v.tipo, ico:'\u25B6', tit:v.tit, meta:(v.durata+' \u00b7 '+commNome(v.comm)), desc:clip(v.desc,130), cta:'Guarda', fn:"playVideo('"+v.id+"')"})),
   ];
 
   const ev = EVENTI[0] || null;
@@ -567,7 +570,7 @@ function renderLanding(){
         ${testoNascosto('manifesto.titolo')?'':`<div class="lp-h"${stileTesto('manifesto.titolo')}><h2${stileTesto('manifesto.titolo')}>${esc(T('manifesto.titolo','Il Nostro Manifesto'))}</h2></div>`}
         <div class="lp-cta" style="justify-content:center;margin-top:4px">
           <button class="btn oro lp-btn" onclick="apriPagina('manifesto')">Scopri i Sette Principi \u2192</button>
-          <a class="btn lp-btn" href="docs/manifesto.pdf" target="_blank" rel="noopener" style="text-decoration:none">Scarica il Manifesto (PDF)</a>
+          <a class="btn lp-btn" href="docs/manifesto.pdf" target="_blank" rel="noopener" style="text-decoration:none">Scarica il Manifesto</a>
         </div>
         ${blocchiHtml('manifesto','chiaro')}
       </div>
@@ -602,7 +605,7 @@ function renderLanding(){
           <article class="tile lp-tile lp-tile-locked">
             <div class="cover lp-cover lp-cover-lock"><span class="k">\u2726</span><span class="tag">Civis</span></div>
             <div class="body"><h4>Tutta la biblioteca, i corsi e i live</h4>
-              <div class="meta">Video On Demand completo \u00b7 audio illimitato \u00b7 sintesi IA</div>
+              <div class="meta">Video On Demand completo \u00b7 audio illimitato</div>
               <p class="small muted" style="flex:1">Con la membership Civis sblocchi l\u2019intero catalogo e accompagni il Parlamento dei Giovani.</p>
               <div class="foot"><span class="badge grigio">Riservato</span>
                 <button class="btn small ghost" onclick="apriAccesso('reg')">Diventa Civis \u2192</button></div>
@@ -1466,13 +1469,7 @@ function apriTesto(id){
     </div>` : '';
   openModal(
     `<div><h3 style="font-size:25px">${esc(t.tit)}</h3><span class="muted small">${esc(t.autore)} · ${esc(t.lettura||'')}${chaptered?(' · '+caps.length+' capitoli'):''}</span></div>`,
-    `<div class="card" style="padding:14px;background:var(--avorio);border:none;margin-bottom:14px">
-       <div style="display:flex;align-items:center;gap:14px">
-         <button class="btn" id="tts-btn" onclick="toggleTTS('${t.id}')">▶ Ascolta (voce IA)</button>
-         <div class="wave hidden" id="tts-wave">${'<span></span>'.repeat(6)}</div>
-         <span class="muted small" id="tts-state">${chaptered?'Legge il capitolo selezionato':'Oppure leggi qui sotto'}</span>
-       </div></div>
-     ${nav}
+    `${nav}
      ${chaptered?`<div id="reader-ct" class="eyebrow" style="margin-bottom:6px">${esc(caps[0].t||'Capitolo 1')}</div>`:''}
      <div id="reader-body" style="font-family:'Cormorant Garamond',Georgia,serif;font-size:19px;line-height:1.75;white-space:pre-wrap;max-height:46vh;overflow:auto;padding-right:6px">${esc(readText)}</div>
      <div class="divider"></div><div class="eyebrow">Motore IA ${chaptered?'(sul capitolo aperto)':''}</div>
@@ -1501,13 +1498,7 @@ function apriAudio(id){
   readText=a.testo||''; readTitle=a.tit; readerCaps=[];
   openModal(
     `<div><h3 style="font-size:25px">${esc(a.tit)}</h3><span class="muted small">${esc(a.autore)} · ${a.durata}</span></div>`,
-    `<div class="card" style="padding:16px;background:var(--avorio);border:none">
-       <div style="display:flex;align-items:center;gap:14px">
-         <button class="btn" id="tts-btn" onclick="toggleTTS('${a.id}')">▶ Ascolta (voce IA)</button>
-         <div class="wave hidden" id="tts-wave">${'<span></span>'.repeat(6)}</div>
-         <span class="muted small" id="tts-state">Lettura vocale del browser</span>
-       </div></div>
-     <p style="font-size:14.5px;line-height:1.7;margin:16px 0;max-height:200px;overflow:auto">${esc(a.testo)}</p>
+    `<p style="font-size:14.5px;line-height:1.7;margin:16px 0;max-height:200px;overflow:auto">${esc(a.testo)}</p>
      <div class="divider"></div><div class="eyebrow">Motore IA</div>
      ${iaOn?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
         <button class="btn small ghost" onclick="iaAzione('${a.id}','riassunto')">✦ Riassumi in 3 punti</button>
@@ -1530,7 +1521,7 @@ function toggleTTS(id){
 }
 function stopTTS(){
   if('speechSynthesis' in window) speechSynthesis.cancel(); ttsUtter=null;
-  const b=$('tts-btn'); if(b) b.textContent='▶ Ascolta (voce IA)';
+  const b=$('tts-btn'); if(b) b.textContent='▶ Ascolta';
   $('tts-wave')&&$('tts-wave').classList.add('hidden'); if($('tts-state')) $('tts-state').textContent='Lettura vocale del browser';
 }
 async function iaAzione(id,tipo){
@@ -3126,7 +3117,7 @@ function editAudio(id){
      <div class="grid g2"><div class="field"><label>Autore</label><input id="cf-aut" value="${esc(a.autore||'')}"></div>
        <div class="field"><label>Durata</label><input id="cf-dur" value="${esc(a.durata||'')}" placeholder="es. 18 min"></div></div>
      ${fSelComm(a.comm)}
-     <div class="field"><label>Testo (letto dalla voce IA e usato per le sintesi)</label><textarea id="cf-testo" rows="5">${esc(a.testo||'')}</textarea></div>
+     <div class="field"><label>Testo (mostrato nella lettura online)</label><textarea id="cf-testo" rows="5">${esc(a.testo||'')}</textarea></div>
      <div class="grid g2"><div class="field"><label>Ordine</label><input id="cf-ord" type="number" value="${a.ordine||(AUDIO.length+1)}"></div>
        <div class="field"><label style="margin-top:30px"><input type="checkbox" id="cf-free" ${a.free?'checked':''} style="width:auto"> Gratuito</label></div></div>
      ${fPub(a.pubblicato)}
