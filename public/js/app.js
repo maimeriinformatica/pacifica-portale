@@ -1,4 +1,5 @@
-const VERSIONE_PORTALE = '1.65';  // aggiornata a ogni modifica consegnata
+const VERSIONE_PORTALE = '1.68';
+const MOSTRA_ABBONAMENTI = false;  // sezione 'Un solo abbonamento' in home: rimettere true per mostrarla  // aggiornata a ogni modifica consegnata
 /* =====================================================================
    LA PACIFICA RES PUBLICA — Applicazione (frontend)
    Catalogo statico + viste. I dati dinamici arrivano da Supabase (DB.*).
@@ -303,6 +304,7 @@ async function caricaRassegnaLanding(){
   osservaReveal();
 }
 async function caricaMecenati(){
+  if(!document.getElementById('mec-box')) return;
   try{ FORMULE = await DB.formule(); ENTE = await DB.datiEnte(); }catch(e){ FORMULE=[]; }
   const box=$('mec-box'); if(!box) return;
   box.innerHTML = FORMULE.filter(f=>f.attivo!==false).map(f=>`<div class="plan">
@@ -464,28 +466,28 @@ function renderMecenatiPage(){
     ${lpHeaderPagina()}
     <section class="lp-page-hero"><div class="lp-sec-in">
       <h1 class="lp-page-h1">Costruttori accademici di pace</h1>
-      <p class="lp-page-lead">Chi sostiene La Pacifica non fa una donazione astratta: acquista <b>pacchetti di accessi</b> alla formazione e li destina a studenti e docenti che altrimenti non potrebbero permetterseli. \u00c8 un mecenatismo concreto, che si misura in ragazzi che studiano.</p>
+      
     </div></section>
 
     <section class="lp-sec"><div class="lp-sec-in">
-      <div class="lp-grid lp-g3">
-        <div class="mec-step"><span class="mec-sn">1</span><h4>Scegli una formula</h4><p>Ogni formula \u00e8 \u201ctot euro \u2192 tot accessi\u201d. Dal singolo accesso annuale fino a decine, per la misura di una scuola o di un istituto.</p></div>
-        <div class="mec-step"><span class="mec-sn">2</span><h4>Sottoscrivi l\u2019impegno</h4><p>Compili i dati e ricevi un riferimento con le coordinate per il bonifico. Nessun addebito automatico: paghi con i tuoi tempi.</p></div>
-        <div class="mec-step"><span class="mec-sn">3</span><h4>Distribuisci gli accessi</h4><p>A pagamento accreditato, gli accessi vengono emessi come codici che puoi assegnare a chi vuoi tu.</p></div>
+      <div class="lp-h center"><h2>Le quattro progettualit\u00e0 della Pacifica</h2>
+        <p class="lp-lead">Scegli il progetto che vuoi sostenere e chiedici tutto quello che vuoi sapere.</p></div>
+      <div class="lp-grid lp-g2">
+        ${[
+          ['La Pacifica','La struttura dell\u2019Accademia con tutte le sue sezioni: il Parlamento dei Giovani, l\u2019Accademia, il Video On Demand, la Biblioteca, il Campus e gli Eventi.'],
+          ['Aenigma et Speculum','La mostra-esperienza dedicata a Leonardo, Raffaello e alla Scuola di Atene.'],
+          ['L\u2019Aeteneum','La sede della Pacifica: un luogo di studio, di incontro e di vita accademica.'],
+          ['I Percorsi Vinciani','Percorsi formativi ed esperienze sulle orme di Leonardo.']
+        ].map(pr=>`<div class="card" style="padding:22px 24px;display:flex;flex-direction:column;gap:10px">
+          <div class="eyebrow">Progetto</div>
+          <h3 style="margin:0;font-size:26px">${pr[0]}</h3>
+          <p class="muted" style="flex:1;margin:0">${pr[1]}</p>
+          <div><button class="btn oro" onclick="location.href='mailto:info@lapacifica.org?subject='+encodeURIComponent('Richiesta informazioni \u2014 '+${'`'}${'$'}{pr[0]}${'`'})">Richiedi informazioni</button></div>
+        </div>`).join('')}
       </div>
-    </div></section>
-
-    <section class="lp-sec lp-mec-formule"><div class="lp-sec-in">
-      <div class="lp-h center"><h2>Scegli la tua misura</h2>
-        <p class="lp-lead">Pi\u00f9 la formula \u00e8 ampia, pi\u00f9 il costo per accesso scende. Ogni accesso \u00e8 un percorso in mano a un ragazzo.</p></div>
-      <div id="mec-box" class="lp-plans"></div>
     </div></section>
 
     <section class="lp-sec"><div class="lp-sec-in">
-      <div class="card" style="padding:20px 22px">
-        <div class="eyebrow">Trasparenza</div>
-        <p class="muted small" style="margin:8px 0 0">Gli accessi si attivano solo dopo l\u2019accredito effettivo del bonifico, confermato manualmente dalla Presidenza. Il trattamento fiscale (erogazione liberale o acquisto con controprestazione) dipende dalla natura del sostegno: per l\u2019inquadramento corretto \u00e8 bene sentire un commercialista. Per aziende ed enti \u00e8 possibile concordare formule dedicate.</p>
-      </div>
       <div class="lp-cta" style="justify-content:center;margin-top:24px">
         <button class="lp-btn2" onclick="tornaHome()">\u2190 Torna alla home</button>
       </div>
@@ -643,9 +645,9 @@ function renderLanding(){
     </div></section>
     <section class="lp-sec"><div class="lp-sec-in">
       <h2 style="font-size:34px;margin:6px 0 8px;text-align:center">Costruttori accademici di pace</h2>
-      <div class="lp-cta" style="justify-content:center;margin-top:4px"><button class="btn oro lp-btn" onclick="apriPagina('mecenati')">Scopri come sostenere \u2192</button></div>
+      <div class="lp-cta" style="justify-content:center;margin-top:4px"><button class="btn oro lp-btn" onclick="apriPagina('mecenati')">Scopri come sostenere i nostri progetti \u2192</button></div>
     </div></section>
-    <section class="lp-sec lp-civis">
+    ${MOSTRA_ABBONAMENTI ? `    <section class="lp-sec lp-civis">
       <div class="lp-sec-in">
         <div class="lp-h center">
           <h2 style="color:#fff">Un solo abbonamento, l\u2019intero accesso all\u2019accademia</h2></div>
@@ -662,7 +664,7 @@ function renderLanding(){
             <button class="lp-btn2" onclick="apriAccesso('reg')">Attiva Platinum</button></div>
         </div>
       </div>
-    </section>
+    </section>` : ''}
 
     ${lpFooter()}
   </div>`;
