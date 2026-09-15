@@ -1,4 +1,4 @@
-const VERSIONE_PORTALE = '1.68';
+const VERSIONE_PORTALE = '1.69';
 const MOSTRA_ABBONAMENTI = false;  // sezione 'Un solo abbonamento' in home: rimettere true per mostrarla  // aggiornata a ogni modifica consegnata
 /* =====================================================================
    LA PACIFICA RES PUBLICA — Applicazione (frontend)
@@ -644,8 +644,22 @@ function renderLanding(){
       <div id="lp-rass"></div>
     </div></section>
     <section class="lp-sec"><div class="lp-sec-in">
-      <h2 style="font-size:34px;margin:6px 0 8px;text-align:center">Costruttori accademici di pace</h2>
-      <div class="lp-cta" style="justify-content:center;margin-top:4px"><button class="btn oro lp-btn" onclick="apriPagina('mecenati')">Scopri come sostenere i nostri progetti \u2192</button></div>
+      <div class="lp-event">
+        <div class="lp-event-art">
+          <picture>
+            <source srcset="img/scuola-di-atene.webp" type="image/webp">
+            <img src="img/scuola-di-atene.jpg" loading="lazy" decoding="async"
+                 alt="La Scuola di Atene di Raffaello Sanzio">
+          </picture>
+        </div>
+        <div class="lp-event-body">
+          <div class="eyebrow" style="color:var(--oro-chiaro)">Sostienici</div>
+          <h3>Costruttori accademici di pace</h3>
+          <p class="lp-event-sub">Quattro progettualit\u00e0, un\u2019unica visione.</p>
+          <p class="lp-event-desc">La Pacifica e le sue sezioni, la mostra Aenigma et Speculum, l\u2019Aeteneum e i Percorsi Vinciani: scegli il progetto da sostenere e chiedici tutto quello che vuoi sapere.</p>
+          <div class="lp-cta" style="margin-top:18px"><button class="btn oro lp-btn" onclick="apriPagina('mecenati')">Scopri come sostenere i nostri progetti \u2192</button></div>
+        </div>
+      </div>
     </div></section>
     ${MOSTRA_ABBONAMENTI ? `    <section class="lp-sec lp-civis">
       <div class="lp-sec-in">
