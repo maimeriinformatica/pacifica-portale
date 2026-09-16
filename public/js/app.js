@@ -1,4 +1,4 @@
-const VERSIONE_PORTALE = '1.70';
+const VERSIONE_PORTALE = '1.72';
 const MOSTRA_ABBONAMENTI = false;  // sezione 'Un solo abbonamento' in home: rimettere true per mostrarla  // aggiornata a ogni modifica consegnata
 /* =====================================================================
    LA PACIFICA RES PUBLICA — Applicazione (frontend)
@@ -465,13 +465,11 @@ function renderMecenatiPage(){
   return `<div class="lp">
     ${lpHeaderPagina()}
     <section class="lp-page-hero"><div class="lp-sec-in">
-      <h1 class="lp-page-h1">Costruttori accademici di pace</h1>
+      <h1 class="lp-page-h1">I nostri progetti</h1>
       
     </div></section>
 
     <section class="lp-sec"><div class="lp-sec-in">
-      <div class="lp-h center"><h2>Le quattro progettualit\u00e0 della Pacifica</h2>
-        <p class="lp-lead">Scegli il progetto che vuoi sostenere e chiedici tutto quello che vuoi sapere.</p></div>
       <div class="lp-grid lp-g2">
         ${[
           ['La Pacifica Res Publica','Attraverso il portale lapacifica.org, un modello educativo dove la pace si studia e si costruisce ogni giorno: sette percorsi formativi, dalla filosofia alla fisica quantistica fino alla diplomazia e alla mindfulness, e sei sezioni operative, dal Parlamento dei Giovani agli eventi pubblici.'],
@@ -654,9 +652,7 @@ function renderLanding(){
         </div>
         <div class="lp-event-body">
           <div class="eyebrow" style="color:var(--oro-chiaro)">Sostienici</div>
-          <h3>Costruttori accademici di pace</h3>
-          <p class="lp-event-sub">Quattro progettualit\u00e0, un\u2019unica visione.</p>
-          <p class="lp-event-desc">La Pacifica Res Publica, la mostra Aenigma et Speculum, il Campus Vinciano e l\u2019Aeteneum: scegli il progetto da sostenere e chiedici tutto quello che vuoi sapere.</p>
+          <h3 style="color:#E9E1CF">I nostri progetti</h3>
           <div class="lp-cta" style="margin-top:18px"><button class="btn oro lp-btn" onclick="apriPagina('mecenati')">Scopri come sostenere i nostri progetti \u2192</button></div>
         </div>
       </div>
