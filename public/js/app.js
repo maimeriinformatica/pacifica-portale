@@ -1,4 +1,4 @@
-const VERSIONE_PORTALE = '1.72';
+const VERSIONE_PORTALE = '1.73';
 const MOSTRA_ABBONAMENTI = false;  // sezione 'Un solo abbonamento' in home: rimettere true per mostrarla  // aggiornata a ogni modifica consegnata
 /* =====================================================================
    LA PACIFICA RES PUBLICA — Applicazione (frontend)
@@ -476,8 +476,8 @@ function renderMecenatiPage(){
           ['Aenigma et Speculum','Una mostra internazionale itinerante in Europa: un\u2019esperienza espositiva contemporanea che fa vivere la filosofia unendo due geni del Rinascimento, Leonardo da Vinci e Raffaello Sanzio. Un format compatto e replicabile di circa 200 m\u00b2, per edizioni di 12 mesi.'],
           ['Campus Vinciano','La sede fisica permanente de La Pacifica: la rigenerazione urbana e culturale di Trequanda, borgo medievale delle Crete Senesi. Nel motto \u00abCustodire per costruire\u00bb: spazi storici da restaurare, curare e restituire vivi alla comunit\u00e0 con cultura, studio e ospitalit\u00e0.'],
           ['Aeteneum','Nuova vita all\u2019ex Seminario di San Massimo, a Verona: un\u2019Accademia Internazionale per la Pace aperta alla comunit\u00e0, con sei Aule \u2014 Filosofia, Storia, Politica, Diplomazia, Scienza e Cultura \u2014 il Parlamento dei Giovani, la Biblioteca, il Campus e un auditorium da oltre 700 posti.']
-        ].map(pr=>`<div class="card" style="padding:22px 24px;display:flex;flex-direction:column;gap:10px">
-          <div class="eyebrow">Progetto</div>
+        ].map(pr=>`<div class="card" style="padding:22px 24px;display:flex;flex-direction:column;gap:10px;text-align:center;align-items:center">
+          <div class="eyebrow" style="font-size:13.2px">Progetto</div>
           <h3 style="margin:0;font-size:26px">${pr[0]}</h3>
           <p class="muted" style="flex:1;margin:0">${pr[1]}</p>
           <div><button class="btn oro" onclick="location.href='mailto:info@lapacifica.org?subject='+encodeURIComponent('Richiesta informazioni \u2014 '+${'`'}${'$'}{pr[0]}${'`'})">Richiedi informazioni</button></div>
