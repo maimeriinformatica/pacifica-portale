@@ -1,4 +1,4 @@
-const VERSIONE_PORTALE = '1.69';
+const VERSIONE_PORTALE = '1.70';
 const MOSTRA_ABBONAMENTI = false;  // sezione 'Un solo abbonamento' in home: rimettere true per mostrarla  // aggiornata a ogni modifica consegnata
 /* =====================================================================
    LA PACIFICA RES PUBLICA — Applicazione (frontend)
@@ -474,10 +474,10 @@ function renderMecenatiPage(){
         <p class="lp-lead">Scegli il progetto che vuoi sostenere e chiedici tutto quello che vuoi sapere.</p></div>
       <div class="lp-grid lp-g2">
         ${[
-          ['La Pacifica','La struttura dell\u2019Accademia con tutte le sue sezioni: il Parlamento dei Giovani, l\u2019Accademia, il Video On Demand, la Biblioteca, il Campus e gli Eventi.'],
-          ['Aenigma et Speculum','La mostra-esperienza dedicata a Leonardo, Raffaello e alla Scuola di Atene.'],
-          ['L\u2019Aeteneum','La sede della Pacifica: un luogo di studio, di incontro e di vita accademica.'],
-          ['I Percorsi Vinciani','Percorsi formativi ed esperienze sulle orme di Leonardo.']
+          ['La Pacifica Res Publica','Attraverso il portale lapacifica.org, un modello educativo dove la pace si studia e si costruisce ogni giorno: sette percorsi formativi, dalla filosofia alla fisica quantistica fino alla diplomazia e alla mindfulness, e sei sezioni operative, dal Parlamento dei Giovani agli eventi pubblici.'],
+          ['Aenigma et Speculum','Una mostra internazionale itinerante in Europa: un\u2019esperienza espositiva contemporanea che fa vivere la filosofia unendo due geni del Rinascimento, Leonardo da Vinci e Raffaello Sanzio. Un format compatto e replicabile di circa 200 m\u00b2, per edizioni di 12 mesi.'],
+          ['Campus Vinciano','La sede fisica permanente de La Pacifica: la rigenerazione urbana e culturale di Trequanda, borgo medievale delle Crete Senesi. Nel motto \u00abCustodire per costruire\u00bb: spazi storici da restaurare, curare e restituire vivi alla comunit\u00e0 con cultura, studio e ospitalit\u00e0.'],
+          ['Aeteneum','Nuova vita all\u2019ex Seminario di San Massimo, a Verona: un\u2019Accademia Internazionale per la Pace aperta alla comunit\u00e0, con sei Aule \u2014 Filosofia, Storia, Politica, Diplomazia, Scienza e Cultura \u2014 il Parlamento dei Giovani, la Biblioteca, il Campus e un auditorium da oltre 700 posti.']
         ].map(pr=>`<div class="card" style="padding:22px 24px;display:flex;flex-direction:column;gap:10px">
           <div class="eyebrow">Progetto</div>
           <h3 style="margin:0;font-size:26px">${pr[0]}</h3>
@@ -656,7 +656,7 @@ function renderLanding(){
           <div class="eyebrow" style="color:var(--oro-chiaro)">Sostienici</div>
           <h3>Costruttori accademici di pace</h3>
           <p class="lp-event-sub">Quattro progettualit\u00e0, un\u2019unica visione.</p>
-          <p class="lp-event-desc">La Pacifica e le sue sezioni, la mostra Aenigma et Speculum, l\u2019Aeteneum e i Percorsi Vinciani: scegli il progetto da sostenere e chiedici tutto quello che vuoi sapere.</p>
+          <p class="lp-event-desc">La Pacifica Res Publica, la mostra Aenigma et Speculum, il Campus Vinciano e l\u2019Aeteneum: scegli il progetto da sostenere e chiedici tutto quello che vuoi sapere.</p>
           <div class="lp-cta" style="margin-top:18px"><button class="btn oro lp-btn" onclick="apriPagina('mecenati')">Scopri come sostenere i nostri progetti \u2192</button></div>
         </div>
       </div>
