@@ -1,4 +1,4 @@
-const VERSIONE_PORTALE = '1.79';
+const VERSIONE_PORTALE = '1.80';
 const MOSTRA_ABBONAMENTI = false;  // sezione 'Un solo abbonamento' in home: rimettere true per mostrarla  // aggiornata a ogni modifica consegnata
 /* =====================================================================
    LA PACIFICA RES PUBLICA — Applicazione (frontend)

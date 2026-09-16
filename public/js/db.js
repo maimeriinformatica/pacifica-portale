@@ -50,8 +50,18 @@ const DB = {
   async loadMe(){
     const { data:{ user } } = await sb.auth.getUser();
     if (!user) return null;
-    const { data:prof, error } = await sb.from('profiles').select('*').eq('id', user.id).single();
-    if (error) throw error;
+    // Auto-riparazione: se il profilo manca (utente creato a mano o da vecchie versioni), lo creiamo qui.
+    const q = sb.from('profiles').select('*').eq('id', user.id);
+    let r = q.maybeSingle ? await q.maybeSingle() : await q.single();
+    let prof = r.data || null;
+    if (r.error && r.error.code !== 'PGRST116') throw new Error('Profilo non leggibile: ' + r.error.message);
+    if (!prof){
+      const nome = (user.user_metadata && user.user_metadata.nome) || (user.email||'').split('@')[0];
+      const nuovo = { id:user.id, nome, ruolo:'iscritto', membership:'civis' };
+      const ins = await sb.from('profiles').insert(nuovo).select('*').maybeSingle();
+      if (ins.error) throw new Error('Impossibile creare il profilo: ' + ins.error.message);
+      prof = ins.data || nuovo;
+    }
     const acquisti = await this.myPurchases();
     const progress = await this.myProgress();
     return {
