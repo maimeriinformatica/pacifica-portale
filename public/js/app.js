@@ -1,4 +1,4 @@
-const VERSIONE_PORTALE = '1.73';
+const VERSIONE_PORTALE = '1.75';
 const MOSTRA_ABBONAMENTI = false;  // sezione 'Un solo abbonamento' in home: rimettere true per mostrarla  // aggiornata a ogni modifica consegnata
 /* =====================================================================
    LA PACIFICA RES PUBLICA — Applicazione (frontend)
@@ -465,6 +465,7 @@ function renderMecenatiPage(){
   return `<div class="lp">
     ${lpHeaderPagina()}
     <section class="lp-page-hero"><div class="lp-sec-in">
+      <img src="img/logo.png" alt="La Pacifica Res Publica" style="display:block;margin:0 auto 14px;width:120px;height:auto">
       <h1 class="lp-page-h1">I nostri progetti</h1>
       
     </div></section>
@@ -480,7 +481,7 @@ function renderMecenatiPage(){
           <div class="eyebrow" style="font-size:13.2px">Progetto</div>
           <h3 style="margin:0;font-size:26px">${pr[0]}</h3>
           <p class="muted" style="flex:1;margin:0">${pr[1]}</p>
-          <div><button class="btn oro" onclick="location.href='mailto:info@lapacifica.org?subject='+encodeURIComponent('Richiesta informazioni \u2014 '+${'`'}${'$'}{pr[0]}${'`'})">Richiedi informazioni</button></div>
+          <div style="margin-top:14px"><button class="btn oro" style="font-size:15.4px;padding:13px 24px" onclick="location.href='mailto:info@lapacifica.org?subject='+encodeURIComponent('Richiesta informazioni \u2014 '+${'`'}${'$'}{pr[0]}${'`'})">Richiedi informazioni</button></div>
         </div>`).join('')}
       </div>
     </div></section>
