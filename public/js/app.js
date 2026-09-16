@@ -1,4 +1,4 @@
-const VERSIONE_PORTALE = '1.81';
+const VERSIONE_PORTALE = '1.82';
 const MOSTRA_ABBONAMENTI = false;  // sezione 'Un solo abbonamento' in home: rimettere true per mostrarla  // aggiornata a ogni modifica consegnata
 /* =====================================================================
    LA PACIFICA RES PUBLICA — Applicazione (frontend)
@@ -742,7 +742,7 @@ function renderAuthFields(){
     <p class="small muted center" style="margin-top:10px;opacity:.65">Versione del portale: <b>${VERSIONE_PORTALE}</b></p>`;
 }
 function authMsg(html,cls){ $('auth-msg').innerHTML = html?`<div class="notice ${cls}">${html}</div>`:''; }
-function busy(on){ const b=$('auth-go'); if(b){ b.disabled=on; b.innerHTML = on?'<span class="spin"></span>':b.dataset.lbl||b.textContent; if(!on&&b.dataset.lbl)b.textContent=b.dataset.lbl; } }
+function busy(on){ const b=$('auth-go'); if(b){ if(on && !b.dataset.lbl) b.dataset.lbl=b.textContent.trim(); b.disabled=on; b.innerHTML = on?'<span class="spin"></span>':b.dataset.lbl||b.textContent; if(!on&&b.dataset.lbl)b.textContent=b.dataset.lbl; } }
 
 async function doRegister(){
   const nome=($('f-nome').value||'').trim(), email=($('f-email').value||'').trim().toLowerCase(),
@@ -773,8 +773,20 @@ async function doRegister(){
 async function doLogin(){
   const email=($('f-email').value||'').trim().toLowerCase(), pass=$('f-pass').value||'';
   busy(true);
-  try{ await DB.signIn(email, pass); TRK.log('login','login'); await enterApp(); }
-  catch(e){ busy(false); authMsg('Email o password non corretti.','err'); }
+  try{ await DB.signIn(email, pass); }
+  catch(e){
+    busy(false);
+    const m=(e && e.message)||'';
+    if(/invalid login credentials/i.test(m)) authMsg('Email o password non corretti.','err');
+    else if(/email not confirmed/i.test(m)) authMsg('Email non ancora confermata: conferma dal pannello Supabase (email_confirmed_at) o dalla mail di conferma.','err');
+    else authMsg('Accesso rifiutato da Supabase: '+esc(m||'errore sconosciuto'),'err');
+    return;
+  }
+  try{ TRK.log('login','login'); await enterApp(); }
+  catch(e){
+    busy(false);
+    authMsg('Password GIUSTA, ma il caricamento del profilo \u00e8 fallito: '+esc((e&&e.message)||'errore')+'<br><span class="small">Di solito si risolve eseguendo su Supabase le migrazioni aggiornate (profilo e regola di auto-creazione).</span>','err');
+  }
 }
 async function logout(){ try{ await DB.signOut(); }catch(e){} io=null; $('app').style.display='none'; closeModal(); renderLanding(); }
 /* =====================================================================
