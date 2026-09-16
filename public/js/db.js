@@ -17,6 +17,19 @@ if (configurato() && window.supabase) {
 }
 
 const DB = {
+  /* ---------- RICHIESTE DI INFORMAZIONI ---------- */
+  async inviaRichiestaInfo(o){
+    if(window.__DEMO){ (window.__RICHIESTE=window.__RICHIESTE||[]).push({ ...o, created_at:new Date().toISOString() }); return; }
+    const { error } = await sb.from('richieste_info').insert({
+      nome:o.nome, email:o.email, telefono:o.telefono||'', progetti:o.progetti||[], note:o.note||'' });
+    if(error) throw error;
+  },
+  async elencoRichieste(){
+    if(window.__DEMO) return (window.__RICHIESTE||[]).slice().reverse();
+    const { data, error } = await sb.from('richieste_info').select('*').order('created_at', { ascending:false });
+    if(error) throw error; return data||[];
+  },
+
   /* ---------- AUTENTICAZIONE ---------- */
   async signUp(nome, email, password){
     const { data, error } = await sb.auth.signUp({

@@ -1,4 +1,4 @@
-const VERSIONE_PORTALE = '1.75';
+const VERSIONE_PORTALE = '1.79';
 const MOSTRA_ABBONAMENTI = false;  // sezione 'Un solo abbonamento' in home: rimettere true per mostrarla  // aggiornata a ogni modifica consegnata
 /* =====================================================================
    LA PACIFICA RES PUBLICA — Applicazione (frontend)
@@ -408,8 +408,8 @@ function lpFooter(){
   return `<footer class="lp-foot"><div class="lp-sec-in lp-foot-in">
       <div class="lp-foot-brand"><span class="mark mark-scuro"><img class="logo-img" src="img/logo.png" alt="La Pacifica Res Publica"></span><div><b>La Pacifica Res Publica</b>${testoNascosto('footer.motto')?'':`<span${stileTesto('footer.motto')}>${esc(T('footer.motto','\u00abCustodire per costruire.\u00bb'))}</span>`}</div></div>
       <div class="lp-foot-cta">
-        <button class="linkbtn" onclick="apriAccesso('login')">Accedi</button>
-        <button class="btn small" onclick="apriAccesso('reg')">Entra gratis</button>
+        <button class="linkbtn" onclick="apriAccesso('login')">Accesso riservato</button>
+        <button class="btn small" onclick="apriFormRichiesta('L\u2019Accademia', true)">Richiedo informazioni sull\u2019Accademia</button>
       </div>
     </div></footer>`;
 }
@@ -420,7 +420,7 @@ function lpHeaderPagina(){
       <div class="brand" onclick="tornaHome()"><div class="mark"><img class="logo-img" src="img/logo.png" alt="La Pacifica Res Publica"></div><div><b>La Pacifica</b><span>Res Publica</span></div></div>
       <div class="lp-top-cta">
         <button class="linkbtn" onclick="tornaHome()">\u2190 Home</button>
-        <button class="btn small" onclick="apriAccesso('reg')">Entra gratis</button>
+        <button class="btn small" onclick="apriFormRichiesta('L\u2019Accademia', true)">Richiedo informazioni sull\u2019Accademia</button>
       </div>
     </div></header>`;
 }
@@ -466,7 +466,7 @@ function renderMecenatiPage(){
     ${lpHeaderPagina()}
     <section class="lp-page-hero"><div class="lp-sec-in">
       <img src="img/logo.png" alt="La Pacifica Res Publica" style="display:block;margin:0 auto 14px;width:120px;height:auto">
-      <h1 class="lp-page-h1">I nostri progetti</h1>
+      <h1 class="lp-page-h1">I Nostri Progetti</h1>
       
     </div></section>
 
@@ -478,10 +478,10 @@ function renderMecenatiPage(){
           ['Campus Vinciano','La sede fisica permanente de La Pacifica: la rigenerazione urbana e culturale di Trequanda, borgo medievale delle Crete Senesi. Nel motto \u00abCustodire per costruire\u00bb: spazi storici da restaurare, curare e restituire vivi alla comunit\u00e0 con cultura, studio e ospitalit\u00e0.'],
           ['Aeteneum','Nuova vita all\u2019ex Seminario di San Massimo, a Verona: un\u2019Accademia Internazionale per la Pace aperta alla comunit\u00e0, con sei Aule \u2014 Filosofia, Storia, Politica, Diplomazia, Scienza e Cultura \u2014 il Parlamento dei Giovani, la Biblioteca, il Campus e un auditorium da oltre 700 posti.']
         ].map(pr=>`<div class="card" style="padding:22px 24px;display:flex;flex-direction:column;gap:10px;text-align:center;align-items:center">
-          <div class="eyebrow" style="font-size:13.2px">Progetto</div>
+          <div class="eyebrow" style="font-size:17.6px">Il Progetto</div>
           <h3 style="margin:0;font-size:26px">${pr[0]}</h3>
           <p class="muted" style="flex:1;margin:0">${pr[1]}</p>
-          <div style="margin-top:14px"><button class="btn oro" style="font-size:15.4px;padding:13px 24px" onclick="location.href='mailto:info@lapacifica.org?subject='+encodeURIComponent('Richiesta informazioni \u2014 '+${'`'}${'$'}{pr[0]}${'`'})">Richiedi informazioni</button></div>
+          <div style="margin-top:14px"><button class="btn oro" style="font-size:15.4px;padding:13px 24px" onclick="apriFormRichiesta('${pr[0]}')">Richiedi informazioni</button></div>
         </div>`).join('')}
       </div>
     </div></section>
@@ -541,8 +541,8 @@ function renderLanding(){
     <header class="lp-top"><div class="lp-top-in">
       <div class="brand" onclick="tornaHome()"><div class="mark"><img class="logo-img" src="img/logo.png" alt="La Pacifica Res Publica"></div><div><b>La Pacifica</b><span>Res Publica</span></div></div>
       <div class="lp-top-cta">
-        <button class="linkbtn" onclick="apriAccesso('login')">Accedi</button>
-        <button class="btn small" onclick="apriAccesso('reg')">Entra gratis</button>
+        <button class="linkbtn" onclick="apriAccesso('login')">Accesso riservato</button>
+        <button class="btn small" onclick="apriFormRichiesta('L\u2019Accademia', true)">Richiedo informazioni sull\u2019Accademia</button>
       </div>
     </div></header>
 
@@ -629,7 +629,7 @@ function renderLanding(){
             <p class="lp-event-desc">${esc(clip(ev.desc,300))}</p>
             <div class="lp-event-meta">${esc(ev.periodo||'')} \u00b7 ${esc(ev.luogo||'')}</div>
             <div class="lp-cta" style="margin-top:20px">
-              <button class="btn oro lp-btn" onclick="apriAccesso('reg')">Crea un account per prenotare</button>
+              <button class="btn oro lp-btn" onclick="apriFormRichiesta('Aenigma et Speculum', true)">Richiedi Informazioni</button>
             </div>
           </div>
         </div>`:''}
@@ -652,9 +652,8 @@ function renderLanding(){
           </picture>
         </div>
         <div class="lp-event-body">
-          <div class="eyebrow" style="color:var(--oro-chiaro)">Sostienici</div>
           <h3 style="color:#E9E1CF">I nostri progetti</h3>
-          <div class="lp-cta" style="margin-top:18px"><button class="btn oro lp-btn" onclick="apriPagina('mecenati')">Scopri come sostenere i nostri progetti \u2192</button></div>
+          <div class="lp-cta" style="margin-top:18px"><button class="btn oro lp-btn" onclick="apriPagina('mecenati')">Scopri come sostenerli \u2192</button></div>
         </div>
       </div>
     </div></section>
@@ -665,7 +664,7 @@ function renderLanding(){
         <div class="lp-plans">
           <div class="lp-plan"><h4>Gratuito</h4><div class="lp-pr">0 \u20ac</div>
             <ul><li>Dashboard personale</li><li>1\u00aa lezione di ogni corso</li><li>Video e audiolibri gratuiti</li></ul>
-            <button class="lp-btn2" onclick="apriAccesso('reg')">Entra gratis</button></div>
+            <button class="lp-btn2" onclick="apriFormRichiesta('L\u2019Accademia', true)">Richiedo informazioni sull\u2019Accademia</button></div>
           <div class="lp-plan feat"><h4>Gold</h4><div class="lp-pr">12,50 \u20ac<small>/mese</small></div>
             <ul><li>Video On Demand completo</li><li>Biblioteca illimitata + IA</li><li>Sconto 20% sui corsi</li></ul>
             <button class="btn oro" onclick="apriAccesso('reg')">Attiva Gold</button>
@@ -738,7 +737,7 @@ function renderAuthFields(){
       ${reg?'Crea account ed entra':'Accedi'}</button>
     <p class="small muted center" style="margin-top:14px">
       ${reg?'Hai già un account? ':'Non hai un account? '}
-      <button class="linkbtn" onclick="setAuthTab('${reg?'login':'reg'}')">${reg?'Accedi':'Registrati'}</button>
+      ${reg?`<button class="linkbtn" onclick="setAuthTab('login')">Accesso riservato</button>`:''}
     </p>`;
 }
 function authMsg(html,cls){ $('auth-msg').innerHTML = html?`<div class="notice ${cls}">${html}</div>`:''; }
@@ -1886,14 +1885,38 @@ function renderPresidenza(){
     <h1>Presidenza dell’Assemblea</h1>
     <p class="lead">Gestisci i delegati e tutti i contenuti dell’ecosistema: corsi, video, audiolibri, pacchetti e prezzi.</p>
     <p style="font-size:12.5px;color:var(--grigio);margin-top:6px">Versione del portale: <b>${VERSIONE_PORTALE}</b></p></div>
-  <div class="seg" style="max-width:420px;margin-bottom:22px">
+  <div class="seg" style="max-width:560px;margin-bottom:22px">
     <button class="${presTab==='delegati'?'on':''}" onclick="setPresTab('delegati')">Delegati</button>
     <button class="${presTab==='contenuti'?'on':''}" onclick="setPresTab('contenuti')">Contenuti</button>
+    <button class="${presTab==='richieste'?'on':''}" onclick="setPresTab('richieste')">Richieste</button>
     <button class="${presTab==='guida'?'on':''}" onclick="setPresTab('guida')">Guida</button>
   </div>
-  <div id="pres-body">${presTab==='delegati'?renderDelegati():(presTab==='guida'?renderGuidaAdmin():renderCms())}</div>`;
+  <div id="pres-body">${presTab==='delegati'?renderDelegati():(presTab==='guida'?renderGuidaAdmin():(presTab==='richieste'?renderRichieste():renderCms()))}</div>`;
 }
-function setPresTab(t){ presTab=t; const b=$('pres-body'); if(b){ b.innerHTML = t==='delegati'?renderDelegati():(t==='guida'?renderGuidaAdmin():renderCms()); if(t==='delegati') caricaSeggi(); } }
+function setPresTab(t){ presTab=t; const b=$('pres-body'); if(b){ b.innerHTML = t==='delegati'?renderDelegati():(t==='guida'?renderGuidaAdmin():(t==='richieste'?renderRichieste():renderCms())); if(t==='delegati') caricaSeggi(); } }
+function renderRichieste(){
+  setTimeout(caricaRichiesteBackoffice, 0);
+  return `<div class="card" style="padding:22px">
+    <div class="eyebrow">Richieste di informazioni</div>
+    <p class="muted small" style="margin:4px 0 14px">Le richieste inviate dai moduli del sito. Nessuna email viene spedita: tutto resta qui.</p>
+    <div id="pres-rich">Caricamento\u2026</div></div>`;
+}
+async function caricaRichiesteBackoffice(){
+  const box=$('pres-rich'); if(!box) return;
+  try{
+    const R = await DB.elencoRichieste();
+    if(!R.length){ box.innerHTML='<p class="muted">Nessuna richiesta ricevuta finora.</p>'; return; }
+    box.innerHTML = `<div style="overflow:auto"><table class="tbl"><thead><tr>
+      <th>Data</th><th>Nome</th><th>Contatti</th><th>Progetti</th><th>Note</th></tr></thead><tbody>
+      ${R.map(r=>`<tr>
+        <td style="white-space:nowrap">${new Date(r.created_at).toLocaleDateString('it-IT')} ${new Date(r.created_at).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}</td>
+        <td><b>${esc(r.nome)}</b></td>
+        <td>${esc(r.email)}${r.telefono?('<br>'+esc(r.telefono)):''}</td>
+        <td>${(r.progetti||[]).map(esc).join('<br>')}</td>
+        <td>${esc(r.note||'')}</td></tr>`).join('')}
+    </tbody></table></div>`;
+  }catch(e){ box.innerHTML='<p class="muted">Impossibile caricare le richieste: '+esc(e.message||'errore')+'</p>'; }
+}
 function renderDelegati(){
   caricaSeggi();
   return `<div class="grid g2">
@@ -3407,6 +3430,38 @@ async function confermaDel(tipo,id){
    MODALI + AVVIO
 ===================================================================== */
 let onClose=null;
+let RI_FISSO=null;
+function apriFormRichiesta(presel, fisso){
+  RI_FISSO = fisso ? presel : null;
+  const scelta = fisso
+    ? `<p class="muted" style="margin:2px 0 10px">Stai chiedendo informazioni su: <b>${esc(presel)}</b></p>`
+    : `<div class="field"><label>Progetti d\u2019interesse (uno o pi\u00f9)</label>
+        ${['La Pacifica Res Publica','Aenigma et Speculum','Campus Vinciano','Aeteneum'].map(p=>`
+        <label style="display:flex;gap:9px;align-items:center;font-weight:400;margin:5px 0;cursor:pointer">
+          <input type="checkbox" class="ri-prog" value="${p}" ${p===presel?'checked':''}> ${p}</label>`).join('')}</div>`;
+  openModal(`<h3 style="font-size:23px">Richiedi informazioni</h3>`, `
+    <div class="field"><label>Nome e cognome</label><input id="ri-nome" autocomplete="name"></div>
+    <div class="field"><label>Posta elettronica</label><input id="ri-email" type="email" autocomplete="email"></div>
+    <div class="field"><label>Telefono</label><input id="ri-tel" autocomplete="tel"></div>
+    ${scelta}
+    <div class="field"><label>Note</label><textarea id="ri-note" rows="3" placeholder="Scrivici qui la tua richiesta\u2026"></textarea></div>
+    <p class="muted small" id="ri-msg" style="min-height:16px"></p>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px">
+      <button class="btn ghost" onclick="closeModal()">Annulla</button>
+      <button class="btn oro" onclick="inviaRichiesta()">Invia richiesta</button>
+    </div>`);
+}
+async function inviaRichiesta(){
+  const nome=($('ri-nome').value||'').trim(), email=($('ri-email').value||'').trim(), tel=($('ri-tel').value||'').trim(), note=($('ri-note').value||'').trim();
+  const progetti = RI_FISSO ? [RI_FISSO] : Array.from(document.querySelectorAll('.ri-prog:checked')).map(x=>x.value);
+  const msg=$('ri-msg');
+  if(!nome || !email){ msg.textContent='Indica nome e cognome e la posta elettronica.'; msg.style.color='#b23b3b'; return; }
+  if(!progetti.length){ msg.textContent='Seleziona almeno un progetto.'; msg.style.color='#b23b3b'; return; }
+  try{
+    await DB.inviaRichiestaInfo({ nome, email, telefono:tel, progetti, note });
+    closeModal(); toast('Richiesta inviata. Ti ricontatteremo presto.');
+  }catch(e){ msg.textContent = e.message || 'Invio non riuscito. Riprova.'; msg.style.color='#b23b3b'; }
+}
 function openModal(headHtml,bodyHtml,cb,cls){
   onClose=cb||null;
   if(!cls && typeof vista!=='undefined' && (vista==='presidenza'||vista==='formatore')) cls='wide';
