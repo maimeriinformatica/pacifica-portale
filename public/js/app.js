@@ -1,4 +1,4 @@
-const VERSIONE_PORTALE = '1.80';
+const VERSIONE_PORTALE = '1.81';
 const MOSTRA_ABBONAMENTI = false;  // sezione 'Un solo abbonamento' in home: rimettere true per mostrarla  // aggiornata a ogni modifica consegnata
 /* =====================================================================
    LA PACIFICA RES PUBLICA — Applicazione (frontend)
@@ -738,7 +738,8 @@ function renderAuthFields(){
     <p class="small muted center" style="margin-top:14px">
       ${reg?'Hai già un account? ':'Non hai un account? '}
       ${reg?`<button class="linkbtn" onclick="setAuthTab('login')">Accesso riservato</button>`:''}
-    </p>`;
+    </p>
+    <p class="small muted center" style="margin-top:10px;opacity:.65">Versione del portale: <b>${VERSIONE_PORTALE}</b></p>`;
 }
 function authMsg(html,cls){ $('auth-msg').innerHTML = html?`<div class="notice ${cls}">${html}</div>`:''; }
 function busy(on){ const b=$('auth-go'); if(b){ b.disabled=on; b.innerHTML = on?'<span class="spin"></span>':b.dataset.lbl||b.textContent; if(!on&&b.dataset.lbl)b.textContent=b.dataset.lbl; } }
