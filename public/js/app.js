@@ -1,4 +1,4 @@
-const VERSIONE_PORTALE = '1.82';
+const VERSIONE_PORTALE = '1.84';
 const MOSTRA_ABBONAMENTI = false;  // sezione 'Un solo abbonamento' in home: rimettere true per mostrarla  // aggiornata a ogni modifica consegnata
 /* =====================================================================
    LA PACIFICA RES PUBLICA — Applicazione (frontend)
@@ -297,6 +297,24 @@ async function loadCatalog(){
    i Sette Principi, i sei pilastri e i servizi realmente gratuiti
    (lettura dei testi, senza account).
    ===================================================================== */
+const NOTIZIE_PACE=[
+  { data:'21 settembre 2026', fonte:'Nazioni Unite',
+    tit:'Giornata Internazionale della Pace',
+    txt:'Il tema scelto per il 2026 \u00e8 \u201cInvestire nella pace \u2014 per tutti, ovunque, ogni giorno\u201d: un invito a fare ciascuno la propria parte, nei quartieri, nelle aule e nelle comunit\u00e0, e a chiedere ai leader di investire in un futuro pacifico.',
+    url:'https://www.un.org/en/observances/international-day-peace' },
+  { data:'settembre 2026', fonte:'Vatican News',
+    tit:'Ucraina, si riapre uno spiraglio per i negoziati',
+    txt:'Dal Forum economico di Vladivostok arriva un\u2019apertura del Cremlino sulla possibilit\u00e0 di riprendere il dialogo con Kyiv, mentre il presidente ucraino attende la visita degli inviati americani.',
+    url:'https://www.vaticannews.va/it/mondo/news/2026-09/ucraina-russia-guerra-negoziati-pace-ue.html' },
+  { data:'settembre 2026', fonte:'Il Sole 24 Ore',
+    tit:'Libano: \u00abRisolvere la questione in modo pacifico\u00bb',
+    txt:'Il presidente libanese Aoun ribadisce che negoziare \u00e8 l\u2019unica strada percorribile e che l\u2019obiettivo del Paese non \u00e8 lo scontro ma una soluzione pacifica delle tensioni interne e regionali.',
+    url:'https://www.ilsole24ore.com/art/guerra-ultime-notizie-camera-usa-approva-misura-che-impone-trump-fine-conflitto-AJtTbcEB' },
+  { data:'giugno 2025', fonte:'Accordi di Washington',
+    tit:'Congo e Ruanda: la pace firmata che guarda avanti',
+    txt:'L\u2019accordo di pace tra Repubblica Democratica del Congo e Ruanda, firmato a Washington, resta uno dei segnali pi\u00f9 concreti degli ultimi anni: la diplomazia pu\u00f2 chiudere conflitti decennali.',
+    url:'https://en.wikipedia.org/wiki/2025_DRC%E2%80%93Rwanda_peace_agreement' }
+];
 async function caricaRassegnaLanding(){
   const box=$('lp-rass'); if(!box) return;
   try{ if(!CAT_DB) await loadCatalog(); }catch(e){}
@@ -591,30 +609,8 @@ function renderLanding(){
       </div>
     </section>
 
-    <section class="lp-sec lp-svc">
-      <div class="lp-sec-in">
-        ${blocchiHtml('provare','chiaro','sopra')}
-        ${testoNascosto('provare.titolo')?'':`<div class="lp-h"${stileTesto('provare.titolo')}><h2${stileTesto('provare.titolo')}>${esc(T('provare.titolo','Per Provare'))}</h2></div>`}
-        <div class="lp-grid lp-g3">
-          ${liberi.map(x=>`<article class="tile lp-tile">
-            <div class="cover lp-cover"><span class="k">${x.ico}</span><span class="tag">${esc(x.tp)} \u00b7 gratuito</span></div>
-            <div class="body"><h4>${esc(x.tit)}</h4><div class="meta">${esc(x.meta)}</div>
-              <p class="small muted" style="flex:1">${esc(x.desc)}</p>
-              <div class="foot"><span class="badge verde">Gratuito</span>
-                <button class="btn small" onclick="${x.fn}">${esc(x.cta)} \u2192</button></div>
-            </div></article>`).join('')}
-          <article class="tile lp-tile lp-tile-locked">
-            <div class="cover lp-cover lp-cover-lock"><span class="k">\u2726</span><span class="tag">Civis</span></div>
-            <div class="body"><h4>Tutta la biblioteca, i corsi e i live</h4>
-              <div class="meta">Video On Demand completo \u00b7 audio illimitato</div>
-              <p class="small muted" style="flex:1">Con la membership Civis sblocchi l\u2019intero catalogo e accompagni il Parlamento dei Giovani.</p>
-              <div class="foot"><span class="badge grigio">Riservato</span>
-                <button class="btn small ghost" onclick="apriAccesso('reg')">Diventa Civis \u2192</button></div>
-            </div></article>
-        </div>
-        ${blocchiHtml('provare','chiaro')}
-
-        ${ev?`<div class="lp-event">
+        <section class="lp-sec"><div class="lp-sec-in">
+      ${ev?`<div class="lp-event">
           <div class="lp-event-art">
             <picture>
               <source srcset="img/scuola-di-atene.webp" type="image/webp">
@@ -633,15 +629,20 @@ function renderLanding(){
             </div>
           </div>
         </div>`:''}
-      </div>
-    </section>
-
-    <section class="lp-sec lp-rass"><div class="lp-sec-in">
-      <div class="eyebrow">Ogni giorno</div>
-      <h2 style="font-size:34px;margin:6px 0 8px">La pace, oggi</h2>
-      <p class="muted" style="max-width:640px;margin-bottom:22px">Notizie da fonti internazionali e gli appuntamenti da non perdere — aggiornate ogni giorno, aperte a tutti.</p>
-      <div id="lp-rass"></div>
     </div></section>
+    <section class="lp-sec"><div class="lp-sec-in">
+        <div class="lp-h"><h2>Le Notizie della Pace</h2></div>
+        <p class="muted" style="max-width:640px;margin:-6px 0 22px">La pace nel mondo, oggi: fatti, spiragli e appuntamenti scelti dalla redazione.</p>
+        <div class="lp-grid lp-g2">
+          ${NOTIZIE_PACE.map(nz=>`<article class="card" style="padding:20px 22px;display:flex;flex-direction:column;gap:8px">
+            <div class="eyebrow">${esc(nz.fonte)} \u00b7 ${esc(nz.data)}</div>
+            <h4 style="margin:0;font-size:22px">${esc(nz.tit)}</h4>
+            <p class="muted small" style="flex:1;margin:0">${esc(nz.txt)}</p>
+            <div><a class="linkbtn" href="${nz.url}" target="_blank" rel="noopener">Leggi la fonte \u2192</a></div>
+          </article>`).join('')}
+        </div>
+      </div></section>
+
     <section class="lp-sec"><div class="lp-sec-in">
       <div class="lp-event">
         <div class="lp-event-art">
