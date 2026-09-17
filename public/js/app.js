@@ -1,4 +1,4 @@
-const VERSIONE_PORTALE = '1.84';
+const VERSIONE_PORTALE = '1.88';
 const MOSTRA_ABBONAMENTI = false;  // sezione 'Un solo abbonamento' in home: rimettere true per mostrarla  // aggiornata a ogni modifica consegnata
 /* =====================================================================
    LA PACIFICA RES PUBLICA — Applicazione (frontend)
@@ -585,7 +585,10 @@ function renderLanding(){
     <section class="lp-sec lp-frieze">
       <div class="lp-sec-in">
         ${blocchiHtml('manifesto','chiaro','sopra')}
-        <img class="lp-manifesto-logo" src="img/logo.png" alt="La Pacifica Res Publica">
+        <div style="background:#F4F0E6;border:2px solid #A9842F;border-radius:12px;max-width:780px;margin:0 auto 26px;padding:22px 28px;text-align:center">
+          <p style="margin:0;font-family:'Cormorant Garamond',serif;font-weight:600;font-size:21px;line-height:1.5;color:#152C55">La Pacifica nasce come Accademia internazionale per la Pace, una Res Publica universale fondata sulla conoscenza, sulla coscienza e sulla dignit\u00e0 dell\u2019essere umano.</p>
+        </div>
+        <img class="lp-manifesto-logo" src="img/logo.png" alt="La Pacifica Res Publica" style="margin-top:30px">
         ${testoNascosto('manifesto.titolo')?'':`<div class="lp-h"${stileTesto('manifesto.titolo')}><h2${stileTesto('manifesto.titolo')}>${esc(T('manifesto.titolo','Il Nostro Manifesto'))}</h2></div>`}
         <div class="lp-cta" style="justify-content:center;margin-top:4px">
           <button class="btn oro lp-btn" onclick="apriPagina('manifesto')">Scopri i Sette Principi \u2192</button>
