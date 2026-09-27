@@ -1,4 +1,4 @@
-const VERSIONE_PORTALE = '1.88';
+const VERSIONE_PORTALE = '1.89';
 const MOSTRA_ABBONAMENTI = false;  // sezione 'Un solo abbonamento' in home: rimettere true per mostrarla  // aggiornata a ogni modifica consegnata
 /* =====================================================================
    LA PACIFICA RES PUBLICA — Applicazione (frontend)
@@ -176,7 +176,7 @@ let TEMI = [];        /* mappatura tema OEIL -> commissione (arriva dal server) 
 let DOSSIER = [];     /* dossier legislativi europei, materia prima delle commissioni */
 let LIVELLI = [
   {id:'pubblico',  nome:'Pubblico',         ospiti:true,  memberships:[],                          ruoli:[],           invito:'',                                     cta:'',            ordine:10, attivo:true},
-  {id:'iscritti',  nome:'Solo iscritti',    ospiti:false, memberships:['free','civis','academicus'],ruoli:[],          invito:'Registrati per guardarlo',             cta:'registrati',  ordine:20, attivo:true},
+  {id:'iscritti',  nome:'Solo iscritti',    ospiti:false, memberships:['free','civis','academicus'],ruoli:[],          invito:'Accedi per guardarlo',                 cta:'registrati',  ordine:20, attivo:true},
   {id:'civis',     nome:'Civis',            ospiti:false, memberships:['civis','academicus'],      ruoli:[],           invito:'Incluso in Civis',                     cta:'abbonamenti', ordine:30, attivo:true},
   {id:'academicus',nome:'Civis Academicus', ospiti:false, memberships:['academicus'],              ruoli:[],           invito:'Incluso in Civis Academicus',          cta:'abbonamenti', ordine:40, attivo:true},
   {id:'delegati',  nome:'Delegati',         ospiti:false, memberships:[],                          ruoli:['delegato'], invito:'Riservato ai delegati del Parlamento', cta:'',            ordine:50, attivo:true},
@@ -370,7 +370,7 @@ async function inviaImpegno(id){
        <p class="muted small" style="margin-top:12px">Gli accessi vengono emessi a pagamento accreditato.</p>`);
   }catch(e){ toast(String(e.message||e)); }
 }
-function apriAccesso(tab){ authTab = (tab==='reg' ? 'reg' : 'login'); renderAuth(); }
+function apriAccesso(tab){ authTab = 'login'; renderAuth(); }
 function tornaHome(){ paginaLanding='home'; renderLanding(); window.scrollTo(0,0); }
 
 /* Tre righe identificative per ogni sezione (schede della home) */
@@ -714,10 +714,6 @@ function renderAuth(){
         <button class="linkbtn lp-back" onclick="tornaHome()" style="margin-bottom:16px;display:inline-flex;gap:6px;align-items:center">← La Pacifica</button>
         <h2 id="auth-title">Bentornato</h2>
         <p class="sub" id="auth-sub">Accedi al tuo account per entrare nell’ecosistema.</p>
-        <div class="seg">
-          <button id="seg-login" class="${authTab==='login'?'on':''}" onclick="setAuthTab('login')">Accedi</button>
-          <button id="seg-reg" class="${authTab==='reg'?'on':''}" onclick="setAuthTab('reg')">Crea account</button>
-        </div>
         <div id="auth-fields"></div>
         <div id="auth-msg"></div>
       </div>
@@ -726,54 +722,23 @@ function renderAuth(){
   renderAuthFields();
   $('auth-root').style.display='block';
 }
-function setAuthTab(t){ authTab=t; renderAuth(); }
+function setAuthTab(t){ authTab='login'; renderAuth(); }
 function renderAuthFields(){
-  const reg = authTab==='reg';
-  $('auth-title').textContent = reg ? 'Crea il tuo account' : 'Bentornato';
-  $('auth-sub').textContent = reg ? 'Un’unica iscrizione per tutto l’ecosistema.' : 'Accedi al tuo account per entrare nell’ecosistema.';
+  $('auth-title').textContent = 'Bentornato';
+  $('auth-sub').textContent = 'Accedi al tuo account per entrare nell’ecosistema.';
   $('auth-fields').innerHTML = `
-    ${reg?`<div class="field"><label>Nome e cognome</label><input id="f-nome" placeholder="Es. Giulia Conti"></div>`:''}
     <div class="field"><label>Email</label><input id="f-email" type="email" placeholder="nome@email.it"></div>
-    <div class="field"><label>Password</label><input id="f-pass" type="password" placeholder="Almeno 6 caratteri"></div>
-    ${reg?`<div class="field"><label>Codice d’invito <span class="muted small">(facoltativo)</span></label>
-       <input id="f-code" placeholder="Codice delegato o della Presidenza"></div>`:''}
-    <button class="btn full" id="auth-go" style="margin-top:6px" onclick="${reg?'doRegister()':'doLogin()'}">
-      ${reg?'Crea account ed entra':'Accedi'}</button>
+    <div class="field"><label>Password</label><input id="f-pass" type="password" placeholder="La tua password"></div>
+    <button class="btn full" id="auth-go" style="margin-top:6px" onclick="doLogin()">Accedi</button>
     <p class="small muted center" style="margin-top:14px">
-      ${reg?'Hai già un account? ':'Non hai un account? '}
-      ${reg?`<button class="linkbtn" onclick="setAuthTab('login')">Accesso riservato</button>`:''}
+      Gli account sono creati dall’Accademia.<br>
+      Per richiedere il tuo scrivi a <b>info@lapacifica.org</b>.
     </p>
     <p class="small muted center" style="margin-top:10px;opacity:.65">Versione del portale: <b>${VERSIONE_PORTALE}</b></p>`;
 }
 function authMsg(html,cls){ $('auth-msg').innerHTML = html?`<div class="notice ${cls}">${html}</div>`:''; }
 function busy(on){ const b=$('auth-go'); if(b){ if(on && !b.dataset.lbl) b.dataset.lbl=b.textContent.trim(); b.disabled=on; b.innerHTML = on?'<span class="spin"></span>':b.dataset.lbl||b.textContent; if(!on&&b.dataset.lbl)b.textContent=b.dataset.lbl; } }
 
-async function doRegister(){
-  const nome=($('f-nome').value||'').trim(), email=($('f-email').value||'').trim().toLowerCase(),
-        pass=$('f-pass').value||'', code=($('f-code').value||'').trim();
-  if(nome.length<2) return authMsg('Inserisci il tuo nome e cognome.','err');
-  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return authMsg('Inserisci un’email valida.','err');
-  if(pass.length<6) return authMsg('La password deve avere almeno 6 caratteri.','err');
-  busy(true);
-  try{
-    await DB.signUp(nome, email, pass);
-    // alcune istanze richiedono conferma email: proviamo comunque il login
-    try{ await DB.signIn(email, pass); TRK.log('login','registrazione'); }
-    catch(e){ busy(false); return authMsg('Account creato. Controlla la tua email per confermarlo, poi accedi.','ok'); }
-    if(code){
-      try{
-        // prova prima come codice di fondazione (Presidenza); se non lo è, come codice delegato
-        try { await DB.redeemFounder(code); }
-        catch(_) { await DB.redeemCode(code); }
-      }catch(e){ toast(e.message||'Codice non valido'); }
-    }
-    await enterApp();
-    toast('Benvenuto in La Pacifica.');
-  }catch(e){
-    busy(false);
-    authMsg(e.message && /already/i.test(e.message) ? 'Esiste già un account con questa email.' : (e.message||'Errore in registrazione.'),'err');
-  }
-}
 async function doLogin(){
   const email=($('f-email').value||'').trim().toLowerCase(), pass=$('f-pass').value||'';
   busy(true);

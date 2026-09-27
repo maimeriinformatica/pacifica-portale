@@ -31,13 +31,6 @@ const DB = {
   },
 
   /* ---------- AUTENTICAZIONE ---------- */
-  async signUp(nome, email, password){
-    const { data, error } = await sb.auth.signUp({
-      email, password, options:{ data:{ nome } }
-    });
-    if (error) throw error;
-    return data;
-  },
   async signIn(email, password){
     const { data, error } = await sb.auth.signInWithPassword({ email, password });
     if (error) throw error;
