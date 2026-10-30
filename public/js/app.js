@@ -1,4 +1,4 @@
-const VERSIONE_PORTALE = '1.89';
+const VERSIONE_PORTALE = '1.92';
 const MOSTRA_ABBONAMENTI = false;  // sezione 'Un solo abbonamento' in home: rimettere true per mostrarla  // aggiornata a ogni modifica consegnata
 /* =====================================================================
    LA PACIFICA RES PUBLICA — Applicazione (frontend)
@@ -33,7 +33,13 @@ let PACCHETTI = [
   {id:'p2', nome:'Pratiche e Culture di Pace', corsi:['c4','c5','c6'], prezzo:169, full:207},
   {id:'p3', nome:'Etica, Economia e Impresa', corsi:['c7','c8'], prezzo:119, full:138},
 ];
-let PREZZO_CORSO = 69, PREZZO_PERCORSO = 440;
+let PREZZO_CORSO = 159, PREZZO_PERCORSO = 440;
+/* Le sette aree formative dell'Accademia (ordine canonico del progetto) */
+const AREE_FORMATIVE=[['I','Filosofia e pensiero critico'],['II','Teosofia e tradizione spirituale'],
+  ['III','Fisica quantistica e visione della realt\u00e0'],['IV','Ecologia e responsabilit\u00e0 planetaria'],
+  ['V','Mindfulness e pratica della presenza'],['VI','Cultura d\u2019impresa etica e sostenibile'],
+  ['VII','Leadership e cooperazione internazionale']];
+function areaNum(nome){ const a=AREE_FORMATIVE.find(x=>x[1]===nome); return a?a[0]:''; }
 let CAMPUS = [
   {id:'cmp1', tit:'Campus di Pace — Weekend introduttivo', luogo:'Abbazia di Maguzzano — Casa di Spiritualità e Centro Ecumenico (Lonato del Garda, BS)', desc:'Due giorni immersi nei Sette Principi del Manifesto: laboratori di ascolto, dialogo e costruzione di pace, in un luogo di spiritualità affacciato sul Lago di Garda.', data:'17–18 ottobre 2026', durata:'Weekend · 2 giorni, 1 notte', posti:30, prezzo:120, prezzoSoggiorno:190, comm:'pace'},
   {id:'cmp2', tit:'Campus Scuola di Atene — Filosofia in dialogo', luogo:'Abbazia di Maguzzano — Casa di Spiritualità e Centro Ecumenico (Lonato del Garda, BS)', desc:'Un fine settimana sulle grandi domande del pensiero, guidato dal Prof. Roberto Barbessi: lezioni dialogate, lettura dei classici e passeggiate filosofiche.', data:'14–15 novembre 2026', durata:'Weekend · 2 giorni, 1 notte', posti:25, prezzo:130, prezzoSoggiorno:200, comm:'etica'},
@@ -153,6 +159,11 @@ const ELENCO_TESTI = (function(){
     E.push(['sezione.'+k+'.titolo','Scheda \u201c'+k+'\u201d \u2014 titolo',SR[k][0],0]);
     for(let i=1;i<SR[k].length;i++) E.push(['sezione.'+k+'.riga'+i,'Scheda \u201c'+k+'\u201d \u2014 riga '+i,SR[k][i],0]);
   });
+  E.push(['percorso.link-iep','Percorso di Pace \u2014 collegamento al corso introduttivo (IEP)','https://www.positivepeace.academy',0],
+    ['percorso.kit-url','Percorso di Pace \u2014 indirizzo del Kit di benvenuto (PDF caricato altrove)','',0],
+    ['percorso.quaderno-url','Percorso di Pace \u2014 indirizzo del Quaderno di Pace (PDF caricato altrove)','',0],
+    ['percorso.lezione-omaggio','Percorso di Pace \u2014 id del corso con la lezione omaggio (vuoto = nascosto)','',0],
+    ['percorso.invito','Percorso di Pace \u2014 invito agli incontri della comunit\u00e0','Ti aspettiamo anche al primo incontro online della comunit\u00e0: le date arrivano con la newsletter.',2]);
   const PR=[['I','La Pace come Stato dell\u2019Essere','La pace \u00e8 uno stato interiore di consapevolezza, che si riflette nella vita sociale e civile promuovendo la risoluzione dei conflitti.'],
     ['II','Conoscenza e Coscienza Unite','Ogni sapere \u00e8 autentico solo quando \u00e8 accompagnato da responsabilit\u00e0 etica e profondit\u00e0 spirituale. La conoscenza senza coscienza non genera futuro.'],
     ['III','Centralit\u00e0 della Persona Umana','L\u2019essere umano \u00e8 al centro come creatura pensante, relazionale e spirituale. Educare significa formare l\u2019intero essere umano.'],
@@ -370,7 +381,7 @@ async function inviaImpegno(id){
        <p class="muted small" style="margin-top:12px">Gli accessi vengono emessi a pagamento accreditato.</p>`);
   }catch(e){ toast(String(e.message||e)); }
 }
-function apriAccesso(tab){ authTab = 'login'; renderAuth(); }
+function apriAccesso(tab){ authTab = (tab==='reg') ? 'reg' : 'login'; renderAuth(); }
 function tornaHome(){ paginaLanding='home'; renderLanding(); window.scrollTo(0,0); }
 
 /* Tre righe identificative per ogni sezione (schede della home) */
@@ -536,7 +547,7 @@ function renderLanding(){
 
   const pilastri = [
     {n:'I',  ico:'\u2696\uFE0E', t:'Parlamento dei Giovani', tit:'Il Parlamento dei Giovani', d:'150 delegati, sette commissioni, proposte di legge e voto in aula.', free:'Il documentario sull\u2019emiciclo', chiuso:'Seggio e voto \u2014 su invito'},
-    {n:'II', ico:'\uD83D\uDCD6', t:'Accademia', tit:'L’Accademia', d:'Il Percorso di Pace in otto corsi tenuti dai formatori.', free:'Lezioni aperte e assaggi', chiuso:'Corsi completi e attestati'},
+    {n:'II', ico:'\uD83D\uDCD6', t:'Accademia', tit:'L’Accademia', d:'Venti corsi nelle sette aree formative, tenuti dai formatori.', free:'Lezioni aperte e assaggi', chiuso:'Corsi completi e attestati'},
     {n:'III',ico:'\u25B6', t:'Video On Demand', tit:'Video On Demand', d:'Video e serie autoprodotte da La Pacifica, da guardare quando e dove vuoi.', free:'Documentari e lezioni', chiuso:'Catalogo completo con Civis'},
     {n:'IV', ico:'\uD83D\uDCDA', t:'Biblioteca Audio', tit:'La Biblioteca', d:'Testi online, libri cartacei e audiobook: il sapere in tutte le sue forme.', free:'Testi e audiolibri scelti', chiuso:'Tutta la biblioteca con Civis'},
     {n:'V',  ico:'\u26EA', t:'Campus', tit:'Il Campus', d:'Fine settimana formativi in luoghi dedicati allo studio e alla quiete.', free:'Programmi e calendario', chiuso:'Posti su prenotazione'},
@@ -703,7 +714,7 @@ function renderAuth(){
       </div>
       <div class="four">
         <div><span class="d">⚖︎</span> Parlamento dei Giovani — 150 delegati, sette commissioni</div>
-        <div><span class="d">📖</span> Accademia — il Percorso di Pace in otto corsi</div>
+        <div><span class="d">📖</span> Accademia — venti corsi nelle sette aree formative</div>
         <div><span class="d">▶</span> Video On Demand — documentari, lezioni, conferenze</div>
         <div><span class="d">♪</span> Biblioteca Audio — letture e sintesi con IA</div>
       </div>
@@ -722,19 +733,59 @@ function renderAuth(){
   renderAuthFields();
   $('auth-root').style.display='block';
 }
-function setAuthTab(t){ authTab='login'; renderAuth(); }
+function setAuthTab(t){ authTab=(t==='reg') ? 'reg' : 'login'; renderAuthFields(); authMsg(''); }
 function renderAuthFields(){
-  $('auth-title').textContent = 'Bentornato';
-  $('auth-sub').textContent = 'Accedi al tuo account per entrare nell’ecosistema.';
-  $('auth-fields').innerHTML = `
+  const reg = authTab==='reg';
+  $('auth-title').textContent = reg ? 'Inizia il Percorso di Pace' : 'Bentornato';
+  $('auth-sub').textContent = reg
+    ? 'La registrazione è gratuita: è il primo passo del Percorso di Pace.'
+    : 'Accedi al tuo account per entrare nell’ecosistema.';
+  if(reg){
+    $('auth-fields').innerHTML = `
+    <div class="field"><label>Nome e cognome</label><input id="f-nome" placeholder="es. Maria Rossi"></div>
+    <div class="field"><label>Email</label><input id="f-email" type="email" placeholder="nome@email.it"></div>
+    <div class="field"><label>Password (almeno 8 caratteri)</label><input id="f-pass" type="password" placeholder="Scegli una password"></div>
+    <button class="btn full" id="auth-go" style="margin-top:6px" onclick="doRegisterPercorso()">Diventa Esploratore di Pace — è gratis</button>
+    <p class="small muted center" style="margin-top:14px">Hai già un account? <button class="linkbtn" onclick="setAuthTab('login')"><b>Accedi</b></button></p>
+    <p class="small muted center" style="margin-top:10px;opacity:.65">Versione del portale: <b>${VERSIONE_PORTALE}</b></p>`;
+  } else {
+    $('auth-fields').innerHTML = `
     <div class="field"><label>Email</label><input id="f-email" type="email" placeholder="nome@email.it"></div>
     <div class="field"><label>Password</label><input id="f-pass" type="password" placeholder="La tua password"></div>
     <button class="btn full" id="auth-go" style="margin-top:6px" onclick="doLogin()">Accedi</button>
     <p class="small muted center" style="margin-top:14px">
-      Gli account sono creati dall’Accademia.<br>
-      Per richiedere il tuo scrivi a <b>info@lapacifica.org</b>.
+      Non hai un account? <button class="linkbtn" onclick="setAuthTab('reg')"><b>Inizia il Percorso di Pace (gratuito)</b></button><br>
+      Per gli account dell’Accademia scrivi a <b>info@lapacifica.org</b>.
     </p>
     <p class="small muted center" style="margin-top:10px;opacity:.65">Versione del portale: <b>${VERSIONE_PORTALE}</b></p>`;
+  }
+}
+/* Registrazione gratuita di primo livello: crea l'account e avvia il
+   Percorso di Pace. Su Supabase deve essere attivo "Allow new users to
+   sign up" (Authentication -> Sign In / Providers). */
+async function doRegisterPercorso(){
+  const nome=($('f-nome').value||'').trim(), email=($('f-email').value||'').trim().toLowerCase(), pass=$('f-pass').value||'';
+  if(nome.length<2) return authMsg('Inserisci il tuo nome.','err');
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return authMsg('Email non valida.','err');
+  if(pass.length<8) return authMsg('La password deve avere almeno 8 caratteri.','err');
+  busy(true); authMsg('');
+  let r;
+  try{ r = await DB.signUpPercorso(nome, email, pass); }
+  catch(e){
+    busy(false);
+    const m=(e && e.message)||'';
+    if(/already registered|already exists/i.test(m)) authMsg('Questa email ha già un account: accedi qui sotto.','err');
+    else if(/signups not allowed/i.test(m)) authMsg('Le iscrizioni sono momentaneamente chiuse. (Per la Presidenza: su Supabase riattivare “Allow new users to sign up” in Authentication → Sign In / Providers.)','err');
+    else authMsg('Registrazione rifiutata: '+esc(m||'errore sconosciuto'),'err');
+    return;
+  }
+  if(r && r.confermaRichiesta){
+    busy(false); authTab='login'; renderAuthFields();
+    authMsg('Quasi fatto! Ti abbiamo mandato un’email: conferma l’indirizzo e poi accedi. Il tuo Percorso di Pace parte al primo accesso.','ok');
+    return;
+  }
+  try{ TRK.log('signup','percorso'); await enterApp(); }
+  catch(e){ busy(false); authMsg('Errore: '+esc(e.message||''),'err'); }
 }
 function authMsg(html,cls){ $('auth-msg').innerHTML = html?`<div class="notice ${cls}">${html}</div>`:''; }
 function busy(on){ const b=$('auth-go'); if(b){ if(on && !b.dataset.lbl) b.dataset.lbl=b.textContent.trim(); b.disabled=on; b.innerHTML = on?'<span class="spin"></span>':b.dataset.lbl||b.textContent; if(!on&&b.dataset.lbl)b.textContent=b.dataset.lbl; } }
@@ -817,8 +868,197 @@ const TRK = (function(){
   return { log, decidi, init, attivo, dnt };
 })();
 
+/* =====================================================================
+   PERCORSO DI PACE — i quattro livelli (v1.92)
+   Il corso gratuito dell'Institute for Economics & Peace (Positive
+   Peace Academy) è il primo gradino: lo si raggiunge con un collegamento
+   esterno, i suoi contenuti NON vengono ricaricati sul portale.
+   ===================================================================== */
+const LIVELLI_PACE = [
+  { n:1, nome:'Esploratore di Pace',  des:'Ti registri gratuitamente alla Pacifica e segui il corso online sulla Pace Positiva.' },
+  { n:2, nome:'Costruttore di Pace',  des:'Completi il corso e torni da noi: ricevi l’attestato «Primo passo di pace».' },
+  { n:3, nome:'Accademico',           des:'Prosegui la formazione con un corso dell’Accademia o con l’abbonamento Academicus.' },
+  { n:4, nome:'Ambasciatore di Pace', des:'Porti il Percorso nella tua comunità: scuola, università, associazioni.' }
+];
+const NOMI_LIVELLO = ['non iscritto','Esploratore di Pace','Costruttore di Pace','Accademico','Ambasciatore di Pace'];
+function livelloPaceEff(){
+  let lp = (io && io.livelloPace)||0;
+  const haCorsi = io && io.acquisti && Object.keys(io.acquisti).length>0;
+  if(lp<3 && io && (io.membership==='academicus' || haCorsi)) lp=3;
+  return lp;
+}
+function renderPercorso(){
+  const lp = livelloPaceEff();
+  const linkIEP = T('percorso.link-iep','https://www.positivepeace.academy');
+  const kitUrl = T('percorso.kit-url','');
+  const quadUrl = T('percorso.quaderno-url','');
+  const lezId = T('percorso.lezione-omaggio','');
+  const lez = lezId ? (CORSI||[]).find(c=>String(c.id)===String(lezId)) : null;
+  const stato = n => n<=lp ? '<span class="badge verde">Completato ✓</span>'
+                 : n===lp+1 ? '<span class="badge oro">Sei qui</span>'
+                 : '<span class="badge grigio">Più avanti</span>';
+  const tappe = LIVELLI_PACE.map(L=>`
+    <div style="flex:1;min-width:120px;text-align:center;opacity:${L.n<=lp+1?1:.45}">
+      <div style="width:44px;height:44px;border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;
+        font-weight:700;font-size:17px;border:2px solid ${L.n<=lp?'#2e7d4f':'var(--oro, #B08441)'};
+        background:${L.n<=lp?'#2e7d4f':'transparent'};color:${L.n<=lp?'#fff':'inherit'}">${L.n<=lp?'✓':L.n}</div>
+      <div class="small"><b>${L.nome}</b></div>
+    </div>`).join('<div style="flex:0 0 18px;align-self:center;opacity:.4">—</div>');
+  const P8=['Buone relazioni con i vicini','Buon funzionamento del governo','Equa distribuzione delle risorse','Libero flusso delle informazioni','Alto livello di capitale umano','Accettazione dei diritti degli altri','Bassi livelli di corruzione','Contesto imprenditoriale solido'];
+
+  /* ---- Livello 1 ---- */
+  let c1='';
+  if(lp<1){
+    c1 = `<p>Il Percorso comincia qui, ed è <b>gratuito</b>: premi il bottone e diventi Esploratore di Pace.</p>
+      <button class="btn oro" onclick="avviaPercorsoClick()">Inizia il Percorso di Pace — è gratuito</button>`;
+  } else {
+    c1 = `<p>Sei Esploratore di Pace. Il primo passo è il corso online sulla <b>Pace Positiva</b>: consigliamo il corso gratuito
+      dell’Institute for Economics &amp; Peace — dura circa due ore, cinque moduli con quiz, disponibile in oltre cinquanta lingue.
+      Si svolge sul loro sito: crea lì un accesso con la stessa email, così l’attestato riporterà il tuo nome.</p>
+      <p style="margin:10px 0"><a class="btn" href="${esc(linkIEP)}" target="_blank" rel="noopener">Vai al corso gratuito ↗</a>
+      ${kitUrl?` <a class="btn ghost" href="${esc(kitUrl)}" target="_blank" rel="noopener">Scarica il Kit di benvenuto</a>`:' <span class="muted small">Kit di benvenuto: in preparazione.</span>'}</p>
+      <p class="muted small">Gli otto pilastri della Pace Positiva che incontrerai: ${P8.join(' · ')}.</p>
+      <p class="muted small">${esc(T('percorso.invito','Ti aspettiamo anche al primo incontro online della comunità: le date arrivano con la newsletter.'))}</p>`;
+  }
+
+  /* ---- Livello 2 ---- */
+  let c2='';
+  if(lp>=2){
+    c2 = `<p>Hai compiuto il primo passo di pace: da oggi sei <b>Costruttore di Pace</b>.</p>
+      <p style="margin:10px 0"><button class="btn oro" onclick="stampaAttestatoPace()">Stampa l’attestato «Primo passo di pace»</button>
+      ${quadUrl?` <a class="btn ghost" href="${esc(quadUrl)}" target="_blank" rel="noopener">Scarica il Quaderno di Pace</a>`:' <span class="muted small">Quaderno di Pace: in preparazione.</span>'}</p>
+      ${lez?`<p class="muted small">In omaggio, una lezione dell’Accademia: <button class="linkbtn" onclick="go('corso',{id:'${esc(String(lez.id))}'})"><b>${esc(lez.tit||'vai alla lezione')}</b></button></p>`:''}`;
+  } else if(lp>=1){
+    c2 = `<p>Hai completato il corso? Raccontacelo in uno dei due modi — bastano due minuti — e ricevi
+      l’attestato della Pacifica <b>«Primo passo di pace»</b>.</p>
+      <p style="margin:10px 0"><button class="btn" onclick="modalAttestatoIEP()">Carica l’attestato del corso</button>
+      <button class="btn ghost" onclick="modalQuestionario()">Compila il questionario di rientro</button></p>
+      <p class="muted small">Non serve il certificato a pagamento: va benissimo anche solo il questionario.</p>`;
+  } else {
+    c2 = `<p class="muted">Si apre dopo il corso del livello 1.</p>`;
+  }
+
+  /* ---- Livello 3 ---- */
+  let c3='';
+  if(lp>=3){
+    c3 = `<p>Sei <b>Accademico</b>: la formazione prosegue nell’Accademia, tra i venti corsi delle sette aree formative.</p>
+      <p style="margin:10px 0"><button class="btn" onclick="go('accademia')">Vai all’Accademia</button></p>`;
+  } else {
+    c3 = `<p>Quando vuoi andare più a fondo: un corso singolo dell’Accademia, oppure l’abbonamento <b>Academicus</b>
+      con tutti i corsi, i video e la biblioteca.</p>
+      <p style="margin:10px 0"><button class="btn" onclick="go('accademia')">Scopri i corsi</button>
+      <button class="btn ghost" onclick="go('abbonamenti')">Vedi gli abbonamenti</button></p>`;
+  }
+
+  /* ---- Livello 4 ---- */
+  let c4='';
+  if(((io&&io.livelloPace)||0)>=4){
+    c4 = `<p>Sei <b>Ambasciatore di Pace</b>: grazie per portare il Percorso nella tua comunità.</p>`;
+  } else if(lp>=2){
+    c4 = `<p>Vuoi portare il Percorso di Pace nella tua scuola, università o associazione?
+      Candidati: la Presidenza ti ricontatta.</p>
+      <p style="margin:10px 0"><button class="btn" onclick="modalCandidatura()">Candidati come Ambasciatore</button></p>`;
+  } else {
+    c4 = `<p class="muted">Si apre dal livello 2 (Costruttore di Pace).</p>`;
+  }
+
+  const card = (L,body)=>`<div class="card" style="margin-top:14px">
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+      <h3 style="margin:0;font-size:20px">Livello ${L.n} · ${L.nome}</h3>${stato(L.n)}</div>
+    <p class="muted small" style="margin:0 0 10px">${L.des}</p>${body}</div>`;
+
+  return `<div class="page-head"><h2>Il Percorso di Pace</h2>
+      <p class="sub">Quattro livelli, dal primo corso gratuito fino a diventare Ambasciatore di Pace.
+      ${((io&&io.livelloPace)||0)>0?`Oggi sei <b>${NOMI_LIVELLO[Math.min(lp,4)]}</b>.`:''}</p></div>
+    <div class="card"><div style="display:flex;gap:4px;flex-wrap:wrap">${tappe}</div></div>
+    ${card(LIVELLI_PACE[0],c1)}
+    ${card(LIVELLI_PACE[1],c2)}
+    ${card(LIVELLI_PACE[2],c3)}
+    ${card(LIVELLI_PACE[3],c4)}
+    <p class="muted small" style="margin-top:14px">Il corso introduttivo si svolge sul sito della Positive Peace Academy
+    (Institute for Economics &amp; Peace), realtà indipendente da La Pacifica.</p>`;
+}
+async function avviaPercorsoClick(){
+  try{ await DB.avviaPercorso(); await refreshMe(); render(); toast('Benvenuto nel Percorso di Pace!'); }
+  catch(e){ toast('Errore: '+(e.message||'')+' — serve la migrazione 0027.'); }
+}
+function modalAttestatoIEP(){
+  openModal('<h3 style="font-size:23px">Carica l’attestato del corso</h3>',
+    `<p class="muted small" style="margin-bottom:12px">Carica l’attestato o la schermata di completamento del corso (PDF o immagine, fino a 10 MB). Lo vede solo la Presidenza.</p>
+     <div class="field"><label>File</label><input id="pp-file" type="file" accept=".pdf,image/*"></div>
+     <button class="btn full" onclick="inviaAttestatoIEP()">Invia e diventa Costruttore di Pace</button>`);
+}
+async function inviaAttestatoIEP(){
+  const f=($('pp-file').files||[])[0]; if(!f) return toast('Scegli prima il file.');
+  if(f.size>10*1024*1024) return toast('File troppo grande: massimo 10 MB.');
+  try{
+    const path = await DB.uploadAttestatoIEP(f);
+    await DB.completaCostruttore('attestato caricato', path);
+    await refreshMe(); closeModal(); render(); toast('Attestato ricevuto: sei Costruttore di Pace!');
+  }catch(e){ toast('Errore: '+(e.message||'')); }
+}
+function modalQuestionario(){
+  const P8=['Buone relazioni con i vicini','Buon funzionamento del governo','Equa distribuzione delle risorse','Libero flusso delle informazioni','Alto livello di capitale umano','Accettazione dei diritti degli altri','Bassi livelli di corruzione','Contesto imprenditoriale solido'];
+  openModal('<h3 style="font-size:23px">Questionario di rientro</h3>',
+    `<p class="muted small" style="margin-bottom:12px">Non serve l’attestato: raccontaci in due righe cosa ti ha lasciato il corso. È il tuo «rientro» alla Pacifica.</p>
+     <div class="field"><label>Cosa ti ha colpito di più del corso?</label><textarea id="pq-1" rows="3"></textarea></div>
+     <div class="field"><label>Quale pilastro della Pace Positiva senti più vicino?</label><select id="pq-2">${P8.map(p=>'<option>'+p+'</option>').join('')}</select></div>
+     <label style="display:flex;gap:8px;align-items:center;font-size:14px;margin:4px 0 12px"><input type="checkbox" id="pq-3" style="width:auto"> Vorrei partecipare agli incontri online della comunità</label>
+     <button class="btn full" onclick="inviaQuestionario()">Invia e diventa Costruttore di Pace</button>`);
+}
+async function inviaQuestionario(){
+  const a=($('pq-1').value||'').trim(); if(a.length<3) return toast('Scrivi almeno due righe sul corso.');
+  const det='mi ha colpito: '+a+' | pilastro: '+$('pq-2').value+' | incontri: '+($('pq-3').checked?'sì':'no');
+  try{ await DB.completaCostruttore('questionario di rientro', det);
+    await refreshMe(); closeModal(); render(); toast('Grazie! Sei Costruttore di Pace.');
+  }catch(e){ toast('Errore: '+(e.message||'')); }
+}
+function modalCandidatura(){
+  openModal('<h3 style="font-size:23px">Candidatura ad Ambasciatore di Pace</h3>',
+    `<p class="muted small" style="margin-bottom:12px">Scrivici dove vorresti portare il Percorso (scuola, università, associazione…) e perché. La Presidenza ti risponde all’email del tuo account.</p>
+     <div class="field"><label>La tua motivazione</label><textarea id="amb-mot" rows="5" placeholder="es. Insegno in un liceo di Verona e vorrei proporre il Percorso alle classi quarte…"></textarea></div>
+     <button class="btn full" onclick="inviaCandidatura()">Invia la candidatura</button>`);
+}
+async function inviaCandidatura(){
+  const mot=($('amb-mot').value||'').trim(); if(mot.length<10) return toast('Racconta in qualche riga la tua motivazione.');
+  try{ await DB.inviaRichiestaInfo({ nome:io.nome, email:io.email, telefono:'', progetti:['ambasciatori-di-pace'],
+      note:'Candidatura Ambasciatore di Pace — '+mot });
+    closeModal(); toast('Candidatura inviata: ti ricontattiamo noi.');
+  }catch(e){ toast('Errore: '+(e.message||'')); }
+}
+/* Attestato stampabile «Primo passo di pace» (si salva anche in PDF dalla stampa) */
+function stampaAttestatoPace(){
+  const data=new Date().toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'});
+  const w=window.open('','_blank'); if(!w) return toast('Consenti i pop-up per aprire l’attestato.');
+  w.document.write(`<!doctype html><html lang="it"><head><meta charset="utf-8"><title>Attestato — Primo passo di pace</title>
+  <style>body{font-family:Georgia,'Times New Roman',serif;background:#F4F1EA;margin:0;padding:40px;color:#16273B}
+  .att{max-width:760px;margin:0 auto;background:#fff;border:3px double #B08441;padding:60px 50px;text-align:center}
+  .occ{letter-spacing:.25em;font-size:12px;color:#B08441;text-transform:uppercase}
+  h1{font-size:36px;margin:18px 0 6px;color:#16273B;font-weight:normal}
+  .nome{font-size:30px;color:#A2622F;margin:26px 0 8px;font-style:italic}
+  p{color:#3D4A5C;font-size:15px;line-height:1.75}
+  .motto{margin-top:34px;font-style:italic;color:#6F7885}
+  .firma{margin-top:40px;font-size:13px;color:#6F7885;border-top:1px solid #E4DCCB;padding-top:16px}
+  @media print{.nop{display:none}body{padding:0;background:#fff}.att{border-width:3px}}</style></head><body>
+  <div class="att">
+    <div class="occ">La Pacifica Res Publica · Accademia Internazionale per la Pace</div>
+    <h1>Primo passo di pace</h1>
+    <p>Questo attestato riconosce che</p>
+    <div class="nome">${esc(io.nome)}</div>
+    <p>ha completato il primo tratto del <b>Percorso di Pace</b>:<br>
+    la formazione introduttiva alla Pace Positiva e il rientro nella comunità della Pacifica,<br>
+    diventando <b>Costruttore di Pace</b>.</p>
+    <p class="motto">«La conoscenza senza coscienza non genera futuro.»</p>
+    <div class="firma">${data} · lapacifica.org</div>
+  </div>
+  <p class="nop" style="text-align:center;margin-top:24px"><button onclick="window.print()" style="padding:10px 22px;font-size:15px;cursor:pointer">Stampa o salva in PDF</button></p>
+  </body></html>`);
+  w.document.close();
+}
+
 const NAV = [
   {id:'dashboard', lab:'Dashboard'},
+  {id:'percorso',  lab:'Percorso di Pace'},
   {id:'parlamento',lab:'Parlamento'},
   {id:'rassegna',  lab:'La pace oggi'},
   {id:'novita',    lab:'Novit\u00e0'},
@@ -832,9 +1072,12 @@ const NAV = [
 async function enterApp(){
   await refreshMe();
   await loadCatalog();
+  let dest='dashboard';
+  // Chi si e' registrato dal portale (metadato "percorso") parte dal livello 1
+  try{ if(io && io.metaPercorso && (io.livelloPace||0)<1){ await DB.avviaPercorso(); await refreshMe(); dest='percorso'; } }catch(_e){}
   $('auth-root').style.display='none';
   $('app').style.display='block';
-  go('dashboard');
+  go(dest);
 }
 function openMenu(){ document.body.classList.add('menu-open'); const h=$('hamburger'); if(h){ h.classList.add('on'); h.setAttribute('aria-expanded','true'); } }
 function closeMenu(){ document.body.classList.remove('menu-open'); const h=$('hamburger'); if(h){ h.classList.remove('on'); h.setAttribute('aria-expanded','false'); } }
@@ -852,7 +1095,7 @@ function render(){
   $('topbar-right').innerHTML = `${badge}
     <div class="chip"><span class="av">${initials(io.nome)}</span>${esc(io.nome.split(' ')[0])}
       <button class="x" style="font-size:16px;width:auto;height:auto;margin-left:2px" title="Esci" onclick="logout()">⏻</button></div>`;
-  const R = { dashboard:renderDashboard, parlamento:renderParlamento, accademia:renderAccademia,
+  const R = { dashboard:renderDashboard, percorso:renderPercorso, parlamento:renderParlamento, accademia:renderAccademia,
     vod:renderVod, audio:renderAudio, lettore:renderLettore, rassegna:renderRassegna, novita:renderNovita, formatore:renderFormatore, campus:renderCampus, eventi:renderEventi, abbonamenti:renderAbbonamenti, presidenza:renderPresidenza, corso:renderCorso };
   $('main').innerHTML = `<div class="view">${(R[vista]||renderDashboard)()}</div>`;
   osservaReveal();
@@ -1023,7 +1266,7 @@ function renderDashboard(){
   const nCorsi = CORSI.filter(c=>haAccesso('corso:'+c.id)).length;
   const pillars = [
     {id:'parlamento', num:'I', ico:'⚖︎', t:'Parlamento', d:'Simula un parlamento con commissioni, proposte di legge e votazioni.', lock:!(io.ruolo==='delegato'||io.ruolo==='presidenza')},
-    {id:'accademia', num:'II', ico:'📖', t:'Accademia', d:'Il Percorso di Pace in otto corsi tenuti dai formatori.', lock:false},
+    {id:'accademia', num:'II', ico:'📖', t:'Accademia', d:'Venti corsi nelle sette aree formative, tenuti dai formatori.', lock:false},
     {id:'vod', num:'III', ico:'▶', t:'Video On Demand', d:'Video e serie autoprodotte da La Pacifica, da guardare quando e dove vuoi.', lock:false},
     {id:'audio', num:'IV', ico:'📚', t:'Biblioteca', d:'Audiolibri e testi da leggere e ascoltare, con sintesi e percorsi su misura.', lock:false},
     {id:'campus', num:'V', ico:'⛪', t:'Campus', d:'Campus formativi in presenza all’Abbazia di Maguzzano, con possibilità di soggiorno.', lock:false},
@@ -1079,24 +1322,26 @@ function renderDashboard(){
 /* =====================================================================
    ACCADEMIA + PLAYER
 ===================================================================== */
-let FILTRO_CORSI={ form:'', comm:'', pacc:'' };
+let FILTRO_CORSI={ form:'', comm:'', pacc:'', area:'' };
 function setFiltroCorsi(k,v){ FILTRO_CORSI[k]=v; render(); }
-function azzeraFiltriCorsi(){ FILTRO_CORSI={ form:'', comm:'', pacc:'' }; render(); }
+function azzeraFiltriCorsi(){ FILTRO_CORSI={ form:'', comm:'', pacc:'', area:'' }; render(); }
 function passaFiltroCorsi(c){
   return (!FILTRO_CORSI.form || c.form===FILTRO_CORSI.form)
       && (!FILTRO_CORSI.comm || c.comm===FILTRO_CORSI.comm)
-      && (!FILTRO_CORSI.pacc || c.pacc===FILTRO_CORSI.pacc);
+      && (!FILTRO_CORSI.pacc || c.pacc===FILTRO_CORSI.pacc)
+      && (!FILTRO_CORSI.area || c.area===FILTRO_CORSI.area);
 }
 function barraFiltriCorsi(){
   const uniq=a=>Array.from(new Set(a.filter(Boolean)));
   const forms=uniq(CORSI.map(c=>c.form)), comms=uniq(CORSI.map(c=>c.comm)), paccs=uniq(CORSI.map(c=>c.pacc));
   const nomeComm=id=>(COMMISSIONI.find(x=>x.id===id)||{nome:id}).nome;
   const opt=(v,l,cur)=>`<option value="${esc(v)}"${v===cur?' selected':''}>${esc(l)}</option>`;
-  const attivi=[FILTRO_CORSI.form,FILTRO_CORSI.comm,FILTRO_CORSI.pacc].filter(Boolean).length;
+  const attivi=[FILTRO_CORSI.form,FILTRO_CORSI.comm,FILTRO_CORSI.pacc,FILTRO_CORSI.area].filter(Boolean).length;
   return `<div class="card corsi-filtri">
     <div class="eyebrow">Mostra i corsi per</div>
     <div class="filtri-row">
       <label>Formatore<select onchange="setFiltroCorsi('form',this.value)">${opt('','Tutti i formatori',FILTRO_CORSI.form)}${forms.map(f=>opt(f,f,FILTRO_CORSI.form)).join('')}</select></label>
+      <label>Area formativa<select onchange="setFiltroCorsi('area',this.value)">${opt('','Tutte le aree',FILTRO_CORSI.area)}${AREE_FORMATIVE.filter(a=>CORSI.some(c=>c.area===a[1])).map(a=>opt(a[1],a[0]+' \u00b7 '+a[1],FILTRO_CORSI.area)).join('')}</select></label>
       <label>Materia<select onchange="setFiltroCorsi('comm',this.value)">${opt('','Tutte le materie',FILTRO_CORSI.comm)}${comms.map(c=>opt(c,nomeComm(c),FILTRO_CORSI.comm)).join('')}</select></label>
       <label>Pacchetto<select onchange="setFiltroCorsi('pacc',this.value)">${opt('','Tutti i pacchetti',FILTRO_CORSI.pacc)}${paccs.map(p=>opt(p,p,FILTRO_CORSI.pacc)).join('')}</select></label>
       ${attivi?`<button class="linkbtn" onclick="azzeraFiltriCorsi()">Azzera i filtri</button>`:''}
@@ -1108,31 +1353,34 @@ function renderAccademia(){
   return `
   <div class="page-head"><div class="eyebrow">Pilastro II · Il Percorso di Pace</div>
     <h1>L’Accademia</h1>
-    <p class="lead">Otto corsi, sei formatori, ottantaquattro lezioni da venticinque minuti. ${tutto?'Con la membership Academicus hai accesso a tutto il catalogo.':'Acquista i corsi singolarmente, in pacchetti o tutto il Percorso — oppure sblocca tutto con la membership Academicus.'}</p></div>
+    <p class="lead">Venti corsi nelle sette aree formative, sedici lezioni da venticinque minuti ciascuno. ${tutto?'Con la membership Academicus hai accesso a tutto il catalogo.':'Acquista i corsi singolarmente, in pacchetti o tutto il Percorso — oppure sblocca tutto con la membership Academicus.'}</p></div>
   ${!tutto?`<div class="card" style="padding:18px 22px;margin-bottom:24px;display:flex;gap:18px;align-items:center;flex-wrap:wrap">
     <div style="flex:1;min-width:220px"><div class="eyebrow">Percorso completo</div>
-      <h3 style="font-size:24px">Tutti gli 8 corsi + attestato finale</h3>
+      <h3 style="font-size:24px">Tutti i corsi + attestato finale</h3>
       <p class="muted small">Il modo più conveniente per affrontare l’intero Percorso di Pace.</p></div>
     <div style="text-align:right"><div class="price" style="font-size:34px">${euro(PREZZO_PERCORSO)}</div>
       <button class="btn oro" onclick="compra('percorso')">Acquista il Percorso</button></div></div>`:''}
   ${barraFiltriCorsi()}
   ${CORSI.filter(passaFiltroCorsi).length?'':'<p class="muted" style="margin:8px 0 18px">Nessun corso corrisponde a questa selezione. <button class="linkbtn" onclick="azzeraFiltriCorsi()">Mostra tutti i corsi</button></p>'}
-  <div class="grid g3">
-    ${CORSI.filter(passaFiltroCorsi).map(c=>{
-      const ok = haAccesso('corso:'+c.id), done=(io.progress[c.id]||[]).length;
+  ${(()=>{ const vis=CORSI.filter(passaFiltroCorsi);
+    const tile=c=>{ const ok = haAccesso('corso:'+c.id), done=(io.progress[c.id]||[]).length;
       return `<div class="tile">
-        <div class="cover"><span class="k">${c.id.slice(1)}</span><span class="tag">${esc(c.pacc)}</span></div>
+        <div class="cover"><span class="k">${areaNum(c.area)||c.id.slice(1)}</span><span class="tag">${esc(c.area||c.pacc)}</span></div>
         <div class="body"><h4>${esc(c.tit)}</h4>
-          <div class="meta">${esc(c.form)} · 8 lezioni · 25′</div>
+          <div class="meta">${esc(c.form)} · 16 lezioni · 25′</div>
           <p class="small muted" style="flex:1">${esc(c.desc)}</p>
           <div class="foot">
-            ${ok?`<span class="badge verde">${done>0?done+'/8 lezioni':'Disponibile'}</span>
+            ${ok?`<span class="badge verde">${done>0?done+' lezioni fatte':'Disponibile'}</span>
                  <button class="btn small" onclick="go('corso',{id:'${c.id}'})">${done>0?'Riprendi':'Inizia'}</button>`
-               :`<span class="price">${euro(PREZZO_CORSO)}</span>
+               :`<span class="price">${euro(c.prezzo||PREZZO_CORSO)}</span>
                  <button class="btn small ghost" onclick="compra('corso:${c.id}')">Acquista</button>`}
-          </div></div></div>`;
-    }).join('')}
-  </div>
+          </div></div></div>`; };
+    const gruppi=AREE_FORMATIVE.map(a=>({num:a[0],nome:a[1],corsi:vis.filter(c=>c.area===a[1])})).filter(g=>g.corsi.length);
+    const senza=vis.filter(c=>!AREE_FORMATIVE.some(a=>a[1]===c.area));
+    let h=gruppi.map(g=>`<h2 class="area-h" style="font-size:24px;margin:26px 0 12px"><span style="color:var(--oro)">${g.num}</span> · ${esc(g.nome)}</h2>
+      <div class="grid g3">${g.corsi.map(tile).join('')}</div>`).join('');
+    if(senza.length) h+=`${gruppi.length?'<h2 class="area-h" style="font-size:24px;margin:26px 0 12px">Altri corsi</h2>':''}<div class="grid g3">${senza.map(tile).join('')}</div>`;
+    return h; })()}
   ${!tutto?`<h2 style="font-size:28px;margin:34px 0 14px">Pacchetti tematici</h2>
   <div class="grid g3">${PACCHETTI.map(p=>`<div class="card" style="padding:20px">
     <div class="eyebrow">Risparmi ${euro(p.full-p.prezzo)}</div>
@@ -1144,7 +1392,7 @@ function renderAccademia(){
     </div></div>`).join('')}</div>`:''}`;
 }
 
-const LEZTIT = ['Le domande fondamentali','Il metodo e il dialogo','Concetti e definizioni','Il pensiero in azione','Casi e testimonianze','Pratica guidata','Sintesi e discussione','Verifica e attestato'];
+const LEZTIT = ['Le domande fondamentali','Il metodo e il dialogo','Concetti e definizioni','Le radici storiche','Le voci dei maestri','Il pensiero in azione','Casi e testimonianze','Approfondimento \u2014 prima parte','Approfondimento \u2014 seconda parte','Pratica guidata','Il confronto con il presente','Letture e materiali','Laboratorio','Sintesi e discussione','Ripasso generale','Verifica e attestato'];
 function renderCorso(){
   const c = CORSI.find(x=>x.id===ctx.id);
   if(!c) return renderAccademia();
@@ -1242,16 +1490,20 @@ function renderVod(){
   ${Linv?`<div class="card" style="padding:16px 20px;margin-bottom:22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
     <div><b>${esc(Linv.invito||('Sblocca '+Linv.nome))}</b> <span class="muted small">\u2014 ${bloccati.length} ${bloccati.length===1?'titolo ancora chiuso':'titoli ancora chiusi'}</span></div>
     <button class="btn oro small" onclick="vaiA('${esc(Linv.cta)}')">Sblocca</button></div>`:''}
-  <div class="grid g3">
-    ${VOD.map(v=>{ const ok=livelloConsentito(v.livello); const L=livello(v.livello); return `<div class="tile">
-      <div class="cover" style="background:linear-gradient(135deg,#1B3A6B,#0E1D38)"><span class="k" style="font-size:30px">\u25B6</span><span class="tag">${esc(v.tipo)}${L.ospiti?' \u00b7 gratuito':''}</span></div>
+  ${(()=>{ const tile=v=>{ const ok=livelloConsentito(v.livello); const L=livello(v.livello); const lab=v.serie?('S'+(v.stagione||1)+'·E'+(v.episodio||0)):''; return `<div class="tile">
+      <div class="cover" style="background:linear-gradient(135deg,#1B3A6B,#0E1D38)"><span class="k" style="font-size:30px">\u25B6</span><span class="tag">${lab?lab+' · ':''}${esc(v.tipo)}${L.ospiti?' \u00b7 gratuito':''}</span></div>
       <div class="body"><h4>${esc(v.tit)}</h4><div class="meta">${v.durata} \u00b7 ${esc(commNome(v.comm))}</div>
         <p class="small muted" style="flex:1">${esc(v.desc)}</p>
         <div class="foot">${ok?`<span class="badge ${L.ospiti?'verde':'blu'}">${esc(L.ospiti?'Gratuito':L.nome)}</span>
           <button class="btn small" onclick="playVideo('${v.id}')">Guarda</button>`
           :`<span class="badge grigio">\ud83d\udd12 ${esc(L.nome)}</span>${L.cta?`<button class="btn small ghost" onclick="vaiA('${esc(L.cta)}')">Sblocca</button>`:''}`}
-        </div></div></div>`;}).join('')}
-  </div>`;
+        </div></div></div>`; };
+  const conSerie=VOD.filter(v=>v.serie), senza=VOD.filter(v=>!v.serie);
+  const nomi=Array.from(new Set(conSerie.map(v=>v.serie)));
+  let h=nomi.map(nome=>{ const ep=conSerie.filter(v=>v.serie===nome).sort((a,b)=>((a.stagione||1)-(b.stagione||1))||((a.episodio||0)-(b.episodio||0))||((a.ordine||0)-(b.ordine||0)));
+    return `<h2 style="font-size:24px;margin:26px 0 12px"><span style="color:var(--oro)">Serie</span> · ${esc(nome)}</h2><div class="grid g3">${ep.map(tile).join('')}</div>`; }).join('');
+  if(senza.length) h+=`${nomi.length?`<h2 style="font-size:24px;margin:26px 0 12px">Filmati e documentari</h2>`:''}<div class="grid g3">${senza.map(tile).join('')}</div>`;
+  return h||'<p class="muted">Nessun video pubblicato al momento.</p>'; })()}`;
 }
 /* Riconosce YouTube, Vimeo e file diretti. L'indirizzo dell'embed viene sempre
    RICOSTRUITO a partire dall'identificativo estratto, mai inoltrato com'e':
@@ -1320,7 +1572,7 @@ let LETTORE = null;
 function renderLettore(){
   const l = LIBRI.find(x=>x.id===ctx.id);
   if(!l) return `<div class="page-head"><h1>Libro non trovato</h1></div><button class="lp-btn2" onclick="go('audio')">\u2190 Biblioteca</button>`;
-  if(!haAccesso('libro:'+l.id)){ setTimeout(()=>{ toast('Questo Diamante non \u00e8 nel tuo scrigno: acquistalo per leggerlo.'); go('audio'); }, 10); return ''; }
+  if(!haAccesso('libro:'+l.id) && !(l.in_abbonamento && io.membership==='academicus')){ setTimeout(()=>{ toast('Questo Diamante non \u00e8 nel tuo scrigno: acquistalo per leggerlo.'); go('audio'); }, 10); return ''; }
   setTimeout(()=>avviaLettore(l), 30);
   return `<div class="page-head"><div class="eyebrow">I Diamanti della Pacifica</div>
     <h1>${esc(l.titolo)}</h1><p class="lead">${esc(l.autore||'')}</p></div>
@@ -1395,7 +1647,8 @@ function areaDiamanti(){
       <p class="muted small">Opere scelte, in edizione digitale riservata: dopo l\u2019acquisto il libro si legge qui, nel lettore del portale. Per chi ama la carta, ogni titolo indica dove trovare l\u2019edizione stampata.</p>
     </div>
     ${libri.length ? `<div class="grid g3 lb-grid">${libri.map(l=>{
-      const mio = haAccesso('libro:'+l.id);
+      const abb = !!l.in_abbonamento && io.membership==='academicus';
+      const mio = haAccesso('libro:'+l.id) || abb;
       return `<div class="tile lb-tile">
         <div class="lb-cover">${copertinaLibro(l)}</div>
         <div class="body">
@@ -1403,10 +1656,11 @@ function areaDiamanti(){
           <div class="meta">${esc(l.autore||'')}</div>
           <p class="small muted" style="flex:1">${esc(l.descrizione||'')}</p>
           <div class="foot">
-            ${mio ? `<span class="badge verde">Tuo</span><button class="btn small" onclick="go('lettore',{id:'${l.id}'})">Leggi</button>`
+            ${mio ? `<span class="badge ${abb&&!haAccesso('libro:'+l.id)?'blu':'verde'}">${abb&&!haAccesso('libro:'+l.id)?'Nel tuo abbonamento':'Tuo'}</span><button class="btn small" onclick="go('lettore',{id:'${l.id}'})">Leggi</button>`
                   : `<span class="price">${euro(Number(l.prezzo)||0)}</span><button class="btn oro small" onclick="compra('libro:${l.id}')">Acquista</button>`}
           </div>
-          ${l.link_cartaceo ? `<a class="lb-carta" href="${esc(urlSicuro(l.link_cartaceo))}" target="_blank" rel="noopener">Edizione cartacea \u2192</a>` : ''}
+          ${!mio&&l.in_abbonamento ? `<p class="muted small" style="margin:6px 0 0">Incluso nell\u2019abbonamento Academicus.</p>` : ''}
+          ${l.link_amazon ? `<a class="lb-carta" href="${esc(urlSicuro(l.link_amazon))}" target="_blank" rel="noopener">Compralo su Amazon →</a>` : (l.link_cartaceo ? `<a class="lb-carta" href="${esc(urlSicuro(l.link_cartaceo))}" target="_blank" rel="noopener">Edizione cartacea →</a>` : '')}
         </div></div>`; }).join('')}</div>`
     : `<p class="muted">Nessun Diamante pubblicato al momento.</p>`}`;
 }
@@ -1834,7 +2088,7 @@ async function confermaAbb(piano){
 }
 function compra(what){
   let lab,prezzo;
-  if(what==='percorso'){ lab='Percorso di Pace completo (8 corsi)'; prezzo=PREZZO_PERCORSO; }
+  if(what==='percorso'){ lab='Percorso di Pace completo (tutti i corsi)'; prezzo=PREZZO_PERCORSO; }
   else if(what.startsWith('pacc:')){ const p=PACCHETTI.find(x=>x.id===what.split(':')[1]); lab='Pacchetto '+p.nome; prezzo=p.prezzo; }
   else if(what.startsWith('libro:')){ const l=LIBRI.find(x=>x.id===what.split(':')[1]); lab='Diamante \u2014 '+l.titolo; prezzo=Number(l.prezzo)||0; }
   else { const c=CORSI.find(x=>x.id===what.split(':')[1]); lab=c.tit; prezzo=PREZZO_CORSO; }
@@ -1937,6 +2191,7 @@ async function generaCodici(){
 /* Menu del gestionale, raggruppato per aree di lavoro */
 const CMS_GRUPPI=[
   ['Persone', [['anagrafiche','Anagrafiche'],['contratti','Contratti'],['utenti','Utenti'],['pagamenti','Pagamenti']]],
+  ['Amministrazione', [['clienti','Clienti'],['fornitori','Fornitori'],['prodotti','Prodotti'],['pacchprod','Pacchetti prodotti'],['acquisti','Acquisti ed erogazioni']]],
   ['Contenuti', [['corsi','Corsi'],['video','Video'],['audio','Audiolibri'],['testi','Testi'],['pagine','Testi delle pagine'],['diamanti','I Diamanti (libri)'],['pacchetti','Pacchetti'],['campus','Campus'],['eventi','Eventi']]],
   ['Comunicazione', [['rassegna','Rassegna'],['mecenati','Mecenati'],['statistiche','Statistiche']]],
   ['Impostazioni', [['livelli','Livelli'],['temi','Temi UE'],['archiviazione','Video S3'],['ente','Ente'],['prezzi','Prezzi']]]
@@ -1966,8 +2221,9 @@ function cmsArea(){
           <p class="muted small" style="margin-top:4px">Libri in PDF venduti singolarmente e leggibili solo online, dopo l\u2019acquisto. Il file resta in un deposito privato: nessun collegamento pubblico.</p></div>
         <button class="btn" onclick="editLibro('')">+ Nuovo libro</button>
       </div>
-      ${LIBRI.length ? `<table class="tbl" style="margin-top:14px"><thead><tr><th>Titolo</th><th>Autore</th><th>Prezzo</th><th>PDF</th><th>Stato</th><th></th></tr></thead><tbody>
+      ${LIBRI.length ? `<table class="tbl" style="margin-top:14px"><thead><tr><th>Titolo</th><th>Autore</th><th>Prezzo</th><th>Abbonamento</th><th>PDF</th><th>Stato</th><th></th></tr></thead><tbody>
         ${LIBRI.map(l=>`<tr><td><b>${esc(l.titolo)}</b></td><td>${esc(l.autore||'')}</td><td>${euro(Number(l.prezzo)||0)}</td>
+          <td>${l.in_abbonamento?'<span class="badge blu">incluso</span>':'-'}</td>
           <td>${l.pdf_path?'<span class="badge verde">caricato</span>':'<span class="badge">manca</span>'}</td>
           <td>${l.pubblicato!==false?'pubblicato':'<span class="muted">bozza</span>'}</td>
           <td style="white-space:nowrap"><button class="linkbtn" onclick="editLibro('${l.id}')">Modifica</button> <button class="linkbtn" style="color:var(--porpora)" onclick="eliminaLibro('${l.id}')">Elimina</button></td></tr>`).join('')}
@@ -2007,13 +2263,51 @@ function cmsArea(){
     <div class="eyebrow">${{corsi:'Corsi',video:'Video On Demand',audio:'Audiolibri',testi:'Testi della Biblioteca',pacchetti:'Pacchetti tematici',campus:'Campus in presenza',eventi:'Eventi e mostre',livelli:'Livelli di accesso',temi:'Temi europei → commissioni',anagrafiche:'Anagrafiche \u2014 registro persone',contratti:'Contratti dei formatori',mecenati:'Formule e impegni dei mecenati',archiviazione:'Destinazioni S3 per i video'}[cmsTab]}</div>
     <button class="btn small" onclick="nuovo('${cmsTab}')">+ Aggiungi</button></div>`;
   let rows='';
-  if(cmsTab==='corsi') rows = CORSI.map(c=>cmsRow(c.tit, `${c.form||'—'} · ${commNome(c.comm)||c.comm} · ${euro(c.prezzo||PREZZO_CORSO)}`, pubBadge(c.pubblicato), `editCorso('${c.id}')`, `delCont('corso','${c.id}')`)).join('');
+  if(cmsTab==='corsi') rows = CORSI.map(c=>cmsRow(c.tit, `${c.area?areaNum(c.area)+' · '+c.area+' · ':''}${c.form||'—'} · ${euro(c.prezzo||PREZZO_CORSO)}`, pubBadge(c.pubblicato), `editCorso('${c.id}')`, `delCont('corso','${c.id}')`)).join('');
+  if(cmsTab==='clienti'||cmsTab==='fornitori'){
+    const tipo = cmsTab==='clienti'?'cliente':'fornitore';
+    const lista = ANAGRAFICHE.filter(a=>(a.tipo||'').split(',').map(x=>x.trim()).includes(tipo));
+    return `<div style="display:flex;gap:10px;align-items:center;margin-bottom:14px">
+        <div class="eyebrow">${tipo==='cliente'?'Database clienti':'Fornitori'}</div>
+        <button class="btn small oro" style="margin-left:auto" onclick="nuovo('${cmsTab}')">+ Nuovo ${tipo}</button></div>
+      <p class="muted small" style="margin-bottom:12px">${tipo==='cliente'
+        ?'I clienti dell’associazione: chi si registra per l’accesso al portale e sceglie se pagare. Collega l’account del portale dalla scheda; gli acquisti dei pacchetti si registrano in «Acquisti ed erogazioni».'
+        :'Le anagrafiche dei fornitori dell’associazione, con recapiti e dati fiscali.'}</p>
+      ${lista.length?lista.map(a=>`<div class="lesson" style="cursor:default">
+        <span class="t">${esc((a.nome||'')+' '+(a.cognome||''))}<br><span class="d" style="margin:0">${esc(a.email||'')}${a.tel?' · '+esc(a.tel):''}${a.piva?' · P.IVA '+esc(a.piva):(a.cf?' · CF '+esc(a.cf):'')}</span></span>
+        <span style="margin-left:auto;display:flex;gap:8px;align-items:center">
+          ${a.userId?'<span class="badge verde">account portale</span>':''}
+          <button class="btn small ghost" onclick="editAnagrafica('${a.id}')">Modifica</button></span></div>`).join('')
+      :`<div class="empty">Nessun ${tipo} ancora. Premi «+ Nuovo ${tipo}».</div>`}`;
+  }
+  if(cmsTab==='prodotti'){
+    setTimeout(caricaProdotti,0);
+    return `<div style="display:flex;gap:10px;align-items:center;margin-bottom:14px"><div class="eyebrow">Catalogo prodotti</div>
+        <button class="btn small oro" style="margin-left:auto" onclick="editProdotto()">+ Nuovo prodotto</button></div>
+      <p class="muted small" style="margin-bottom:12px">Ogni prodotto può appartenere a una <b>famiglia</b> (es. «Corsi», «Libri», «Serie TV») e rimandare a un contenuto del portale. I pacchetti si costruiscono da qui: raccolgono famiglie intere o singoli prodotti.</p>
+      <div id="prod-box" class="muted small">Carico…</div>`;
+  }
+  if(cmsTab==='pacchprod'){
+    setTimeout(caricaPacchProd,0);
+    return `<div style="display:flex;gap:10px;align-items:center;margin-bottom:14px"><div class="eyebrow">Pacchetti di prodotti</div>
+        <button class="btn small oro" style="margin-left:auto" onclick="editPacchettoProd()">+ Nuovo pacchetto</button></div>
+      <p class="muted small" style="margin-bottom:12px">Ogni pacchetto ha un <b>nome identificativo</b> e raccoglie famiglie di prodotti o prodotti singoli. Le modalità dell’abbonamento si definiscono qui, come pacchetti.</p>
+      <div id="pp-box" class="muted small">Carico…</div>`;
+  }
+  if(cmsTab==='acquisti'){
+    setTimeout(caricaAcquisti,0);
+    return `<div style="display:flex;gap:10px;align-items:center;margin-bottom:14px"><div class="eyebrow">Acquisti ed erogazioni liberali</div>
+        <button class="btn small oro" style="margin-left:auto" onclick="nuovoAcquisto()">+ Registra acquisto</button></div>
+      <p class="muted small" style="margin-bottom:12px">Qui si registra l’acquisto di un pacchetto da parte di un cliente (bonifico, carta, contanti…) e si rilascia l’<b>erogazione liberale numerata</b>: la numerazione è progressiva per anno e la ricevuta si stampa da qui.</p>
+      <div id="aq-box" class="muted small">Carico…</div>`;
+  }
   if(cmsTab==='utenti'){
     setTimeout(caricaUtenti,0);
     return `<div style="display:flex;gap:10px;align-items:center;margin-bottom:14px"><div class="eyebrow">Utenti del portale</div>
         <input id="ut-q" placeholder="cerca per nome…" style="max-width:240px;margin-left:auto" onkeydown="if(event.key==='Enter')caricaUtenti()">
-        <button class="btn small" onclick="caricaUtenti()">Cerca</button></div>
-      <p class="muted small" style="margin-bottom:12px">Da qui aggiorni ruolo, membership e scadenza — anche per attivazioni manuali (bonifico, Carta del Docente). I pagamenti Stripe arrivano da soli via webhook.</p>
+        <button class="btn small" onclick="caricaUtenti()">Cerca</button>
+        <button class="btn small oro" onclick="nuovoAccount()">+ Crea account</button></div>
+      <p class="muted small" style="margin-bottom:12px">Gli account li crea l\u2019Accademia da qui (l\u2019auto-iscrizione \u00e8 spenta). Da qui aggiorni anche ruolo, membership e scadenza — per le attivazioni manuali (bonifico, Carta del Docente). I pagamenti Stripe arrivano da soli via webhook.</p>
       <div id="ut-box" class="muted small">Carico…</div>`;
   }
   if(cmsTab==='pagamenti'){
@@ -2130,7 +2424,7 @@ function fPub(v){ return `<label style="display:flex;gap:8px;align-items:center;
 function getId(edit){ return edit || ($('cf-id').value||'').trim(); }
 
 /* CORSI */
-function nuovo(t){ if(t==='archiviazione')editS3(); else if(t==='anagrafiche')editAnagrafica(); else if(t==='contratti')editContratto(); else if(t==='rassegna')editFonte(); else if(t==='mecenati')editFormula(); else if(t==='ente')return; else if(t==='temi')editTema(); else if(t==='livelli')editLivello(); else if(t==='corsi')editCorso(); else if(t==='video')editVideo(); else if(t==='audio')editAudio(); else if(t==='testi')editTesto(); else if(t==='pacchetti')editPacc(); else if(t==='campus')editCampus(); else if(t==='eventi')editEvento(); }
+function nuovo(t){ if(t==='clienti')editAnagrafica('', 'cliente'); else if(t==='fornitori')editAnagrafica('', 'fornitore'); else if(t==='prodotti')editProdotto(); else if(t==='pacchprod')editPacchettoProd(); else if(t==='acquisti')nuovoAcquisto(); else if(t==='archiviazione')editS3(); else if(t==='anagrafiche')editAnagrafica(); else if(t==='contratti')editContratto(); else if(t==='rassegna')editFonte(); else if(t==='mecenati')editFormula(); else if(t==='ente')return; else if(t==='temi')editTema(); else if(t==='livelli')editLivello(); else if(t==='corsi')editCorso(); else if(t==='video')editVideo(); else if(t==='audio')editAudio(); else if(t==='testi')editTesto(); else if(t==='pacchetti')editPacc(); else if(t==='campus')editCampus(); else if(t==='eventi')editEvento(); }
 function editCorso(id){
   const c = id?CORSI.find(x=>x.id===id):{};
   openModal(`<h3 style="font-size:23px">${id?'Modifica corso':'Nuovo corso'}</h3>`,
@@ -2141,6 +2435,9 @@ function editCorso(id){
        <select id="cf-formid"><option value="">\u2014 nessuno \u2014</option>
        ${ANAGRAFICHE.filter(a=>a.tipo==='formatore'&&a.userId).map(a=>`<option value="${esc(a.userId)}" ${c.formatoreId===a.userId?'selected':''}>${esc(a.nome+' '+a.cognome)}</option>`).join('')}</select></div>
      ${fSelComm(c.comm)}
+     <div class="field"><label>Area formativa</label>
+       <select id="cf-area"><option value="">\u2014 nessuna \u2014</option>
+       ${AREE_FORMATIVE.map(a=>`<option value="${esc(a[1])}" ${c.area===a[1]?'selected':''}>${a[0]} \u00b7 ${esc(a[1])}</option>`).join('')}</select></div>
      <div class="field"><label>Pacchetto (etichetta)</label><input id="cf-pacc" value="${esc(c.pacc||'')}"></div>
      <div class="field"><label>Descrizione</label><textarea id="cf-desc" rows="7">${esc(c.desc||'')}</textarea></div>
      <div class="grid g2"><div class="field"><label>Prezzo (€)</label><input id="cf-prezzo" type="number" value="${c.prezzo||PREZZO_CORSO}"></div>
@@ -2153,7 +2450,7 @@ function editCorso(id){
 async function salvaCorso(edit){
   const id=getId(edit); if(!id) return toast('Inserisci un identificativo.');
   const o={ id, tit:$('cf-tit').value.trim(), form:$('cf-form').value.trim(), formatoreId:($('cf-formid')&&$('cf-formid').value)||null, comm:$('cf-comm').value,
-    pacc:$('cf-pacc').value.trim(), desc:$('cf-desc').value.trim(), prezzo:parseInt($('cf-prezzo').value||PREZZO_CORSO,10),
+    pacc:$('cf-pacc').value.trim(), area:($('cf-area')&&$('cf-area').value)||'', desc:$('cf-desc').value.trim(), prezzo:parseInt($('cf-prezzo').value||PREZZO_CORSO,10),
     ordine:parseInt($('cf-ord').value||0,10), pubblicato:$('cf-pub').checked };
   if(o.tit.length<2) return toast('Il titolo è obbligatorio.');
   try{ await DB.saveCourse(o); await loadCatalog(); closeModal(); go('presidenza'); presTab='contenuti'; setPresTab('contenuti'); toast('Corso salvato.'); }
@@ -2167,6 +2464,9 @@ function editVideo(id){
      <div class="field"><label>Titolo</label><input id="cf-tit" value="${esc(v.tit||'')}"></div>
      <div class="grid g2"><div class="field"><label>Tipo</label><input id="cf-tipo" value="${esc(v.tipo||'Documentario')}"></div>
        <div class="field"><label>Durata</label><input id="cf-dur" value="${esc(v.durata||'')}" placeholder="es. 24 min"></div></div>
+     <div class="grid g3"><div class="field"><label>Serie TV (vuoto = filmato singolo)</label><input id="cf-serie" list="vod-serie-dl" value="${esc(v.serie||'')}" placeholder="es. La Stanza della Segnatura"><datalist id="vod-serie-dl">${Array.from(new Set(VOD.map(x=>x.serie).filter(Boolean))).map(n=>`<option value="${esc(n)}">`).join('')}</datalist></div>
+       <div class="field"><label>Stagione</label><input id="cf-stag" type="number" min="1" value="${v.stagione||1}"></div>
+       <div class="field"><label>Episodio</label><input id="cf-epis" type="number" min="0" value="${v.episodio||0}"></div></div>
      ${fSelComm(v.comm)}
      <div class="field"><label>Descrizione</label><textarea id="cf-desc" rows="7">${esc(v.desc||'')}</textarea></div>
      <div class="field"><label>URL del video (facoltativo)</label><input id="cf-url" value="${esc(v.url||'')}" placeholder="https://…"></div>
@@ -2186,7 +2486,8 @@ async function salvaVideo(edit){
   const id=getId(edit); if(!id) return toast('Inserisci un identificativo.');
   const o={ id, tit:$('cf-tit').value.trim(), tipo:$('cf-tipo').value.trim()||'Video', durata:$('cf-dur').value.trim(),
     comm:$('cf-comm').value, desc:$('cf-desc').value.trim(), url:$('cf-url').value.trim(),
-    ordine:parseInt($('cf-ord').value||0,10), livello:$('cf-liv').value, pubblicato:$('cf-pub').checked };
+    ordine:parseInt($('cf-ord').value||0,10), livello:$('cf-liv').value, pubblicato:$('cf-pub').checked,
+    serie:($('cf-serie')&&$('cf-serie').value.trim())||'', stagione:parseInt(($('cf-stag')&&$('cf-stag').value)||1,10)||1, episodio:parseInt(($('cf-epis')&&$('cf-epis').value)||0,10)||0 };
   if(o.tit.length<2) return toast('Il titolo è obbligatorio.');
   try{ await DB.saveVideo(o); await loadCatalog(); closeModal(); setPresTab('contenuti'); toast('Video salvato.'); }
   catch(e){ toast('Errore: '+(e.message||'')); }
@@ -2248,14 +2549,14 @@ function commNomeSicuro(id){ try{ const c=COMMISSIONI.find(x=>x.id===id); return
 /* =====================================================================
    GESTIONALE — Anagrafiche
    ===================================================================== */
-function editAnagrafica(id){
-  const a = id?ANAGRAFICHE.find(x=>String(x.id)===String(id)):{};
+function editAnagrafica(id, tipoPreset){
+  const a = id?ANAGRAFICHE.find(x=>String(x.id)===String(id)):(tipoPreset?{tipo:tipoPreset}:{});
   openModal(`<h3 style="font-size:23px">${id?'Modifica anagrafica':'Nuova anagrafica'}</h3>`,
     `<div class="grid g2"><div class="field"><label>Nome</label><input id="an-nome" value="${esc(a.nome||'')}"></div>
        <div class="field"><label>Cognome</label><input id="an-cogn" value="${esc(a.cognome||'')}"></div></div>
      <div class="field"><label>Tipo (puoi sceglierne pi\u00f9 d\u2019uno)</label>
        <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:4px">
-         ${['formatore','collaboratore','fornitore','ente','altro'].map(t=>`<label style="display:flex;gap:6px;align-items:center;font-size:14px"><input type="checkbox" class="an-tipo-cb" value="${t}" ${(a.tipo||'').split(',').map(x=>x.trim()).includes(t)?'checked':''} style="width:auto"> ${t}</label>`).join('')}
+         ${['cliente','formatore','collaboratore','fornitore','ente','altro'].map(t=>`<label style="display:flex;gap:6px;align-items:center;font-size:14px"><input type="checkbox" class="an-tipo-cb" value="${t}" ${(a.tipo||'').split(',').map(x=>x.trim()).includes(t)?'checked':''} style="width:auto"> ${t}</label>`).join('')}
        </div></div>
      <div class="field"><label>Qualifiche (scelta multipla)</label>
        <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:4px">
@@ -2561,17 +2862,263 @@ async function caricaVideoS3(){ return caricaS3('cf-url','',''); }
 /* =====================================================================
    UTENTI e PAGAMENTI (amministrazione)
    ===================================================================== */
+/* =====================================================================
+   GESTIONALE AMMINISTRATIVO — prodotti, pacchetti, acquisti, erogazioni
+   ===================================================================== */
+let PRODOTTI_ADMIN=null, PACCHPROD_ADMIN=null, ACQUISTI_ADMIN=null, EROGAZIONI_ADMIN=null;
+function nomeAnag(id){ const a=ANAGRAFICHE.find(x=>String(x.id)===String(id)); return a?((a.nome||'')+' '+(a.cognome||'')).trim():('#'+id); }
+function famiglieProdotti(){ return Array.from(new Set((PRODOTTI_ADMIN||[]).map(x=>x.famiglia).filter(Boolean))).sort(); }
+
+/* ---- PRODOTTI ---- */
+async function caricaProdotti(){
+  const box=$('prod-box'); if(!box) return;
+  try{ PRODOTTI_ADMIN = await DB.listProdotti(); }
+  catch(e){ box.innerHTML='Errore nel caricamento: '+esc(e.message||'')+'<br><span class="muted">Se le tabelle non esistono ancora, applica la migrazione 0026.</span>'; return; }
+  box.innerHTML = PRODOTTI_ADMIN.length ? `<table class="tbl"><thead><tr><th>Prodotto</th><th>Famiglia</th><th>Tipo</th><th>Prezzo</th><th>Stato</th><th></th></tr></thead><tbody>
+    ${PRODOTTI_ADMIN.map(r=>`<tr><td><b>${esc(r.nome)}</b></td><td>${esc(r.famiglia||'—')}</td><td>${esc(r.tipo)}</td>
+      <td>${euro(Number(r.prezzo)||0)}</td><td>${r.attivo!==false?'attivo':'<span class="muted">sospeso</span>'}</td>
+      <td style="white-space:nowrap"><button class="linkbtn" onclick="editProdotto('${r.id}')">Modifica</button> <button class="linkbtn" style="color:var(--porpora)" onclick="eliminaProdotto('${r.id}')">Elimina</button></td></tr>`).join('')}
+  </tbody></table>` : '<div class="empty">Nessun prodotto ancora. Premi «+ Nuovo prodotto».</div>';
+}
+function prodRifOptions(tipo, cur){
+  let voci=[];
+  if(tipo==='corso') voci=CORSI.map(c=>[c.id, c.tit]);
+  else if(tipo==='libro') voci=LIBRI.map(l=>[l.id, l.titolo]);
+  else if(tipo==='video') voci=VOD.map(v=>[v.id, v.tit]);
+  else if(tipo==='serie') voci=Array.from(new Set(VOD.map(v=>v.serie).filter(Boolean))).map(n=>[n,n]);
+  return `<option value="">— nessuno —</option>`+voci.map(([v,l])=>`<option value="${esc(v)}" ${cur===v?'selected':''}>${esc(l)}</option>`).join('');
+}
+function aggiornaRifProdotto(){ const t=$('pr-tipo').value, sel=$('pr-rif'); if(sel) sel.innerHTML=prodRifOptions(t,''); }
+function editProdotto(id){
+  const r=(PRODOTTI_ADMIN||[]).find(x=>x.id===id)||{attivo:true,tipo:'altro'};
+  openModal(`<h3 style="font-size:23px">${id?'Modifica prodotto':'Nuovo prodotto'}</h3>`,
+   `<div class="field"><label>Nome del prodotto</label><input id="pr-nome" value="${esc(r.nome||'')}"></div>
+    <div class="grid g2">
+      <div class="field"><label>Famiglia (es. Corsi, Libri, Serie TV)</label>
+        <input id="pr-fam" list="pr-fam-dl" value="${esc(r.famiglia||'')}" placeholder="scrivi o scegli…">
+        <datalist id="pr-fam-dl">${famiglieProdotti().map(f=>`<option value="${esc(f)}">`).join('')}</datalist></div>
+      <div class="field"><label>Tipo</label><select id="pr-tipo" onchange="aggiornaRifProdotto()">
+        ${['corso','libro','video','serie','servizio','altro'].map(t=>`<option ${r.tipo===t?'selected':''}>${t}</option>`).join('')}</select></div></div>
+    <div class="field"><label>Contenuto del portale collegato (facoltativo)</label>
+      <select id="pr-rif">${prodRifOptions(r.tipo||'altro', r.riferimento||'')}</select></div>
+    <div class="field"><label>Descrizione</label><textarea id="pr-desc" rows="3">${esc(r.descrizione||'')}</textarea></div>
+    <div class="grid g3">
+      <div class="field"><label>Prezzo (€)</label><input id="pr-prezzo" type="number" step="0.01" min="0" value="${esc(String(r.prezzo||''))}"></div>
+      <div class="field"><label>Ordine</label><input id="pr-ord" type="number" value="${r.ordine||((PRODOTTI_ADMIN||[]).length+1)}"></div>
+      <div class="field"><label>Stato</label><select id="pr-att"><option value="1"${r.attivo!==false?' selected':''}>Attivo</option><option value="0"${r.attivo===false?' selected':''}>Sospeso</option></select></div></div>
+    <button class="btn full" onclick="salvaProdotto('${id||''}')">Salva prodotto</button>`);
+}
+async function salvaProdotto(id){
+  const nome=($('pr-nome').value||'').trim(); if(nome.length<2) return toast('Serve il nome del prodotto.');
+  const row={ id:id||('pr'+Date.now().toString(36)), nome, famiglia:($('pr-fam').value||'').trim(),
+    tipo:$('pr-tipo').value, riferimento:$('pr-rif').value||'', descrizione:($('pr-desc').value||'').trim(),
+    prezzo:Number($('pr-prezzo').value)||0, ordine:parseInt($('pr-ord').value||0,10)||0, attivo:$('pr-att').value==='1' };
+  try{ await DB.saveProdotto(row); closeModal(); setCmsTab('prodotti'); toast('Prodotto salvato.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+async function eliminaProdotto(id){
+  const r=(PRODOTTI_ADMIN||[]).find(x=>x.id===id);
+  if(!confirm('Eliminare il prodotto «'+(r&&r.nome||id)+'»?')) return;
+  try{ await DB.deleteProdotto(id); setCmsTab('prodotti'); toast('Prodotto eliminato.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+
+/* ---- PACCHETTI DI PRODOTTI ---- */
+async function caricaPacchProd(){
+  const box=$('pp-box'); if(!box) return;
+  try{ if(!PRODOTTI_ADMIN) PRODOTTI_ADMIN=await DB.listProdotti(); PACCHPROD_ADMIN = await DB.listPacchettiProd(); }
+  catch(e){ box.innerHTML='Errore nel caricamento: '+esc(e.message||'')+'<br><span class="muted">Se le tabelle non esistono ancora, applica la migrazione 0026.</span>'; return; }
+  box.innerHTML = PACCHPROD_ADMIN.length ? `<table class="tbl"><thead><tr><th>Pacchetto</th><th>Prezzo</th><th>Contenuto</th><th>Stato</th><th></th></tr></thead><tbody>
+    ${PACCHPROD_ADMIN.map(r=>{ const np=r.voci.filter(v=>v.tipo==='prodotto').length, nf=r.voci.filter(v=>v.tipo==='famiglia').length;
+      return `<tr><td><b>${esc(r.nome)}</b></td><td>${euro(Number(r.prezzo)||0)}</td>
+      <td>${np||nf?[np?np+(np===1?' prodotto':' prodotti'):'',nf?nf+(nf===1?' famiglia':' famiglie'):''].filter(Boolean).join(' · '):'<span class="muted">vuoto</span>'}</td>
+      <td>${r.attivo!==false?'attivo':'<span class="muted">sospeso</span>'}</td>
+      <td style="white-space:nowrap"><button class="linkbtn" onclick="apriVociPacchetto('${r.id}')">Contenuto</button> <button class="linkbtn" onclick="editPacchettoProd('${r.id}')">Modifica</button> <button class="linkbtn" style="color:var(--porpora)" onclick="eliminaPacchettoProd('${r.id}')">Elimina</button></td></tr>`;}).join('')}
+  </tbody></table>` : '<div class="empty">Nessun pacchetto ancora. Premi «+ Nuovo pacchetto».</div>';
+}
+function editPacchettoProd(id){
+  const r=(PACCHPROD_ADMIN||[]).find(x=>x.id===id)||{attivo:true};
+  openModal(`<h3 style="font-size:23px">${id?'Modifica pacchetto':'Nuovo pacchetto'}</h3>`,
+   `<div class="field"><label>Nome identificativo del pacchetto</label><input id="pp-nome" value="${esc(r.nome||'')}" placeholder="es. Abbonamento annuale completo"></div>
+    <div class="field"><label>Descrizione</label><textarea id="pp-desc" rows="3">${esc(r.descrizione||'')}</textarea></div>
+    <div class="grid g3">
+      <div class="field"><label>Prezzo (€)</label><input id="pp-prezzo" type="number" step="0.01" min="0" value="${esc(String(r.prezzo||''))}"></div>
+      <div class="field"><label>Ordine</label><input id="pp-ord" type="number" value="${r.ordine||((PACCHPROD_ADMIN||[]).length+1)}"></div>
+      <div class="field"><label>Stato</label><select id="pp-att"><option value="1"${r.attivo!==false?' selected':''}>Attivo</option><option value="0"${r.attivo===false?' selected':''}>Sospeso</option></select></div></div>
+    ${id?`<div class="field"><label>Contenuto del pacchetto</label><button type="button" class="btn small oro" onclick="apriVociPacchetto('${id}')">Gestisci famiglie e prodotti</button></div>`
+        :`<p class="muted small">Salva il pacchetto: potrai poi aggiungere famiglie e prodotti dal bottone «Contenuto».</p>`}
+    <button class="btn full" onclick="salvaPacchettoProd('${id||''}')">Salva pacchetto</button>`);
+}
+async function salvaPacchettoProd(id){
+  const nome=($('pp-nome').value||'').trim(); if(nome.length<2) return toast('Serve il nome identificativo.');
+  const row={ id:id||('pp'+Date.now().toString(36)), nome, descrizione:($('pp-desc').value||'').trim(),
+    prezzo:Number($('pp-prezzo').value)||0, ordine:parseInt($('pp-ord').value||0,10)||0, attivo:$('pp-att').value==='1' };
+  try{ await DB.savePacchettoProd(row); closeModal(); setCmsTab('pacchprod'); toast('Pacchetto salvato.'); }
+  catch(e){ toast('Errore: '+(e.message||(e.code==='23505'?'nome già usato':''))); }
+}
+async function eliminaPacchettoProd(id){
+  const r=(PACCHPROD_ADMIN||[]).find(x=>x.id===id);
+  if(!confirm('Eliminare il pacchetto «'+(r&&r.nome||id)+'» e il suo contenuto?')) return;
+  try{ await DB.deletePacchettoProd(id); setCmsTab('pacchprod'); toast('Pacchetto eliminato.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+function nomeVoce(v){
+  if(v.tipo==='famiglia') return 'Famiglia «'+v.valore+'» (tutti i suoi prodotti)';
+  const pr=(PRODOTTI_ADMIN||[]).find(x=>x.id===v.valore); return pr?pr.nome:('Prodotto '+v.valore);
+}
+function aggiornaValoriVoce(){
+  const t=$('vp-tipo').value, sel=$('vp-val'); if(!sel) return;
+  sel.innerHTML = t==='famiglia'
+    ? famiglieProdotti().map(f=>`<option value="${esc(f)}">${esc(f)}</option>`).join('')||'<option value="">— nessuna famiglia —</option>'
+    : (PRODOTTI_ADMIN||[]).filter(x=>x.attivo!==false).map(x=>`<option value="${esc(x.id)}">${esc(x.nome)}</option>`).join('')||'<option value="">— nessun prodotto —</option>';
+}
+async function apriVociPacchetto(id){
+  if(!PRODOTTI_ADMIN){ try{ PRODOTTI_ADMIN=await DB.listProdotti(); }catch(e){ PRODOTTI_ADMIN=[]; } }
+  try{ PACCHPROD_ADMIN = await DB.listPacchettiProd(); }catch(e){ return toast('Errore: '+(e.message||'')); }
+  const r=(PACCHPROD_ADMIN||[]).find(x=>x.id===id); if(!r) return;
+  openModal(`<h3 style="font-size:23px">Contenuto di «${esc(r.nome)}»</h3>`,
+   `${r.voci.length?r.voci.map(v=>`<div class="lesson" style="cursor:default">
+      <span class="t">${esc(nomeVoce(v))}</span>
+      <button class="linkbtn" style="margin-left:auto;color:var(--porpora)" onclick="eliminaVoce(${v.id},'${id}')">Togli</button></div>`).join('')
+     :'<p class="muted small">Il pacchetto è ancora vuoto.</p>'}
+    <div class="grid g3" style="margin-top:14px;align-items:end">
+      <div class="field"><label>Aggiungi</label><select id="vp-tipo" onchange="aggiornaValoriVoce()"><option value="prodotto">un prodotto</option><option value="famiglia">una famiglia intera</option></select></div>
+      <div class="field" style="grid-column:span 2"><label>Quale</label><select id="vp-val"></select></div></div>
+    <button class="btn full" onclick="aggiungiVoce('${id}')">Aggiungi al pacchetto</button>`);
+  setTimeout(aggiornaValoriVoce,0);
+}
+async function aggiungiVoce(pacchettoId){
+  const tipo=$('vp-tipo').value, val=$('vp-val').value;
+  if(!val) return toast(tipo==='famiglia'?'Non ci sono famiglie: assegna una famiglia ai prodotti.':'Non ci sono prodotti attivi.');
+  try{ await DB.addVoce(pacchettoId, tipo, val); toast('Aggiunto.'); apriVociPacchetto(pacchettoId); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+async function eliminaVoce(id, pacchettoId){
+  try{ await DB.deleteVoce(id); apriVociPacchetto(pacchettoId); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+
+/* ---- ACQUISTI ed EROGAZIONI LIBERALI ---- */
+async function caricaAcquisti(){
+  const box=$('aq-box'); if(!box) return;
+  try{
+    if(!PACCHPROD_ADMIN) PACCHPROD_ADMIN=await DB.listPacchettiProd();
+    [ACQUISTI_ADMIN, EROGAZIONI_ADMIN] = await Promise.all([DB.listAcquisti(), DB.listErogazioni()]);
+  }catch(e){ box.innerHTML='Errore nel caricamento: '+esc(e.message||'')+'<br><span class="muted">Se le tabelle non esistono ancora, applica la migrazione 0026.</span>'; return; }
+  const nomePacch=id=>{ const r=(PACCHPROD_ADMIN||[]).find(x=>x.id===id); return r?r.nome:id; };
+  const ero=id=>(EROGAZIONI_ADMIN||[]).find(e=>e.id===id);
+  box.innerHTML = ACQUISTI_ADMIN.length ? `<table class="tbl"><thead><tr><th>Data</th><th>Cliente</th><th>Pacchetto</th><th>Importo</th><th>Modalità</th><th>Erogazione</th><th></th></tr></thead><tbody>
+    ${ACQUISTI_ADMIN.map(a=>{ const e=a.erogazione_id?ero(a.erogazione_id):null;
+      return `<tr><td>${esc(fmtGiorno(a.data))}</td><td>${esc(nomeAnag(a.anagrafica_id))}</td><td>${esc(nomePacch(a.pacchetto_id))}</td>
+      <td>${euro(Number(a.importo)||0)}</td><td>${esc(a.modalita)}</td>
+      <td>${e?`<b>n. ${e.numero}/${e.anno}</b>`:'<span class="muted">—</span>'}</td>
+      <td style="white-space:nowrap">${e?`<button class="linkbtn" onclick="stampaErogazione(${e.id})">Stampa ricevuta</button>`
+        :`<button class="linkbtn" onclick="rilasciaEro(${a.id})">Rilascia erogazione</button> <button class="linkbtn" style="color:var(--porpora)" onclick="eliminaAcquisto(${a.id})">Elimina</button>`}</td></tr>`;}).join('')}
+  </tbody></table>` : '<div class="empty">Nessun acquisto registrato. Premi «+ Registra acquisto».</div>';
+}
+function nuovoAcquisto(){
+  const clienti=ANAGRAFICHE.filter(a=>(a.tipo||'').split(',').map(x=>x.trim()).includes('cliente'));
+  if(!clienti.length) return toast('Prima crea il cliente in Amministrazione → Clienti.');
+  const pacch=(PACCHPROD_ADMIN||[]).filter(p=>p.attivo!==false);
+  if(!pacch.length) return toast('Prima crea un pacchetto in Amministrazione → Pacchetti prodotti.');
+  openModal(`<h3 style="font-size:23px">Registra un acquisto</h3>`,
+   `<div class="field"><label>Cliente</label><select id="aq-cli">${clienti.map(c=>`<option value="${c.id}">${esc((c.nome||'')+' '+(c.cognome||''))}</option>`).join('')}</select></div>
+    <div class="field"><label>Pacchetto</label><select id="aq-pac" onchange="const p=(PACCHPROD_ADMIN||[]).find(x=>x.id===this.value); if(p&&$('aq-imp')) $('aq-imp').value=Number(p.prezzo)||0;">
+      ${pacch.map(p=>`<option value="${p.id}">${esc(p.nome)} — ${euro(Number(p.prezzo)||0)}</option>`).join('')}</select></div>
+    <div class="grid g3">
+      <div class="field"><label>Data</label><input id="aq-data" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+      <div class="field"><label>Importo (€)</label><input id="aq-imp" type="number" step="0.01" min="0" value="${Number(pacch[0].prezzo)||0}"></div>
+      <div class="field"><label>Modalità</label><select id="aq-mod">${['bonifico','carta','contanti','stripe','altro'].map(m=>`<option>${m}</option>`).join('')}</select></div></div>
+    <div class="field"><label>Note (facoltative)</label><input id="aq-note"></div>
+    <button class="btn full" onclick="salvaAcquisto()">Registra l’acquisto</button>`);
+}
+async function salvaAcquisto(){
+  const row={ anagrafica_id:parseInt($('aq-cli').value,10), pacchetto_id:$('aq-pac').value,
+    data:$('aq-data').value||new Date().toISOString().slice(0,10), importo:Number($('aq-imp').value)||0,
+    modalita:$('aq-mod').value, note:($('aq-note').value||'').trim() };
+  try{ await DB.saveAcquisto(row); closeModal(); setCmsTab('acquisti'); toast('Acquisto registrato: ora puoi rilasciare l’erogazione liberale.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+async function eliminaAcquisto(id){
+  if(!confirm('Eliminare questo acquisto? (Si può solo finché non ha un’erogazione rilasciata.)')) return;
+  try{ await DB.deleteAcquisto(id); setCmsTab('acquisti'); toast('Acquisto eliminato.'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+async function rilasciaEro(acquistoId){
+  try{ const e=await DB.rilasciaErogazione(acquistoId); toast('Erogazione liberale n. '+e.numero+'/'+e.anno+' rilasciata.'); setCmsTab('acquisti'); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
+}
+async function stampaErogazione(id){
+  const e=(EROGAZIONI_ADMIN||[]).find(x=>x.id===id); if(!e) return;
+  const a=ANAGRAFICHE.find(x=>String(x.id)===String(e.anagrafica_id))||{};
+  let ente={}; try{ ente=await DB.datiEnte()||{}; }catch(_e){}
+  const den=ente.denominazione||ente.nome||'La Pacifica Res Publica';
+  const num2=v=>(Number(v)||0).toFixed(2).replace('.',',');
+  const w=window.open('','_blank','width=780,height=900'); if(!w) return toast('Consenti le finestre pop-up per stampare.');
+  w.document.write(`<!doctype html><html lang="it"><head><meta charset="utf-8"><title>Erogazione liberale n. ${e.numero}/${e.anno}</title>
+<style>body{font-family:Georgia,'Times New Roman',serif;color:#1E2D48;max-width:640px;margin:40px auto;padding:0 24px;line-height:1.55}
+.testa{border-bottom:2px solid #A9842F;padding-bottom:14px;margin-bottom:26px}
+h1{font-size:21px;margin:26px 0 4px}.eti{font-size:11px;letter-spacing:2px;color:#A2622F;text-transform:uppercase}
+.riq{border:1px solid #D9C48A;background:#FAF6EC;border-radius:8px;padding:16px 20px;margin:18px 0}
+.importo{font-size:26px;font-weight:bold}.mut{color:#6F7885;font-size:13px}
+.firma{margin-top:60px;display:flex;justify-content:space-between;gap:40px}
+.firma div{flex:1;border-top:1px solid #1E2D48;padding-top:6px;font-size:13px;text-align:center}
+@media print{.nostampa{display:none}}</style></head><body>
+<div class="testa"><b style="font-size:17px">${esc(den)}</b><br>
+<span class="mut">${esc(ente.indirizzo||'')}${ente.codice_fiscale||ente.cf?' · C.F. '+esc(ente.codice_fiscale||ente.cf||''):''}${ente.email?' · '+esc(ente.email):''}</span></div>
+<div class="eti">Ricevuta di erogazione liberale</div>
+<h1>N. ${e.numero} / ${e.anno}</h1>
+<p class="mut">Data: ${esc(fmtGiorno(e.data))}</p>
+<div class="riq">
+<p style="margin:0 0 6px">Si attesta di aver ricevuto da:</p>
+<b>${esc(((a.nome||'')+' '+(a.cognome||'')).trim()||'—')}</b><br>
+<span class="mut">${a.cf?'C.F. '+esc(a.cf):''}${a.piva?(a.cf?' · ':'')+'P.IVA '+esc(a.piva):''}${a.indirizzo?'<br>'+esc(a.indirizzo):''}</span>
+<p style="margin:14px 0 2px">l’importo di</p>
+<div class="importo">€ ${num2(e.importo)}</div>
+<p class="mut" style="margin-top:10px">${esc(e.causale||'Erogazione liberale')}</p>
+</div>
+<p class="mut" style="font-size:12.5px">Erogazione liberale in denaro a favore dell’ente. Ai sensi dell’art. 83 del D.Lgs. 117/2017 (Codice del Terzo Settore), l’erogazione può beneficiare delle detrazioni o deduzioni fiscali previste, nei limiti e alle condizioni di legge. La presente ricevuta vale come attestazione dell’avvenuto versamento.</p>
+<div class="firma"><div>Il dichiarante</div><div>Per l’ente — firma</div></div>
+<p class="nostampa" style="margin-top:40px;text-align:center"><button onclick="window.print()" style="padding:10px 26px;font-size:15px;cursor:pointer">Stampa</button></p>
+</body></html>`);
+  w.document.close();
+}
+
 async function caricaUtenti(){
   const box=$('ut-box'); if(!box) return;
   try{ UTENTI_ADMIN = await DB.listUtenti(($('ut-q')&&$('ut-q').value.trim())||''); }
   catch(e){ box.textContent='Errore nel caricamento.'; return; }
   const B={presidenza:'oro',formatore:'blu',delegato:'verde',iscritto:'grigio'};
   box.innerHTML = UTENTI_ADMIN.length ? UTENTI_ADMIN.map(u=>`<div class="lesson" style="cursor:default">
-      <span class="t">${esc(u.nome||'(senza nome)')}<br><span class="d" style="margin:0">${esc(u.membership)}${u.scadenza?' fino al '+esc(fmtGiorno(u.scadenza)):''}${u.seggio?' \u00b7 seggio '+u.seggio:''}</span></span>
+      <span class="t">${esc(u.nome||'(senza nome)')}<br><span class="d" style="margin:0">${esc(u.membership)}${u.scadenza?' fino al '+esc(fmtGiorno(u.scadenza)):''}${u.seggio?' \u00b7 seggio '+u.seggio:''}${(u.livello||0)>0?' \u00b7 Percorso L'+u.livello:''}</span></span>
       <span style="margin-left:auto;display:flex;gap:8px;align-items:center">
         <span class="badge ${B[u.ruolo]||'grigio'}">${esc(u.ruolo)}</span>
         <button class="btn small ghost" onclick="editUtente('${u.id}')">Modifica</button></span></div>`).join('')
     : '<div class="empty">Nessun utente trovato.</div>';
+}
+function passwordProvvisoria(){ const v='abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789'; let p='';
+  for(let i=0;i<10;i++) p+=v[Math.floor(Math.random()*v.length)]; return 'Pax-'+p; }
+function nuovoAccount(){
+  openModal(`<h3 style="font-size:23px">Crea un account</h3>`,
+    `<p class="muted small" style="margin-bottom:12px">L\u2019account \u00e8 attivo subito: comunica tu all\u2019utente email e password provvisoria (potr\u00e0 cambiarla dal portale).</p>
+     <div class="field"><label>Nome e cognome</label><input id="na-nome" placeholder="es. Maria Rossi"></div>
+     <div class="field"><label>Email</label><input id="na-email" type="email" placeholder="nome@esempio.it"></div>
+     <div class="field"><label>Password provvisoria (almeno 8 caratteri)</label>
+       <div style="display:flex;gap:8px"><input id="na-pass" value="${passwordProvvisoria()}" style="flex:1">
+       <button type="button" class="btn small ghost" onclick="$('na-pass').value=passwordProvvisoria()">Rigenera</button></div></div>
+     <div class="grid g2">
+       <div class="field"><label>Ruolo</label><select id="na-ruolo">${['iscritto','delegato','formatore','presidenza'].map(r=>`<option>${r}</option>`).join('')}</select></div>
+       <div class="field"><label>Membership</label><select id="na-mem">${['free','civis','academicus'].map(m=>`<option>${m}</option>`).join('')}</select></div></div>
+     <button class="btn full" onclick="salvaNuovoAccount()">Crea l\u2019account</button>`);
+}
+async function salvaNuovoAccount(){
+  const o={ nome:$('na-nome').value.trim(), email:$('na-email').value.trim(), password:$('na-pass').value,
+    ruolo:$('na-ruolo').value, membership:$('na-mem').value };
+  if(o.nome.length<2) return toast('Inserisci il nome.');
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(o.email)) return toast('Email non valida.');
+  if((o.password||'').length<8) return toast('La password deve avere almeno 8 caratteri.');
+  try{ await DB.creaUtente(o); closeModal(); caricaUtenti(); toast('Account creato: '+o.email); }
+  catch(e){ toast('Errore: '+(e.message||'')); }
 }
 function editUtente(id){
   const u=UTENTI_ADMIN.find(x=>x.id===id); if(!u) return;
@@ -2579,12 +3126,13 @@ function editUtente(id){
     `<div class="grid g2">
        <div class="field"><label>Ruolo</label><select id="ut-ruolo">${['iscritto','delegato','formatore','presidenza'].map(r=>`<option ${u.ruolo===r?'selected':''}>${r}</option>`).join('')}</select></div>
        <div class="field"><label>Membership</label><select id="ut-mem">${['free','civis','academicus'].map(m=>`<option ${u.membership===m?'selected':''}>${m}</option>`).join('')}</select></div></div>
+     <div class="field"><label>Livello del Percorso di Pace</label><select id="ut-lp">${[0,1,2,3,4].map(n=>`<option value="${n}" ${((u.livello||0)===n)?'selected':''}>${n} \u2014 ${NOMI_LIVELLO[n]}</option>`).join('')}</select></div>
      <div class="field"><label>Valida fino al (per attivazioni manuali, es. bonifico)</label><input id="ut-scad" type="date" value="${(u.scadenza||'').slice(0,10)}"></div>
      <p class="muted small" style="margin:2px 0 12px">Usalo per attivare o prorogare una membership pagata fuori da Stripe. Il ruolo \u201cformatore\u201d attiva l\u2019Area formatore.</p>
      <button class="btn full" onclick="salvaUtente('${u.id}')">Salva</button>`);
 }
 async function salvaUtente(id){
-  try{ await DB.saveUtente(id,{ ruolo:$('ut-ruolo').value, membership:$('ut-mem').value, scadenza:$('ut-scad').value||null });
+  try{ await DB.saveUtente(id,{ ruolo:$('ut-ruolo').value, membership:$('ut-mem').value, scadenza:$('ut-scad').value||null, livelloPace:parseInt($('ut-lp').value,10) });
     closeModal(); caricaUtenti(); toast('Utente aggiornato.'); }
   catch(e){ toast('Errore: '+(e.message||'')); }
 }
@@ -2739,7 +3287,7 @@ function blocchiEditorZona(zi, sotto){
   return `<div class="bk-zona"><div class="bk-cap">Elementi aggiuntivi${sotto?' \u2014 '+esc(sotto):''}</div>${righe}${add}</div>`;
 }
 function editLibro(id){
-  const l = LIBRI.find(x=>x.id===id) || { id:'', titolo:'', autore:'', descrizione:'', prezzo:'', copertina_url:'', link_cartaceo:'', pubblicato:true, pdf_path:'' };
+  const l = LIBRI.find(x=>x.id===id) || { id:'', titolo:'', autore:'', descrizione:'', prezzo:'', copertina_url:'', link_cartaceo:'', link_amazon:'', in_abbonamento:false, pubblicato:true, pdf_path:'' };
   openModal(`<h3 style="font-size:22px">${id?'Modifica libro':'Nuovo Diamante'}</h3>`,
    `<div class="field"><label>Titolo</label><input id="lb-titolo" value="${esc(l.titolo)}"></div>
     <div class="field"><label>Autore</label><input id="lb-autore" value="${esc(l.autore||'')}"></div>
@@ -2750,6 +3298,9 @@ function editLibro(id){
     </div>
     <div class="field"><label>Copertina (indirizzo immagine, facoltativo)</label><input id="lb-cover" value="${esc(l.copertina_url||'')}" placeholder="https\u2026 oppure img/\u2026"></div>
     <div class="field"><label>Edizione cartacea (collegamento per l\u2019acquisto, facoltativo)</label><input id="lb-link" value="${esc(l.link_cartaceo||'')}" placeholder="https\u2026"></div>
+    <div class="grid g2">
+      <div class="field"><label>Vendita diretta su Amazon (link, facoltativo)</label><input id="lb-amazon" value="${esc(l.link_amazon||'')}" placeholder="https://www.amazon.it/..."></div>
+      <div class="field"><label>Lettura inclusa nell\u2019abbonamento</label><select id="lb-abb"><option value="0"${!l.in_abbonamento?' selected':''}>No, solo con l\u2019acquisto</option><option value="1"${l.in_abbonamento?' selected':''}>S\u00ec, con la membership Academicus</option></select></div></div>
     <div class="field"><label>File PDF del libro ${l.pdf_path?'<span class="badge verde">gi\u00e0 caricato \u2014 scegli un file solo per sostituirlo</span>':''}</label><input id="lb-pdf" type="file" accept="application/pdf"></div>
     <p class="muted small">Il PDF va nel deposito privato: chi non ha acquistato il libro non pu\u00f2 aprirlo n\u00e9 scaricarlo.</p>
     <button class="btn full" onclick="salvaLibro('${l.id}')">Salva il libro</button>`);
@@ -2759,7 +3310,8 @@ async function salvaLibro(id){
   const nuovo = !id; id = id || ('lb'+Date.now().toString(36));
   const row = { id, titolo:tit, autore:($('lb-autore').value||'').trim(), descrizione:($('lb-desc').value||'').trim(),
     prezzo: Number($('lb-prezzo').value)||0, copertina_url:($('lb-cover').value||'').trim(),
-    link_cartaceo:($('lb-link').value||'').trim(), pubblicato: $('lb-pub').value==='1' };
+    link_cartaceo:($('lb-link').value||'').trim(), link_amazon:($('lb-amazon').value||'').trim(),
+    in_abbonamento: $('lb-abb').value==='1', pubblicato: $('lb-pub').value==='1' };
   const prev = LIBRI.find(x=>x.id===id); if(prev) row.pdf_path = prev.pdf_path||''; if(nuovo) row.pdf_path='';
   try{
     const f = $('lb-pdf').files && $('lb-pdf').files[0];

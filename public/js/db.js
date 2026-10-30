@@ -39,6 +39,25 @@ const DB = {
   async signOut(){ await sb.auth.signOut(); },
   async session(){ const { data } = await sb.auth.getSession(); return data.session; },
 
+  /* ---------- PERCORSO DI PACE (v1.92) ---------- */
+  async signUpPercorso(nome, email, password){
+    const { data, error } = await sb.auth.signUp({ email, password, options:{ data:{ nome, percorso:'1' } } });
+    if (error) throw error;
+    return { confermaRichiesta: !(data && data.session) }; // true = serve confermare l'email
+  },
+  async avviaPercorso(){ const { data, error } = await sb.rpc('avvia_percorso'); if (error) throw error; return data; },
+  async completaCostruttore(modo, dettaglio){
+    const { error } = await sb.rpc('completa_costruttore', { p_modo:modo, p_dettaglio:dettaglio||'' });
+    if (error) throw error;
+  },
+  async uploadAttestatoIEP(file){
+    const { data:{ user } } = await sb.auth.getUser(); if(!user) throw new Error('Non sei collegato.');
+    const nomeFile = Date.now() + '-' + (file.name||'attestato').replace(/[^a-zA-Z0-9._-]/g,'_');
+    const path = 'attestati/' + user.id + '/' + nomeFile;
+    const { error } = await sb.storage.from('percorso').upload(path, file, { upsert:false });
+    if (error) throw error; return path;
+  },
+
   /* ---------- PROFILO (carica tutto ciò che serve a `io`) ---------- */
   async loadMe(){
     const { data:{ user } } = await sb.auth.getUser();
@@ -61,6 +80,8 @@ const DB = {
       id:prof.id, nome:prof.nome, email:user.email,
       ruolo:prof.ruolo, membership:prof.membership,
       seggio:prof.seggio, comm:prof.commissione,
+      livelloPace: prof.livello_pace||0, percorsoDal: prof.percorso_dal||null,
+      metaPercorso: !!(user.user_metadata && user.user_metadata.percorso),
       acquisti, progress
     };
   },
@@ -167,9 +188,10 @@ const DB = {
     const prezzoPercorso = parseInt(set.prezzo_percorso||'440',10);
     return {
       CORSI: (c.data||[]).map(r=>({ id:r.id, tit:r.titolo, form:r.formatore, comm:r.commissione,
-        pacc:r.pacchetto, desc:r.descrizione, prezzo:r.prezzo, ordine:r.ordine, pubblicato:r.pubblicato, creato:r.updated_at, formatoreId:r.formatore_id })),
+        pacc:r.pacchetto, area:r.area||'', desc:r.descrizione, prezzo:r.prezzo, ordine:r.ordine, pubblicato:r.pubblicato, creato:r.updated_at, formatoreId:r.formatore_id })),
       VOD: (v.data||[]).map(r=>({ id:r.id, tit:r.titolo, tipo:r.tipo, durata:r.durata, livello:r.livello,
-        comm:r.commissione, desc:r.descrizione, ordine:r.ordine, pubblicato:r.pubblicato, creato:r.updated_at })),
+        comm:r.commissione, desc:r.descrizione, ordine:r.ordine, pubblicato:r.pubblicato, creato:r.updated_at,
+        serie:r.serie||'', stagione:r.stagione||1, episodio:r.episodio||0 })),
       TEMI: (tm.data||[]).map(r=>({commissione:r.commissione, prefisso:r.prefisso, nota:r.nota})),
       ANAGRAFICHE: (ag.data||[]).map(r=>({ id:r.id, tipo:r.tipo, nome:r.nome, cognome:r.cognome,
         cf:r.codice_fiscale, piva:r.partita_iva, email:r.email, tel:r.telefono, indirizzo:r.indirizzo,
@@ -207,7 +229,7 @@ const DB = {
     };
   },
   async saveCourse(o){ const { error } = await sb.from('courses').upsert({
-      id:o.id, titolo:o.tit, formatore:o.form, formatore_id:o.formatoreId||null, commissione:o.comm, pacchetto:o.pacc,
+      id:o.id, titolo:o.tit, formatore:o.form, formatore_id:o.formatoreId||null, commissione:o.comm, pacchetto:o.pacc, area:o.area||'',
       descrizione:o.desc, prezzo:o.prezzo, ordine:o.ordine, pubblicato:o.pubblicato, updated_at:new Date().toISOString()
     }, { onConflict:'id' }); if (error) throw error; },
   async deleteCourse(id){ const { error } = await sb.from('courses').delete().eq('id',id); if (error) throw error; },
@@ -250,6 +272,26 @@ const DB = {
   async loadLibri(){ const { data, error } = await sb.from('libri').select('*').order('ordine'); if(error) throw error; return data||[]; },
   async saveLibro(row){ const { error } = await sb.from('libri').upsert(row, { onConflict:'id' }); if(error) throw error; },
   async deleteLibro(id){ const { error } = await sb.from('libri').delete().eq('id', id); if(error) throw error; },
+  /* ---- Gestionale amministrativo (Presidenza -> Amministrazione) ---- */
+  async listProdotti(){ const { data, error } = await sb.from('prodotti').select('*').order('ordine'); if(error) throw error; return data||[]; },
+  async saveProdotto(row){ const { error } = await sb.from('prodotti').upsert({...row, updated_at:new Date().toISOString()}, { onConflict:'id' }); if(error) throw error; },
+  async deleteProdotto(id){ const { error } = await sb.from('prodotti').delete().eq('id', id); if(error) throw error; },
+  async listPacchettiProd(){
+      const [p,v] = await Promise.all([
+        sb.from('pacchetti_prodotti').select('*').order('ordine'),
+        sb.from('pacchetti_voci').select('*').order('id')]);
+      if(p.error) throw p.error;
+      const voci={}; ((v.data)||[]).forEach(r=>{ (voci[r.pacchetto_id]=voci[r.pacchetto_id]||[]).push(r); });
+      return ((p.data)||[]).map(r=>({ ...r, voci: voci[r.id]||[] })); },
+  async savePacchettoProd(row){ const { error } = await sb.from('pacchetti_prodotti').upsert({...row, updated_at:new Date().toISOString()}, { onConflict:'id' }); if(error) throw error; },
+  async deletePacchettoProd(id){ const { error } = await sb.from('pacchetti_prodotti').delete().eq('id', id); if(error) throw error; },
+  async addVoce(pacchettoId, tipo, valore){ const { error } = await sb.from('pacchetti_voci').insert({ pacchetto_id:pacchettoId, tipo, valore }); if(error) throw error; },
+  async deleteVoce(id){ const { error } = await sb.from('pacchetti_voci').delete().eq('id', id); if(error) throw error; },
+  async listAcquisti(){ const { data, error } = await sb.from('acquisti_pacchetti').select('*').order('id',{ascending:false}).limit(400); if(error) throw error; return data||[]; },
+  async saveAcquisto(row){ const { data, error } = await sb.from('acquisti_pacchetti').upsert(row, { onConflict:'id' }).select().single(); if(error) throw error; return data; },
+  async deleteAcquisto(id){ const { error } = await sb.from('acquisti_pacchetti').delete().eq('id', id); if(error) throw error; },
+  async rilasciaErogazione(acquistoId){ const { data, error } = await sb.rpc('rilascia_erogazione', { p_acquisto: acquistoId }); if(error) throw error; return data; },
+  async listErogazioni(){ const { data, error } = await sb.from('erogazioni_liberali').select('*').order('anno',{ascending:false}).order('numero',{ascending:false}).limit(400); if(error) throw error; return data||[]; },
   async uploadLibroPdf(id, file){
     if(!sb.storage) throw new Error('Il caricamento dei PDF funziona solo sul portale online.');
     const nome = (file.name||'libro.pdf').replace(/[^a-zA-Z0-9._-]/g,'_');
@@ -296,13 +338,25 @@ const DB = {
           body: JSON.stringify({ account_id:accountId, filename, content_type:contentType }) });
       }catch(_e){ throw new Error('La funzione non risponde (failed to fetch): quasi sempre significa che le Edge Function non sono ancora pubblicate su Supabase, o che FUNCTIONS_BASE \u00e8 sbagliato. Controlla: Dashboard \u2192 Edge Functions \u2192 deve esserci \u201cs3-presign\u201d; e FUNCTIONS_BASE deve essere https://TUO-PROGETTO.supabase.co/functions/v1'); }
       const j = await r.json(); if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; },
+  async creaUtente(o){
+      const base=funcBase(); if(!base) throw new Error('FUNCTIONS_BASE non configurato');
+      const { data:{ session } } = await sb.auth.getSession();
+      let r;
+      try{
+        r = await fetch(base+'/crea-utente', { method:'POST',
+          headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+(session&&session.access_token||'') },
+          body: JSON.stringify(o) });
+      }catch(_e){ throw new Error('La funzione non risponde (failed to fetch): quasi sempre significa che la Edge Function \u201ccrea-utente\u201d non \u00e8 ancora pubblicata su Supabase, o che FUNCTIONS_BASE \u00e8 sbagliato.'); }
+      const j = await r.json(); if(!r.ok||j.error) throw new Error(j.error||('HTTP '+r.status)); return j; },
   async listUtenti(q){ let sel = sb.from('profiles').select('*').order('nome').limit(200);
       if(q) sel = sel.ilike('nome','%'+q+'%');
       const { data, error } = await sel; if(error) throw error;
       return (data||[]).map(r=>({ id:r.id, nome:r.nome, ruolo:r.ruolo, membership:r.membership,
-        scadenza:r.membership_until, seggio:r.seggio, commissione:r.commissione })); },
-  async saveUtente(id, o){ const { error } = await sb.from('profiles').update({ ruolo:o.ruolo,
-      membership:o.membership, membership_until:o.scadenza||null }).eq('id',id); if(error) throw error; },
+        scadenza:r.membership_until, seggio:r.seggio, commissione:r.commissione, livello:r.livello_pace||0 })); },
+  async saveUtente(id, o){
+    const upd = { ruolo:o.ruolo, membership:o.membership, membership_until:o.scadenza||null };
+    if (o.livelloPace!=null && !isNaN(o.livelloPace)) upd.livello_pace = o.livelloPace;
+    const { error } = await sb.from('profiles').update(upd).eq('id',id); if(error) throw error; },
   async listPagamenti(){ const { data, error } = await sb.from('payments').select('*')
       .order('created_at',{ascending:false}).limit(200); if(error) throw error;
       return (data||[]).map(r=>({ id:r.id, profileId:r.profile_id, kind:r.kind, ref:r.ref,
@@ -372,7 +426,9 @@ const DB = {
   async saveVideo(o){
     const { error } = await sb.from('videos').upsert({
       id:o.id, titolo:o.tit, tipo:o.tipo, durata:o.durata, livello:o.livello, commissione:o.comm,
-      descrizione:o.desc, ordine:o.ordine, pubblicato:o.pubblicato, updated_at:new Date().toISOString()
+      descrizione:o.desc, ordine:o.ordine, pubblicato:o.pubblicato,
+      serie:o.serie||'', stagione:parseInt(o.stagione||1,10)||1, episodio:parseInt(o.episodio||0,10)||0,
+      updated_at:new Date().toISOString()
     }, { onConflict:'id' }); if (error) throw error;
     const { error: e2 } = await sb.from('video_sources').upsert({
       video_id:o.id, url:o.url||'', updated_at:new Date().toISOString()

@@ -1,5 +1,51 @@
 # La Pacifica Res Publica — Portale online (Supabase + Netlify)
 
+> **Novità della versione 1.92 — il Percorso di Pace**
+> Il portale ospita il **Percorso di Pace a quattro livelli** (voce di menu
+> «Percorso di Pace»):
+> 1. **Esploratore di Pace** — registrazione gratuita dal portale (riaperta la
+>    scheda «Inizia il Percorso di Pace» nella pagina di accesso) e
+>    collegamento al corso introduttivo gratuito sulla Pace Positiva
+>    (Positive Peace Academy / IEP — solo link, nessun contenuto ricaricato).
+> 2. **Costruttore di Pace** — dopo il corso: caricamento dell'attestato
+>    oppure questionario di rientro; attestato della Pacifica «Primo passo di
+>    pace» stampabile, Quaderno di Pace e lezione omaggio.
+> 3. **Accademico** — corso singolo o abbonamento Academicus.
+> 4. **Ambasciatore di Pace** — candidatura (arriva in *Presidenza →
+>    Richieste*); il livello si assegna da *Utenti → Modifica*.
+> Link e documenti del percorso si cambiano da *Presidenza → Contenuti →
+> Testi delle pagine* (chiavi `percorso.*`). Serve la migrazione
+> `0027_percorso_di_pace.sql` e, su Supabase, riattivare **Allow new users
+> to sign up** (Authentication → Sign In / Providers).
+
+> **Novità della versione 1.91 — il gestionale dell'associazione**
+> In *Presidenza → Contenuti* c'è il gruppo **Amministrazione**:
+> - **Clienti** e **Fornitori** — il database delle anagrafiche (il cliente può
+>   essere collegato all'account del portale di chi si registra).
+> - **Prodotti** — il catalogo, con le **famiglie** (es. Corsi, Libri, Serie TV)
+>   e il collegamento ai contenuti del portale.
+> - **Pacchetti prodotti** — ogni pacchetto ha un nome identificativo e raccoglie
+>   famiglie intere o singoli prodotti; le modalità dell'abbonamento si
+>   definiscono qui, come pacchetti.
+> - **Acquisti ed erogazioni** — si registra l'acquisto (bonifico, carta,
+>   contanti…) e si rilascia l'**erogazione liberale numerata** (progressivo per
+>   anno) con la ricevuta stampabile (art. 83 D.Lgs. 117/2017).
+> Inoltre: i **libri** hanno il link di vendita Amazon e la lettura online
+> inclusa nell'abbonamento Academicus; il **Video On Demand** raggruppa i video
+> in **serie TV** (serie, stagione, episodio). Serve la migrazione
+> `0026_crm_amministrazione.sql`.
+
+> **Novità della versione 1.90 — gestione corsi e portale**
+> - **Le sette aree formative**: ogni corso ha la sua area (campo nel gestionale) e
+>   l'Accademia mostra i corsi raggruppati per area, con filtro dedicato.
+> - **I venti corsi canonici**: la migrazione `0025_aree_formative.sql` rinomina gli
+>   otto corsi esistenti sui titoli del progetto (conservando lezioni, acquisti e
+>   progressi) e crea i dodici mancanti come **bozze** da completare e pubblicare.
+>   Prezzo del corso singolo: **159 €**.
+> - **Crea account dal gestionale**: in *Presidenza → Contenuti → Utenti* c'è
+>   «+ Crea account» (nome, email, password provvisoria, ruolo, membership).
+>   Serve la nuova Edge Function **`crea-utente`** pubblicata su Supabase.
+
 Ecosistema digitale integrato (un solo account, una sola dashboard, quattro pilastri):
 
 - **I · Parlamento dei Giovani** — 150 seggi, 7 commissioni, proposte di legge e votazioni
