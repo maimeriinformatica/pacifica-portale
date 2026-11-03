@@ -1,4 +1,4 @@
-const VERSIONE_PORTALE = '1.92';
+const VERSIONE_PORTALE = '1.93';
 const MOSTRA_ABBONAMENTI = false;  // sezione 'Un solo abbonamento' in home: rimettere true per mostrarla  // aggiornata a ogni modifica consegnata
 /* =====================================================================
    LA PACIFICA RES PUBLICA — Applicazione (frontend)
@@ -795,10 +795,19 @@ async function doLogin(){
   busy(true);
   try{ await DB.signIn(email, pass); }
   catch(e){
-    busy(false);
     const m=(e && e.message)||'';
-    if(/invalid login credentials/i.test(m)) authMsg('Email o password non corretti.','err');
-    else if(/email not confirmed/i.test(m)) authMsg('Email non ancora confermata: conferma dal pannello Supabase (email_confirmed_at) o dalla mail di conferma.','err');
+    // v1.93: se email e password coincidono con l'amministratore impostato
+    // nelle variabili riservate (Secrets su Supabase), il programma ripara
+    // l'account da solo e riprova l'accesso.
+    if(/invalid login credentials|email not confirmed/i.test(m)){
+      try{
+        const r=await DB.adminAccesso(email, pass);
+        if(r && r.ok){ await DB.signIn(email, pass); TRK.log('login','login'); await enterApp(); return; }
+      }catch(_e){}
+    }
+    busy(false);
+    if(/invalid login credentials/i.test(m)) authMsg('Email o password non corretti. Se hai dimenticato la password, chiedi alla Presidenza: pu\u00f2 impostartene una nuova dal gestionale.','err');
+    else if(/email not confirmed/i.test(m)) authMsg('Email non ancora confermata: apri il collegamento ricevuto per email, oppure chiedi alla Presidenza una nuova password (che conferma anche l\u2019email).','err');
     else authMsg('Accesso rifiutato da Supabase: '+esc(m||'errore sconosciuto'),'err');
     return;
   }
@@ -3127,13 +3136,17 @@ function editUtente(id){
        <div class="field"><label>Ruolo</label><select id="ut-ruolo">${['iscritto','delegato','formatore','presidenza'].map(r=>`<option ${u.ruolo===r?'selected':''}>${r}</option>`).join('')}</select></div>
        <div class="field"><label>Membership</label><select id="ut-mem">${['free','civis','academicus'].map(m=>`<option ${u.membership===m?'selected':''}>${m}</option>`).join('')}</select></div></div>
      <div class="field"><label>Livello del Percorso di Pace</label><select id="ut-lp">${[0,1,2,3,4].map(n=>`<option value="${n}" ${((u.livello||0)===n)?'selected':''}>${n} \u2014 ${NOMI_LIVELLO[n]}</option>`).join('')}</select></div>
+     <div class="field"><label>Nuova password (lascia vuoto per non cambiarla)</label><input id="ut-pass" placeholder="almeno 8 caratteri" autocomplete="new-password"></div>
      <div class="field"><label>Valida fino al (per attivazioni manuali, es. bonifico)</label><input id="ut-scad" type="date" value="${(u.scadenza||'').slice(0,10)}"></div>
      <p class="muted small" style="margin:2px 0 12px">Usalo per attivare o prorogare una membership pagata fuori da Stripe. Il ruolo \u201cformatore\u201d attiva l\u2019Area formatore.</p>
      <button class="btn full" onclick="salvaUtente('${u.id}')">Salva</button>`);
 }
 async function salvaUtente(id){
+  const np=(($('ut-pass')&&$('ut-pass').value)||'').trim();
+  if(np && np.length<8) return toast('La nuova password deve avere almeno 8 caratteri.');
   try{ await DB.saveUtente(id,{ ruolo:$('ut-ruolo').value, membership:$('ut-mem').value, scadenza:$('ut-scad').value||null, livelloPace:parseInt($('ut-lp').value,10) });
-    closeModal(); caricaUtenti(); toast('Utente aggiornato.'); }
+    if(np) await DB.impostaPassword(id, np);
+    closeModal(); caricaUtenti(); toast(np?'Utente aggiornato; la nuova password \u00e8 gi\u00e0 attiva.':'Utente aggiornato.'); }
   catch(e){ toast('Errore: '+(e.message||'')); }
 }
 async function caricaPagamenti(){

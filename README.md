@@ -1,5 +1,20 @@
 # La Pacifica Res Publica — Portale online (Supabase + Netlify)
 
+> **Novità della versione 1.93 — gli accessi li gestisce il programma**
+> Le password non si toccano più dal pannello di Supabase:
+> - **Amministratore da variabile**: l'account amministratore si imposta con
+>   le variabili riservate **ADMIN_EMAIL** e **ADMIN_PASSWORD** (Supabase →
+>   Edge Functions → Secrets). Al primo accesso con quelle credenziali il
+>   portale crea o ripara da solo l'account (ruolo presidenza, email
+>   confermata). Per cambiare la password dell'amministratore basta cambiare
+>   la variabile.
+> - **Nuova password dal gestionale**: in *Presidenza → Contenuti → Utenti →
+>   Modifica* c'è il campo «Nuova password»: la imposta la Presidenza e
+>   conferma anche l'email dell'utente.
+> Serve la nuova Edge Function **`gestione-accessi`** pubblicata su Supabase
+> **senza** la verifica JWT (vedi guida 1.93). La chiave service_role resta
+> sul server; su Render non va aggiunto nulla.
+
 > **Novità della versione 1.92 — il Percorso di Pace**
 > Il portale ospita il **Percorso di Pace a quattro livelli** (voce di menu
 > «Percorso di Pace»):

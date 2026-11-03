@@ -348,6 +348,21 @@ const DB = {
           body: JSON.stringify(o) });
       }catch(_e){ throw new Error('La funzione non risponde (failed to fetch): quasi sempre significa che la Edge Function \u201ccrea-utente\u201d non \u00e8 ancora pubblicata su Supabase, o che FUNCTIONS_BASE \u00e8 sbagliato.'); }
       const j = await r.json(); if(!r.ok||j.error) throw new Error(j.error||('HTTP '+r.status)); return j; },
+  /* ---------- GESTIONE ACCESSI (v1.93: le password le gestisce il programma) ---------- */
+  async chiamaAccessi(corpo, conToken){
+      const base=funcBase(); if(!base) throw new Error('FUNCTIONS_BASE non configurato');
+      let tok='';
+      if(conToken!==false){ const { data:{ session } } = await sb.auth.getSession(); tok=(session&&session.access_token)||''; }
+      let r;
+      try{
+        r = await fetch(base+'/gestione-accessi', { method:'POST',
+          headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+tok },
+          body: JSON.stringify(corpo) });
+      }catch(_e){ throw new Error('La funzione non risponde: la Edge Function \u201cgestione-accessi\u201d non \u00e8 ancora pubblicata su Supabase (vedi la guida 1.93), oppure FUNCTIONS_BASE \u00e8 sbagliato.'); }
+      const j = await r.json().catch(()=>({})); if(!r.ok||j.error) throw new Error(j.error||('HTTP '+r.status)); return j; },
+  async adminAccesso(email, password){ return this.chiamaAccessi({ azione:'admin', email, password }, false); },
+  async impostaPassword(id, password){ return this.chiamaAccessi({ azione:'imposta-password', id, password }); },
+  async confermaEmail(id){ return this.chiamaAccessi({ azione:'conferma-email', id }); },
   async listUtenti(q){ let sel = sb.from('profiles').select('*').order('nome').limit(200);
       if(q) sel = sel.ilike('nome','%'+q+'%');
       const { data, error } = await sel; if(error) throw error;
